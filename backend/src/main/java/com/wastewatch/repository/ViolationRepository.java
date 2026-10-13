@@ -1,12 +1,14 @@
 package com.wastewatch.repository;
 
 import com.wastewatch.entity.Violation;
+import com.wastewatch.entity.enums.ViolationSeverity;
 import com.wastewatch.entity.enums.ViolationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,28 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
     long countByStatus(ViolationStatus status);
     long countByStatusIn(List<ViolationStatus> statuses);
     List<Violation> findByRoomBuildingId(Long buildingId);
+
+    // Phase 13: Advanced filter queries
+    List<Violation> findBySeverityOrderByCreatedAtDesc(ViolationSeverity severity);
+
+    @Query("SELECT v FROM Violation v WHERE " +
+           "(:status IS NULL OR v.status = :status) AND " +
+           "(:severity IS NULL OR v.severity = :severity) AND " +
+           "(:buildingId IS NULL OR v.room.building.id = :buildingId) AND " +
+           "(:areaId IS NULL OR v.room.building.area.id = :areaId) AND " +
+           "(:roomId IS NULL OR v.room.id = :roomId) AND " +
+           "(:from IS NULL OR v.createdAt >= :from) AND " +
+           "(:to IS NULL OR v.createdAt <= :to) " +
+           "ORDER BY v.createdAt DESC")
+    List<Violation> findWithFilters(
+            @Param("status") ViolationStatus status,
+            @Param("severity") ViolationSeverity severity,
+            @Param("buildingId") Long buildingId,
+            @Param("areaId") Long areaId,
+            @Param("roomId") Long roomId,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
 
     // Analytics Aggregations
     @Query("SELECT COUNT(v) FROM Violation v WHERE v.room.building.area.id = :areaId")

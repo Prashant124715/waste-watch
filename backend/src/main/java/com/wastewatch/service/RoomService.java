@@ -3,11 +3,13 @@ package com.wastewatch.service;
 import com.wastewatch.dto.room.RoomDetailDto;
 import com.wastewatch.dto.room.RoomRequestDto;
 import com.wastewatch.dto.room.RoomResponseDto;
+import com.wastewatch.entity.AuditLog;
 import com.wastewatch.entity.Building;
 import com.wastewatch.entity.Inspection;
 import com.wastewatch.entity.Room;
 import com.wastewatch.exception.DuplicateResourceException;
 import com.wastewatch.exception.ResourceNotFoundException;
+import com.wastewatch.repository.AuditLogRepository;
 import com.wastewatch.repository.BuildingRepository;
 import com.wastewatch.repository.InspectionRepository;
 import com.wastewatch.repository.RoomRepository;
@@ -25,13 +27,16 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final BuildingRepository buildingRepository;
     private final InspectionRepository inspectionRepository;
+    private final AuditLogRepository auditLogRepository;
 
     public RoomService(RoomRepository roomRepository,
                        BuildingRepository buildingRepository,
-                       InspectionRepository inspectionRepository) {
+                       InspectionRepository inspectionRepository,
+                       AuditLogRepository auditLogRepository) {
         this.roomRepository = roomRepository;
         this.buildingRepository = buildingRepository;
         this.inspectionRepository = inspectionRepository;
+        this.auditLogRepository = auditLogRepository;
     }
 
     @Transactional(readOnly = true)
@@ -91,6 +96,18 @@ public class RoomService {
         }
 
         Room saved = roomRepository.save(room);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "ROOM_CREATED",
+                "Room",
+                saved.getId().toString(),
+                null,
+                String.format("Room '%s' created on floor %d in building '%s'", saved.getRoomNumber(), saved.getFloorNumber(), building.getName())
+        );
+        auditLogRepository.save(auditLog);
+
         return RoomResponseDto.fromEntity(saved);
     }
 
@@ -127,6 +144,18 @@ public class RoomService {
         }
 
         Room updated = roomRepository.save(room);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "ROOM_UPDATED",
+                "Room",
+                updated.getId().toString(),
+                null,
+                String.format("Room '%s' in building '%s' updated", updated.getRoomNumber(), building.getName())
+        );
+        auditLogRepository.save(auditLog);
+
         return RoomResponseDto.fromEntity(updated);
     }
 
@@ -134,6 +163,18 @@ public class RoomService {
     public void deleteRoom(Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room", "id", id));
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "ROOM_DELETED",
+                "Room",
+                id.toString(),
+                null,
+                String.format("Room '%s' (ID: %d) deleted", room.getRoomNumber(), id)
+        );
+        auditLogRepository.save(auditLog);
+
         roomRepository.delete(room);
     }
 
@@ -160,14 +201,12 @@ public class RoomService {
             }
         }
 
-        List<Inspection> inspections = inspectionRepository.findByRoomIdOrderByInspectionDateDesc(room.getId());
-        dto.setTotalInspections(inspections.size());
-
-        if (!inspections.isEmpty()) {
-            Inspection latest = inspections.get(0);
-            dto.setLastInspectedAt(latest.getInspectionDate());
-            dto.setLastScore(latest.getTotalScore());
-            dto.setLastClassification(latest.getClassification());
+        Optional<Inspection> latestInspection = inspectionRepository.findFirstByRoomIdOrderByInspectionDateDesc(room.getId());
+        if (latestInspection.isPresent()) {
+            Inspection ins = latestInspection.get();
+            dto.setLastInspectedAt(ins.getInspectionDate());
+            dto.setLastScore(ins.getTotalScore());
+            dto.setLastClassification(ins.getClassification());
         }
 
         return dto;

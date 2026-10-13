@@ -1,254 +1,136 @@
 # WasteWatch — REST API Specification
 
-> **STATUS: PARTIALLY IMPLEMENTED (PHASE 2–5)**  
-> *Endpoints for Health (`/api/health`), Authentication (`/api/auth/**`), Areas (`/api/areas/**`), Buildings (`/api/buildings/**`), and Rooms (`/api/rooms/**`) are fully implemented and verified with automated integration tests. Endpoints for Inspection submission, Dashboard metrics, Leaflet Map geo-data, and CSV reports remain PLANNED.*
+> **STATUS: FULLY IMPLEMENTED & VERIFIED (PHASES 1–14)**  
+> *All endpoints documented below are fully implemented in the Spring Boot backend, covered by 90 automated unit and integration tests, and integrated with the framework-free frontend client.*
 
 ---
 
 ## 1. API Standards & Conventions
 
-- **Base URL**: `/api/v1` (or `/api`)
+- **Base URL**: `/api`
 - **Transport**: HTTPS (HTTP for local development)
-- **Data Format**: `application/json` for requests and responses
-- **Authentication**: Bearer Token (JWT) or session cookie passed in `Authorization: Bearer <token>`
+- **Data Format**: `application/json` for requests and responses (RFC-4180 `text/csv` for data exports)
+- **Authentication**: Stateless Bearer JWT header: `Authorization: Bearer <token>`
 - **HTTP Status Codes**:
   - `200 OK`: Request succeeded
   - `201 Created`: Resource successfully created
   - `400 Bad Request`: Validation failure or malformed payload
-  - `401 Unauthorized`: Authentication missing or invalid
+  - `401 Unauthorized`: Authentication missing, expired, or invalid
   - `403 Forbidden`: Insufficient role/privileges for resource
   - `404 Not Found`: Resource does not exist
-  - `409 Conflict`: Unique constraint violation (e.g., duplicate username or room number)
+  - `409 Conflict`: Unique constraint violation or duplicate submission cooldown
   - `500 Internal Server Error`: Unhandled server exception
 
 ### 1.1. Standard Response Envelope
-
-#### Success Envelope:
 ```json
 {
   "success": true,
   "message": "Resource retrieved successfully",
   "data": { ... },
-  "timestamp": "2026-10-08T14:30:00Z"
+  "timestamp": "2026-10-13T14:30:00Z"
 }
 ```
 
-#### Error Envelope:
+### 1.2. Standard Error Envelope
 ```json
 {
-  "success": false,
-  "error": "BAD_REQUEST",
+  "timestamp": "2026-10-13T14:30:00Z",
+  "status": 400,
+  "error": "Bad Request",
   "message": "Validation failed on one or more fields",
-  "fieldErrors": {
-    "wetWasteSeparated": "Field is required"
-  },
-  "timestamp": "2026-10-08T14:30:00Z"
+  "path": "/api/inspections",
+  "validationErrors": {
+    "roomId": "Room ID is mandatory"
+  }
 }
 ```
 
 ---
 
-## 2. Planned Endpoints Catalog
+## 2. Authentication & Session (`/api/auth`)
 
-### 2.1. Authentication & Session (`/api/auth`)
-
-#### `POST /api/auth/login` [PLANNED]
-* **Description**: Authenticate user credentials and return auth token and user role.
-* **Access**: Public
-* **Request Body**:
+### `POST /api/auth/login`
+- **Description**: Authenticate user credentials and return signed JWT token with user details.
+- **Access**: Public
+- **Request Body**:
   ```json
   {
-    "username": "admin_user",
-    "password": "Password123!"
+    "username": "admin",
+    "password": "admin123"
   }
   ```
-* **Response (200 OK)**:
+- **Response (200 OK)**:
   ```json
   {
-    "success": true,
-    "data": {
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "user": {
-        "id": 1,
-        "username": "admin_user",
-        "fullName": "Admin Officer",
-        "role": "ADMIN"
-      }
-    }
+    "token": "eyJhbGciOiJIUzI1NiJ9...",
+    "type": "Bearer",
+    "id": 1,
+    "username": "admin",
+    "email": "admin@wastewatch.gov",
+    "fullName": "Municipal Administrator",
+    "role": "ADMIN"
   }
   ```
 
-#### `GET /api/auth/me` [PLANNED]
-* **Description**: Retrieve profile information for the currently authenticated user.
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-* **Response (200 OK)**:
+### `GET /api/auth/me`
+- **Description**: Retrieve authenticated user profile from security context.
+- **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
+- **Response (200 OK)**: User profile object matching login details.
+
+---
+
+## 3. Infrastructure Management
+
+### 3.1. Areas (`/api/areas`)
+- `GET /api/areas`: List all municipal wards/areas (Access: `ADMIN`, `VOLUNTEER`).
+- `POST /api/areas`: Register a new area (Access: `ADMIN`).
+- `GET /api/areas/{id}`: Get area details (Access: `ADMIN`, `VOLUNTEER`).
+- `PUT /api/areas/{id}`: Update area details (Access: `ADMIN`).
+- `DELETE /api/areas/{id}`: Delete an area (Access: `ADMIN`).
+
+### 3.2. Buildings (`/api/buildings`)
+- `GET /api/buildings?areaId={id}`: List buildings, optionally filtered by area (Access: `ADMIN`, `VOLUNTEER`).
+- `POST /api/buildings`: Register a new building with GPS coordinates (Access: `ADMIN`).
+- `GET /api/buildings/{id}`: Get building details (Access: `ADMIN`, `VOLUNTEER`).
+- `PUT /api/buildings/{id}`: Update building (Access: `ADMIN`).
+- `DELETE /api/buildings/{id}`: Delete building (Access: `ADMIN`).
+
+### 3.3. Rooms & QR Identification (`/api/rooms`)
+- `GET /api/rooms?buildingId={id}`: List rooms, optionally filtered by building (Access: `ADMIN`, `VOLUNTEER`).
+- `POST /api/rooms`: Create a new room; automatically generates unique QR token (Access: `ADMIN`).
+- `GET /api/rooms/{id}`: Get room summary (Access: `ADMIN`, `VOLUNTEER`).
+- `GET /api/rooms/{id}/details`: Get comprehensive room details including building and area hierarchy (Access: `ADMIN`, `VOLUNTEER`).
+- `GET /api/rooms/{id}/inspections`: Retrieve historical audit records for the room (Access: `ADMIN`, `VOLUNTEER`).
+- `PUT /api/rooms/{id}`: Update room number, floor, or occupant details (Access: `ADMIN`).
+- `DELETE /api/rooms/{id}`: Delete room (Access: `ADMIN`).
+
+#### `GET /api/rooms/qr/{qrCodeToken}` (Phase 12)
+- **Description**: Safely look up room metadata using scanned QR token identifier. Does not expose internal sensitive database IDs or passwords.
+- **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
+- **Path Parameter**: `qrCodeToken` (e.g., `WASTEWATCH-ROOM-BLD-NW-101-101`)
+- **Response (200 OK)**:
   ```json
   {
-    "success": true,
-    "data": {
-      "id": 1,
-      "username": "admin_user",
-      "fullName": "Admin Officer",
-      "email": "admin@wastewatch.org",
-      "role": "ADMIN"
-    }
+    "id": 1,
+    "roomNumber": "101",
+    "floorNumber": 1,
+    "qrCodeToken": "WASTEWATCH-ROOM-BLD-NW-101-101",
+    "buildingId": 1,
+    "buildingName": "Green Valley Heights",
+    "buildingCode": "BLD-NW-101",
+    "areaId": 1,
+    "areaName": "North Ward - Sector 14"
   }
   ```
 
 ---
 
-### 2.2. Executive Dashboard (`/api/dashboard`)
+## 4. Volunteer Inspection System (`/api/inspections`)
 
-#### `GET /api/dashboard/summary` [PLANNED]
-* **Description**: Aggregated KPI metrics for admin overview.
-* **Access**: `ADMIN`
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "totalInspections": 1420,
-      "overallComplianceRate": 78.4,
-      "totalAreasAudited": 12,
-      "totalBuildingsAudited": 85,
-      "totalRoomsCovered": 1240,
-      "openViolationsCount": 18,
-      "activeVolunteersCount": 34,
-      "scoreDistribution": {
-        "excellent": 620,
-        "good": 480,
-        "needsImprovement": 220,
-        "poor": 100
-      }
-    }
-  }
-  ```
-
-#### `GET /api/dashboard/trends` [PLANNED]
-* **Description**: Daily or weekly compliance score averages over time.
-* **Access**: `ADMIN`
-* **Query Parameters**: `period=30d` (optional, default `30d`)
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      { "date": "2026-10-01", "averageScore": 74.2, "inspectionsCount": 42 },
-      { "date": "2026-10-02", "averageScore": 76.5, "inspectionsCount": 51 }
-    ]
-  }
-  ```
-
----
-
-### 2.3. Geographic Areas (`/api/areas`)
-
-#### `GET /api/areas` [PLANNED]
-* **Description**: List all municipal areas with aggregate building counts.
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "id": 1,
-        "areaCode": "ZONE-N-01",
-        "name": "North Ward - Sector 5",
-        "city": "Metro City",
-        "pincode": "400076",
-        "totalBuildings": 14,
-        "averageComplianceScore": 81.2
-      }
-    ]
-  }
-  ```
-
-#### `POST /api/areas` [PLANNED]
-* **Description**: Create a new municipal area.
-* **Access**: `ADMIN`
-* **Request Body**:
-  ```json
-  {
-    "areaCode": "ZONE-N-01",
-    "name": "North Ward - Sector 5",
-    "city": "Metro City",
-    "pincode": "400076",
-    "description": "Residential zone surrounding Green Park"
-  }
-  ```
-* **Response (201 Created)**: Created area object.
-
----
-
-### 2.4. Buildings (`/api/buildings`)
-
-#### `GET /api/buildings` [PLANNED]
-* **Description**: Retrieve buildings, optionally filtered by `areaId`.
-* **Access**: Authenticated
-* **Query Parameters**: `areaId=1` (optional)
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "id": 10,
-        "areaId": 1,
-        "buildingCode": "BLD-GH-101",
-        "name": "Green Heights Tower A",
-        "address": "42 Pine Street",
-        "latitude": 19.0760,
-        "longitude": 72.8777,
-        "buildingType": "RESIDENTIAL",
-        "totalFloors": 12,
-        "totalRooms": 48,
-        "recentComplianceScore": 84.0
-      }
-    ]
-  }
-  ```
-
-#### `POST /api/buildings` [PLANNED]
-* **Description**: Register a new building.
-* **Access**: `ADMIN`
-
----
-
-### 2.5. Rooms (`/api/rooms`)
-
-#### `GET /api/rooms` [PLANNED]
-* **Description**: List rooms filtered by `buildingId`.
-* **Access**: Authenticated
-* **Query Parameters**: `buildingId=10`
-
-#### `GET /api/rooms/qr/{code}` [PLANNED]
-* **Description**: Fetch room metadata by scanning QR code token.
-* **Access**: Authenticated (`VOLUNTEER`, `ADMIN`)
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "roomId": 105,
-      "buildingId": 10,
-      "buildingName": "Green Heights Tower A",
-      "floorNumber": 3,
-      "roomNumber": "Flat 302",
-      "lastInspectedAt": "2026-09-28T10:15:00Z",
-      "lastScore": 85
-    }
-  }
-  ```
-
----
-
-### 2.6. Inspections (`/api/inspections`)
-
-#### `POST /api/inspections` [IMPLEMENTED]
-* **Description**: Submit a new room inspection. Authoritative 100-point compliance score calculated server-side. Auto-generates a `Violation` if score < 40. Prevents duplicate submissions within 30-second cooldown window.
-* **Access**: `VOLUNTEER`, `ADMIN`
-* **Request Body**:
+### `POST /api/inspections`
+- **Description**: Submit a new field audit. Evaluates 100-point compliance score, detects violations on low scores (<40), checks 30-second accidental cooldown, and creates audit log.
+- **Access**: `ROLE_VOLUNTEER`
+- **Request Body**:
   ```json
   {
     "roomId": 1,
@@ -256,197 +138,215 @@
     "dryWasteSeparated": true,
     "sanitaryWasteSeparated": true,
     "correctBinsUsed": true,
-    "binsLabelled": false,
+    "binsLabelled": true,
     "noMixedWaste": true,
-    "remarks": "Clean bins, but missing labels on dry waste bin",
-    "evidenceImageUrl": null
+    "remarks": "Exemplary source segregation observed."
   }
   ```
-* **Response (201 Created)**:
+- **Response (201 Created)**:
   ```json
   {
     "success": true,
-    "message": "Inspection recorded successfully",
+    "message": "Inspection submitted successfully",
     "data": {
-      "id": 501,
+      "id": 8,
       "roomId": 1,
-      "roomNumber": "Flat 101",
-      "floorNumber": 1,
-      "buildingId": 1,
+      "roomNumber": "101",
       "buildingName": "Green Valley Heights",
-      "areaId": 1,
-      "areaName": "North Ward - Sector 5",
-      "volunteerId": 2,
       "volunteerName": "Field Inspector Volunteer",
-      "inspectionDate": "2026-10-09T10:00:00",
-      "wetWasteSeparated": true,
-      "dryWasteSeparated": true,
-      "sanitaryWasteSeparated": true,
-      "correctBinsUsed": true,
-      "binsLabelled": false,
-      "noMixedWaste": true,
-      "totalScore": 90,
+      "inspectionDate": "2026-10-13T22:15:00",
+      "totalScore": 100,
       "classification": "EXCELLENT",
       "status": "COMPLETED",
-      "remarks": "Clean bins, but missing labels on dry waste bin",
-      "breakdown": {
-        "wetWaste": 25,
-        "dryWaste": 25,
-        "sanitaryWaste": 20,
-        "correctBins": 15,
-        "labelledBins": 0,
-        "noMixedWaste": 5
-      },
       "violationCreated": false,
-      "violationId": null
-    }
-  }
-  ```
-
-#### `GET /api/inspections` [IMPLEMENTED]
-* **Description**: List historical inspections. Admins can view all or filter by `roomId`, `volunteerId`, `buildingId`. Volunteers receive only their own submissions.
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-* **Query Parameters**: `roomId`, `volunteerId`, `buildingId` (optional)
-
-#### `GET /api/inspections/{id}` [IMPLEMENTED]
-* **Description**: Get full audit details of a specific inspection record. Volunteers can only access their own inspections.
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER` self)
-
-#### `GET /api/rooms/{roomId}/inspections` [IMPLEMENTED]
-* **Description**: Retrieve audit history for a specific room.
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-
-#### `GET /api/volunteers/me/inspections` [IMPLEMENTED]
-* **Description**: Retrieve all inspections conducted by the currently authenticated volunteer.
-* **Access**: Authenticated (`VOLUNTEER`, `ADMIN`)
-
-#### `GET /api/inspections/recent` [IMPLEMENTED]
-* **Description**: Retrieve up to 20 most recent inspections (system-wide for admin; self-scoped for volunteer).
-* **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-
----
-
-### 2.7. Violations (`/api/violations`)
-
-#### `GET /api/violations` [PLANNED]
-* **Description**: List non-compliance violations by status (`OPEN`, `NOTIFIED`, `RESOLVED`, `ESCALATED`).
-* **Access**: `ADMIN`
-
-#### `PUT /api/violations/{id}/status` [PLANNED]
-* **Description**: Update violation status and add resolution remarks.
-* **Access**: `ADMIN`
-* **Request Body**:
-  ```json
-  {
-    "status": "RESOLVED",
-    "resolutionNotes": "Re-inspected on Oct 8. Compliant bins installed and labelled.",
-    "fineAmount": 0.00
-  }
-  ```
-
----
-
-### 2.8. Map & Geographic Visualization (`/api/map`)
-
-#### `GET /api/map/buildings` [PLANNED]
-* **Description**: Fetch all buildings with latitude, longitude, and health status for Leaflet.js map markers.
-* **Access**: `ADMIN`
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "id": 10,
-        "name": "Green Heights Tower A",
-        "latitude": 19.0760,
-        "longitude": 72.8777,
-        "latestScore": 84.0,
-        "healthStatus": "EXCELLENT",
-        "openViolations": 0
-      }
-    ]
-  }
-  ```
-
----
-
-### 2.9. Volunteer Management & Analytics (`/api/volunteers`)
-
-#### `GET /api/volunteers` [PLANNED]
-* **Description**: List registered volunteers and their performance stats.
-* **Access**: `ADMIN`
-
-#### `GET /api/volunteers/{id}/performance` [PLANNED]
-* **Description**: Detail individual volunteer inspection count, hours, and audit accuracy.
-* **Access**: `ADMIN`, `VOLUNTEER` (self)
-
----
-
-### 2.10. Reports & Exports (`/api/reports`)
-
-#### `GET /api/reports/compliance`
-* **Description**: Generate area/building compliance summaries.
-* **Access**: `ADMIN`
-* **Query Parameters**: `areaId`, `startDate`, `endDate`, `format=csv|json`
-
----
-
-### 2.11. Analytics & Decision Support Engine (`/api/analytics`) [IMPLEMENTED]
-
-#### `GET /api/analytics/overview`
-* **Description**: High-level executive compliance summary, system health score, inspection coverage, and classification distribution.
-* **Access**: `ADMIN`
-* **Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "totalInspections": 10,
-      "totalRooms": 25,
-      "inspectedRooms": 15,
-      "totalAreas": 2,
-      "totalBuildings": 4,
-      "totalVolunteers": 3,
-      "overallComplianceRate": 78.5,
-      "overallInspectionCoverage": 60.0,
-      "overallViolationResolutionRate": 85.0,
-      "systemHealthScore": 75.5,
-      "openViolationsCount": 1,
-      "resolvedViolationsCount": 4,
-      "classificationCounts": {
-        "EXCELLENT": 5,
-        "GOOD": 3,
-        "NEEDS_IMPROVEMENT": 1,
-        "POOR": 1
+      "violationId": null,
+      "breakdown": {
+        "wetWasteScore": 25,
+        "dryWasteScore": 25,
+        "sanitaryWasteScore": 20,
+        "correctBinsScore": 15,
+        "binsLabelledScore": 10,
+        "noMixedWasteScore": 5,
+        "totalScore": 100
       }
     }
   }
   ```
 
-#### `GET /api/analytics/areas`
-* **Description**: Comprehensive area breakdown including Area Health Scores, inspection coverage, poor room counts, and confidence ratings.
-* **Access**: `ADMIN`
-* **Formula**: `Area Health Score = (0.70 * Compliance) + (0.20 * Coverage) + (0.10 * Resolution Rate)`
+### `GET /api/inspections`
+- **Description**: Query inspection records with optional filters: `roomId`, `volunteerId`, `buildingId`.
+- **Access**: `ROLE_ADMIN` (sees all), `ROLE_VOLUNTEER` (scoped strictly to own inspections).
 
-#### `GET /api/analytics/buildings`
-* **Description**: Building-level compliance statistics, inspection coverage percentage, average score, and open violations.
-* **Access**: `ADMIN`
+### `GET /api/inspections/{id}`
+- **Description**: Get inspection details by ID with granular criteria breakdown.
+- **Access**: `ROLE_ADMIN`, or `ROLE_VOLUNTEER` if owner of inspection.
 
-#### `GET /api/analytics/trends`
-* **Description**: Time-series trend analysis across daily, weekly, or monthly aggregations.
-* **Access**: `ADMIN`
-* **Query Parameters**: `period=daily|weekly|monthly`, `days=7|14|30|90`
+### `GET /api/volunteers/me/inspections`
+- **Description**: Retrieve personal inspection history for current authenticated volunteer.
+- **Access**: `ROLE_VOLUNTEER`
 
-#### `GET /api/analytics/improvements` / `GET /api/analytics/improved-areas`
-* **Description**: Period-over-period comparative analysis detecting most improved and declining areas.
-* **Access**: `ADMIN`
-* **Query Parameters**: `days=14`
+### `GET /api/inspections/recent`
+- **Description**: Retrieve top 20 most recent inspections (system-wide for admin; self-scoped for volunteer).
+- **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
 
-#### `GET /api/analytics/hotspots`
-* **Description**: Persistent problem detection across Repeat Offender Rooms (failed >= 2), Problem Buildings (low score / high poor unit rate), and Critical Areas.
-* **Access**: `ADMIN`
+---
 
-#### `GET /api/analytics/volunteers`
-* **Description**: Volunteer productivity, active status, unique rooms audited, and average score awarded.
-* **Access**: `ADMIN`
+## 5. Violation Management (`/api/violations`) (Phase 13)
+
+### `GET /api/violations`
+- **Description**: Retrieve list of non-compliance violations.
+- **Access**: `ROLE_ADMIN`
+- **Query Parameters**:
+  - `severity`: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`
+  - `status`: `OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`
+  - `areaId`: Filter by area
+  - `buildingId`: Filter by building
+  - `startDate`, `endDate`: ISO-8601 date range filters
+
+### `GET /api/violations/{id}`
+- **Description**: Get specific violation details including room and inspection context.
+- **Access**: `ROLE_ADMIN`
+
+### `PUT /api/violations/{id}/status`
+- **Description**: Transition violation lifecycle status.
+- **Access**: `ROLE_ADMIN`
+- **Request Body**:
+  ```json
+  {
+    "status": "ACTION_REQUIRED",
+    "notes": "Notice issued to building management."
+  }
+  ```
+
+### `PUT /api/violations/{id}/resolve`
+- **Description**: Resolve violation with mandatory resolution notes and penalty recording.
+- **Access**: `ROLE_ADMIN`
+- **Request Body**:
+  ```json
+  {
+    "resolutionNotes": "Re-inspected on site. Three-bin system verified in working order.",
+    "fineAmount": 250.00
+  }
+  ```
+
+---
+
+## 6. In-App Notifications (`/api/notifications`) (Phase 13)
+
+- `GET /api/notifications`: Retrieve in-app notifications for authenticated user (Access: Authenticated).
+- `GET /api/notifications/unread-count`: Returns integer count of unread notifications (Access: Authenticated).
+- `PUT /api/notifications/{id}/read`: Mark notification as read (Access: Authenticated).
+- `PUT /api/notifications/read-all`: Mark all notifications as read for current user (Access: Authenticated).
+
+---
+
+## 7. Volunteer Governance (`/api/volunteers`) (Phase 14)
+
+### `GET /api/volunteers?status={ACTIVE|INACTIVE}`
+- **Description**: List volunteer roster with active status, total audits completed, average score, unique rooms inspected, and last active timestamp.
+- **Access**: `ROLE_ADMIN`
+
+### `PUT /api/volunteers/{id}/status`
+- **Description**: Activate or deactivate volunteer field access. Enforces privilege escalation defense: non-volunteer accounts cannot be modified.
+- **Access**: `ROLE_ADMIN`
+- **Request Body**:
+  ```json
+  {
+    "status": "INACTIVE",
+    "reason": "Volunteer transitioned to administrative duties."
+  }
+  ```
+
+---
+
+## 8. Multi-Dimensional Reporting & CSV Export (`/api/reports`) (Phase 14)
+
+All report endpoints accept optional `startDate` and `endDate` query parameters (format: `YYYY-MM-DD`):
+
+### `GET /api/reports/overview`
+- **Description**: System-wide compliance KPIs: overall compliance %, total inspections, unique rooms audited, active violations.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/areas`
+- **Description**: Area-by-area performance matrix: area code, total rooms, inspection count, coverage %, average score, compliance tier, and violation counts.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/buildings`
+- **Description**: Building-level compliance scorecard with room counts and audit metrics.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/coverage`
+- **Description**: Infrastructure coverage breakdown: total rooms, inspected rooms, uninspected rooms, coverage percentage.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/violations`
+- **Description**: Violation distribution breakdown grouped by severity and status.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/volunteers`
+- **Description**: Field volunteer activity summary: total inspections, average compliance score awarded, and active days.
+- **Access**: `ROLE_ADMIN`
+
+### `GET /api/reports/export/csv`
+- **Description**: Authentic RFC-4180 streaming CSV export with `Content-Disposition: attachment; filename=...`.
+- **Access**: `ROLE_ADMIN`
+- **Query Parameters**:
+  - `type`: `overview`, `areas`, `buildings`, `coverage`, `violations`, `volunteers`
+  - `startDate`, `endDate`: Optional date bounds
+
+---
+
+## 9. Security Audit Trail (`/api/audit-logs`) (Phase 14)
+
+### `GET /api/audit-logs`
+- **Description**: Retrieve immutable audit log records tracking system operations.
+- **Access**: `ROLE_ADMIN`
+- **Query Parameters**:
+  - `action`: e.g. `USER_LOGIN`, `CREATE_AREA`, `UPDATE_VOLUNTEER_STATUS`, `RESOLVE_VIOLATION`
+  - `entityType`: e.g. `AppUser`, `Area`, `Building`, `Room`, `Inspection`, `Violation`
+  - `startDate`, `endDate`: ISO-8601 date range
+  - `search`: Free text search matching action, entity, user, or details
+
+---
+
+## 10. Decision Support Analytics (`/api/analytics`) & Dashboard (`/api/dashboard`)
+
+### Dashboard APIs:
+- `GET /api/dashboard/stats`: Executive summary KPI counts and rates (Access: `ROLE_ADMIN`).
+- `GET /api/dashboard/trends`: 7-day historical inspection volume and score trends (Access: `ROLE_ADMIN`).
+
+### Analytics APIs:
+- `GET /api/analytics/overview`: Decision intelligence summary (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/areas`: Standardized Area Health Scores with coverage confidence ratings (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/buildings`: Building performance rankings (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/trends`: Grouped time-series compliance trends by daily/weekly/monthly intervals (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/improvements`: Period-over-period score and coverage improvements (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/hotspots`: Chronic repeat offenders and problem buildings (Access: `ROLE_ADMIN`).
+- `GET /api/analytics/volunteers`: Volunteer productivity and audit distribution (Access: `ROLE_ADMIN`).
+
+---
+
+## 11. Geographic Map (`/api/map`) (Phase 11)
+
+### `GET /api/map/markers`
+- **Description**: Geographic coordinates and compliance status markers for all buildings with latitude/longitude.
+- **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "buildingId": 1,
+      "buildingCode": "BLD-NW-101",
+      "buildingName": "Green Valley Heights",
+      "address": "12 Forest Hill Road, Sector 14",
+      "latitude": 19.07600000,
+      "longitude": 72.87770000,
+      "areaName": "North Ward - Sector 14",
+      "buildingType": "RESIDENTIAL",
+      "totalRooms": 2,
+      "inspectedRooms": 2,
+      "averageScore": 57.5,
+      "status": "NEEDS_IMPROVEMENT"
+    }
+  ]
+  ```

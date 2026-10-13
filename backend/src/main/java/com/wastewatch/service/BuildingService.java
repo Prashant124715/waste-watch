@@ -3,10 +3,12 @@ package com.wastewatch.service;
 import com.wastewatch.dto.building.BuildingRequestDto;
 import com.wastewatch.dto.building.BuildingResponseDto;
 import com.wastewatch.entity.Area;
+import com.wastewatch.entity.AuditLog;
 import com.wastewatch.entity.Building;
 import com.wastewatch.exception.DuplicateResourceException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.AreaRepository;
+import com.wastewatch.repository.AuditLogRepository;
 import com.wastewatch.repository.BuildingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +21,14 @@ public class BuildingService {
 
     private final BuildingRepository buildingRepository;
     private final AreaRepository areaRepository;
+    private final AuditLogRepository auditLogRepository;
 
-    public BuildingService(BuildingRepository buildingRepository, AreaRepository areaRepository) {
+    public BuildingService(BuildingRepository buildingRepository,
+                           AreaRepository areaRepository,
+                           AuditLogRepository auditLogRepository) {
         this.buildingRepository = buildingRepository;
         this.areaRepository = areaRepository;
+        this.auditLogRepository = auditLogRepository;
     }
 
     @Transactional(readOnly = true)
@@ -74,6 +80,18 @@ public class BuildingService {
         }
 
         Building saved = buildingRepository.save(building);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "BUILDING_CREATED",
+                "Building",
+                saved.getId().toString(),
+                null,
+                String.format("Building '%s' (%s) created in area '%s'", saved.getName(), saved.getBuildingCode(), area.getName())
+        );
+        auditLogRepository.save(auditLog);
+
         return BuildingResponseDto.fromEntity(saved);
     }
 
@@ -104,6 +122,18 @@ public class BuildingService {
         }
 
         Building updated = buildingRepository.save(building);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "BUILDING_UPDATED",
+                "Building",
+                updated.getId().toString(),
+                null,
+                String.format("Building '%s' (%s) updated", updated.getName(), updated.getBuildingCode())
+        );
+        auditLogRepository.save(auditLog);
+
         return BuildingResponseDto.fromEntity(updated);
     }
 
@@ -111,6 +141,18 @@ public class BuildingService {
     public void deleteBuilding(Long id) {
         Building building = buildingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Building", "id", id));
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "BUILDING_DELETED",
+                "Building",
+                id.toString(),
+                null,
+                String.format("Building '%s' (%s) deleted", building.getName(), building.getBuildingCode())
+        );
+        auditLogRepository.save(auditLog);
+
         buildingRepository.delete(building);
     }
 }

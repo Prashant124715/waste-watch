@@ -64,7 +64,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 : 0.0;
 
         long openViolations = violationRepository.countByStatusIn(
-                List.of(ViolationStatus.OPEN, ViolationStatus.NOTIFIED, ViolationStatus.ESCALATED));
+                List.of(ViolationStatus.OPEN, ViolationStatus.ACKNOWLEDGED, ViolationStatus.ACTION_REQUIRED));
         long resolvedViolations = violationRepository.countByStatus(ViolationStatus.RESOLVED);
         long totalViolations = openViolations + resolvedViolations;
 

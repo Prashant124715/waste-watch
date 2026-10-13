@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Audit Logs & Governance</title>
+  <meta name="description" content="View tamper-evident administrative action logs and governance audit trails."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Audit Logs</div>
+        <div class="topbar-subtitle">Administrative action trail & compliance governance</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="filter-grid">
+        <div>
+          <label class="form-label" for="action-filter">Action</label>
+          <select class="form-control form-control-sm" id="action-filter">
+            <option value="">All Actions</option>
+            <option value="LOGIN">LOGIN</option>
+            <option value="VOLUNTEER_STATUS_CHANGED">VOLUNTEER_STATUS_CHANGED</option>
+            <option value="BUILDING_CREATED">BUILDING_CREATED</option>
+            <option value="BUILDING_UPDATED">BUILDING_UPDATED</option>
+            <option value="BUILDING_DELETED">BUILDING_DELETED</option>
+            <option value="ROOM_CREATED">ROOM_CREATED</option>
+            <option value="ROOM_UPDATED">ROOM_UPDATED</option>
+            <option value="ROOM_DELETED">ROOM_DELETED</option>
+            <option value="AREA_CREATED">AREA_CREATED</option>
+            <option value="AREA_UPDATED">AREA_UPDATED</option>
+            <option value="AREA_DELETED">AREA_DELETED</option>
+            <option value="CREATE_INSPECTION">CREATE_INSPECTION</option>
+            <option value="UPDATE_VIOLATION_STATUS">UPDATE_VIOLATION_STATUS</option>
+            <option value="RESOLVE_VIOLATION">RESOLVE_VIOLATION</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="entity-filter">Entity Type</label>
+          <select class="form-control form-control-sm" id="entity-filter">
+            <option value="">All Entities</option>
+            <option value="AppUser">AppUser</option>
+            <option value="Building">Building</option>
+            <option value="Room">Room</option>
+            <option value="Area">Area</option>
+            <option value="Inspection">Inspection</option>
+            <option value="Violation">Violation</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="date-from">From Date</label>
+          <input type="date" class="form-control form-control-sm" id="date-from"/>
+        </div>
+
+        <div>
+          <label class="form-label" for="date-to">To Date</label>
+          <input type="date" class="form-control form-control-sm" id="date-to"/>
+        </div>
+
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <button class="btn btn-primary btn-sm" id="btn-apply-filters" style="flex:1;">Filter</button>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-filters">Reset</button>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top:0;">
+        <div class="search-box" style="max-width:400px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search actor or details…"/>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span id="log-count" style="font-size:0.85rem;color:var(--text-muted);"></span>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:70px;">ID</th>
+              <th style="width:160px;">Timestamp</th>
+              <th style="width:140px;">Actor</th>
+              <th style="width:180px;">Action</th>
+              <th style="width:120px;">Target Entity</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading audit logs…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireAdmin()) throw new Error();
+    injectSidebar('ADMIN');
+
+    let allLogs = [];
+
+    async function loadLogs() {
+      const tbody = document.getElementById('logs-tbody');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);"><div class="spinner"></div></td></tr>`;
+
+      const params = {};
+      const action = document.getElementById('action-filter').value;
+      const entity = document.getElementById('entity-filter').value;
+      const from = document.getElementById('date-from').value;
+      const to = document.getElementById('date-to').value;
+
+      if (action) params.action = action;
+      if (entity) params.entityType = entity;
+      if (from) params.from = from + 'T00:00:00';
+      if (to) params.to = to + 'T23:59:59';
+
+      try {
+        allLogs = await api.getAuditLogs(params);
+        renderLogs();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load audit logs: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderLogs() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allLogs.filter(l => {
+        const actor = (l.username || l.userFullName || '').toLowerCase();
+        const details = (l.details || '').toLowerCase();
+        return !q || actor.includes(q) || details.includes(q);
+      });
+
+      document.getElementById('log-count').textContent = `${filtered.length} log entry(s)`;
+
+      const tbody = document.getElementById('logs-tbody');
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No audit entries match the filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        let actionBadgeClass = 'badge-neutral';
+        if (l.action.includes('CREATED')) actionBadgeClass = 'badge-excellent';
+        else if (l.action.includes('DELETED')) actionBadgeClass = 'badge-poor';
+        else if (l.action.includes('LOGIN')) actionBadgeClass = 'badge-good';
+        else if (l.action.includes('RESOLVE')) actionBadgeClass = 'badge-excellent';
+        else if (l.action.includes('STATUS')) actionBadgeClass = 'badge-needs-improvement';
+
+        return `
+          <tr>
+            <td class="font-mono" style="color:var(--text-muted);">${l.id}</td>
+            <td style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">${Fmt.date(l.createdAt)}</td>
+            <td>
+              <div style="font-weight:600;color:var(--text-primary);font-size:0.85rem;">${l.userFullName || l.username || 'System'}</div>
+              ${l.username ? `<div style="font-size:0.75rem;color:var(--text-muted);">@${l.username}</div>` : ''}
+            </td>
+            <td><span class="badge ${actionBadgeClass}" style="font-size:0.75rem;">${l.action}</span></td>
+            <td>
+              <span style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">${l.entityType}</span>
+              ${l.entityId ? `<span class="font-mono" style="font-size:0.75rem;color:var(--text-muted);margin-left:4px;">#${l.entityId}</span>` : ''}
+            </td>
+            <td style="font-size:0.85rem;color:var(--text-primary);">${l.details || '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('btn-apply-filters').addEventListener('click', loadLogs);
+    document.getElementById('btn-reset-filters').addEventListener('click', () => {
+      document.getElementById('action-filter').value = '';
+      document.getElementById('entity-filter').value = '';
+      document.getElementById('date-from').value = '';
+      document.getElementById('date-to').value = '';
+      document.getElementById('search-input').value = '';
+      loadLogs();
+    });
+    document.getElementById('search-input').addEventListener('input', renderLogs);
+    document.getElementById('btn-refresh').addEventListener('click', loadLogs);
+
+    loadLogs();
+  </script>
+</body>
+</html>

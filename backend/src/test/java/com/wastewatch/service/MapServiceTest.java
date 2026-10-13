@@ -148,9 +148,8 @@ class MapServiceTest {
         when(inspectionRepository.getAverageScoreByBuildingId(101L)).thenReturn(35.0); // POOR
         when(inspectionRepository.getAverageScoreByBuildingId(102L)).thenReturn(null);
         when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong())).thenReturn(Optional.empty());
-        when(roomRepository.findByBuildingId(anyLong())).thenReturn(Collections.emptyList());
-        when(violationRepository.countByBuildingIdAndStatusNot(101L, any())).thenReturn(2L);
-        when(violationRepository.countByBuildingIdAndStatusNot(102L, any())).thenReturn(0L);
+        when(violationRepository.countByBuildingIdAndStatusNot(eq(101L), any())).thenReturn(2L);
+        when(violationRepository.countByBuildingIdAndStatusNot(eq(102L), any())).thenReturn(0L);
 
         List<BuildingMapMarkerDto> markers = mapService.getBuildingMapMarkers();
 

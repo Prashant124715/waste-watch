@@ -3,9 +3,11 @@ package com.wastewatch.service;
 import com.wastewatch.dto.area.AreaRequestDto;
 import com.wastewatch.dto.area.AreaResponseDto;
 import com.wastewatch.entity.Area;
+import com.wastewatch.entity.AuditLog;
 import com.wastewatch.exception.DuplicateResourceException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.AreaRepository;
+import com.wastewatch.repository.AuditLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +18,11 @@ import java.util.stream.Collectors;
 public class AreaService {
 
     private final AreaRepository areaRepository;
+    private final AuditLogRepository auditLogRepository;
 
-    public AreaService(AreaRepository areaRepository) {
+    public AreaService(AreaRepository areaRepository, AuditLogRepository auditLogRepository) {
         this.areaRepository = areaRepository;
+        this.auditLogRepository = auditLogRepository;
     }
 
     @Transactional(readOnly = true)
@@ -52,6 +56,18 @@ public class AreaService {
         }
 
         Area saved = areaRepository.save(area);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "AREA_CREATED",
+                "Area",
+                saved.getId().toString(),
+                null,
+                String.format("Area '%s' (%s) created in city '%s'", saved.getName(), saved.getAreaCode(), saved.getCity())
+        );
+        auditLogRepository.save(auditLog);
+
         return AreaResponseDto.fromEntity(saved);
     }
 
@@ -74,6 +90,18 @@ public class AreaService {
         }
 
         Area updated = areaRepository.save(area);
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "AREA_UPDATED",
+                "Area",
+                updated.getId().toString(),
+                null,
+                String.format("Area '%s' (%s) updated", updated.getName(), updated.getAreaCode())
+        );
+        auditLogRepository.save(auditLog);
+
         return AreaResponseDto.fromEntity(updated);
     }
 
@@ -81,6 +109,18 @@ public class AreaService {
     public void deleteArea(Long id) {
         Area area = areaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Area", "id", id));
+
+        // Record Audit Log (Phase 14 Governance)
+        AuditLog auditLog = new AuditLog(
+                null,
+                "AREA_DELETED",
+                "Area",
+                id.toString(),
+                null,
+                String.format("Area '%s' (%s) deleted", area.getName(), area.getAreaCode())
+        );
+        auditLogRepository.save(auditLog);
+
         areaRepository.delete(area);
     }
 }

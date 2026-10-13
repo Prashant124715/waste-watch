@@ -13,6 +13,9 @@ public class VolunteerSummaryDto {
     private long inspectionsCount;
     private double averageScoreGiven;
     private LocalDateTime lastInspectionDate;
+    private long distinctRoomsInspected;
+    private long distinctBuildingsInspected;
+    private long violationsFlagged;
 
     public VolunteerSummaryDto() {
     }
@@ -87,5 +90,29 @@ public class VolunteerSummaryDto {
 
     public void setLastInspectionDate(LocalDateTime lastInspectionDate) {
         this.lastInspectionDate = lastInspectionDate;
+    }
+
+    public long getDistinctRoomsInspected() {
+        return distinctRoomsInspected;
+    }
+
+    public void setDistinctRoomsInspected(long distinctRoomsInspected) {
+        this.distinctRoomsInspected = distinctRoomsInspected;
+    }
+
+    public long getDistinctBuildingsInspected() {
+        return distinctBuildingsInspected;
+    }
+
+    public void setDistinctBuildingsInspected(long distinctBuildingsInspected) {
+        this.distinctBuildingsInspected = distinctBuildingsInspected;
+    }
+
+    public long getViolationsFlagged() {
+        return violationsFlagged;
+    }
+
+    public void setViolationsFlagged(long violationsFlagged) {
+        this.violationsFlagged = violationsFlagged;
     }
 }

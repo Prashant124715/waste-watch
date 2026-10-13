@@ -115,6 +115,13 @@ public class SecurityConfig {
                         // Volunteer Management (Phase 6)
                         .requestMatchers("/api/volunteers/**").authenticated()
 
+                        // In-App Notifications (Phase 13)
+                        .requestMatchers("/api/notifications/**").authenticated()
+
+                        // Reporting and Governance (Phase 14)
+                        .requestMatchers("/api/audit-logs/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reports/**").hasRole("ADMIN")
+
                         // Any other API requires authentication
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()

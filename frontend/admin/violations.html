@@ -4,36 +4,54 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Violations Management</title>
-  <meta name="description" content="Track and resolve non-compliance violations in WasteWatch."/>
+  <meta name="description" content="Track, escalate, and resolve waste segregation violations in WasteWatch."/>
   <link rel="stylesheet" href="/css/variables.css"/>
   <link rel="stylesheet" href="/css/base.css"/>
   <link rel="stylesheet" href="/css/layout.css"/>
   <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+  </style>
 </head>
 <body>
   <div class="main-content">
     <header class="topbar">
       <div>
         <div class="topbar-title">Violations</div>
-        <div class="topbar-subtitle">Non-compliance escalation tracker</div>
+        <div class="topbar-subtitle">Non-compliance escalation tracker & resolution dashboard</div>
       </div>
     </header>
     <div class="page-content">
-      <div class="toolbar">
-        <div class="search-box">
+      <div class="filter-bar">
+        <div class="search-box" style="flex:1;min-width:220px;">
           <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search room or building…"/>
+          <input type="text" class="search-input" id="search-input" placeholder="Search room, building, area…"/>
         </div>
-        <select class="form-control form-control-sm" id="status-filter" style="max-width:180px;">
+
+        <select class="form-control form-control-sm" id="status-filter" style="width:160px;">
           <option value="">All Statuses</option>
           <option value="OPEN">Open</option>
-          <option value="NOTIFIED">Notified</option>
-          <option value="ESCALATED">Escalated</option>
+          <option value="ACKNOWLEDGED">Acknowledged</option>
+          <option value="ACTION_REQUIRED">Action Required</option>
           <option value="RESOLVED">Resolved</option>
         </select>
-        <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
-        </div>
+
+        <select class="form-control form-control-sm" id="severity-filter" style="width:150px;">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+
+        <button class="btn btn-primary btn-sm" id="btn-apply">Filter</button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
       </div>
 
       <div class="table-wrap">
@@ -59,27 +77,30 @@
     </div>
   </div>
 
-  <!-- Update Modal -->
+  <!-- Update / Detail Modal -->
   <div class="modal-overlay hidden" id="update-modal" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title">Update Violation Status</h2>
+        <h2 class="modal-title" id="modal-title">Violation Management</h2>
         <button class="modal-close" onclick="closeModal('update-modal')">✕</button>
       </div>
       <form id="update-form">
         <input type="hidden" id="viol-id"/>
+        <div id="viol-detail-section" style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;font-size:0.875rem;">
+        </div>
+
         <div class="form-group">
-          <label class="form-label" for="viol-status">New Status <span class="required">*</span></label>
+          <label class="form-label" for="viol-status">Status <span class="required">*</span></label>
           <select class="form-control" id="viol-status" required>
             <option value="OPEN">Open</option>
-            <option value="NOTIFIED">Notified</option>
-            <option value="ESCALATED">Escalated</option>
+            <option value="ACKNOWLEDGED">Acknowledged</option>
+            <option value="ACTION_REQUIRED">Action Required</option>
             <option value="RESOLVED">Resolved</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="viol-notes">Resolution Notes</label>
-          <textarea class="form-control" id="viol-notes" rows="4" placeholder="Describe the corrective action taken…"></textarea>
+          <label class="form-label" for="viol-notes">Resolution Notes <span id="notes-req-hint" style="font-size:0.75rem;color:var(--color-primary);">(Mandatory if Resolving)</span></label>
+          <textarea class="form-control" id="viol-notes" rows="3" placeholder="Corrective action details, fine payment status, or inspection follow-up…"></textarea>
         </div>
         <div class="form-group">
           <label class="form-label" for="viol-fine">Fine Amount (₹)</label>
@@ -87,7 +108,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('update-modal')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="update-btn">Update Status</button>
+          <button type="submit" class="btn btn-primary" id="update-btn">Save Changes</button>
         </div>
       </form>
     </div>
@@ -103,99 +124,161 @@
 
     let violations = [];
 
-    async function loadViolations(status = '') {
+    async function loadViolations() {
       const tbody = document.getElementById('violations-tbody');
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);"><div class="spinner"></div></td></tr>`;
+
+      const params = {};
+      const status = document.getElementById('status-filter').value;
+      const severity = document.getElementById('severity-filter').value;
+      if (status) params.status = status;
+      if (severity) params.severity = severity;
+
       try {
-        const params = {};
-        if (status) params.status = status;
         violations = await api.getViolations(params);
-        renderViolations(violations);
+        renderViolations();
       } catch(err) {
         Toast.error('Error', err.message);
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load violations</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load violations: ${err.message}</td></tr>`;
       }
     }
 
-    function renderViolations(list) {
+    function renderViolations() {
       const search = document.getElementById('search-input').value.toLowerCase();
-      const filtered = list.filter(v => {
+      const filtered = violations.filter(v => {
         if (!search) return true;
         return (v.roomNumber||'').toLowerCase().includes(search) ||
                (v.buildingName||'').toLowerCase().includes(search) ||
-               (v.areaName||'').toLowerCase().includes(search);
+               (v.areaName||'').toLowerCase().includes(search) ||
+               (v.description||'').toLowerCase().includes(search);
       });
 
       const tbody = document.getElementById('violations-tbody');
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No violations found</div><div class="empty-state-desc">All units are compliant or no results match your filter.</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No violations found</div><div class="empty-state-desc">All units are compliant or match the filter parameters.</div></div></td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(v => `
-        <tr>
-          <td class="font-mono text-muted">#${v.id}</td>
-          <td class="td-primary">${v.roomNumber||'—'} · F${v.floorNumber||'?'}</td>
-          <td>${v.buildingName||'—'}<br><span style="font-size:0.75rem;color:var(--text-muted)">${v.areaName||''}</span></td>
-          <td><span class="font-mono" style="color:${v.inspectionScore < 40 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.inspectionScore||'—'}/100</span></td>
-          <td><span class="badge badge-${Fmt.severity(v.severity)}">${v.severity||'—'}</span></td>
-          <td><span class="badge badge-${Fmt.violationStatusBadge(v.status)}">${Fmt.violationStatus(v.status)}</span></td>
-          <td class="font-mono">${v.fineAmount > 0 ? '₹' + Number(v.fineAmount).toLocaleString('en-IN') : '—'}</td>
-          <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(v.createdAt)}</td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${v.id})">✏️ Update</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtered.map(v => {
+        const isResolved = v.status === 'RESOLVED';
+        let sevClass = 'neutral';
+        if (v.severity === 'CRITICAL') sevClass = 'poor';
+        else if (v.severity === 'HIGH') sevClass = 'poor';
+        else if (v.severity === 'MEDIUM') sevClass = 'needs-improvement';
+        else if (v.severity === 'LOW') sevClass = 'good';
+
+        let statClass = 'neutral';
+        if (v.status === 'OPEN') statClass = 'poor';
+        else if (v.status === 'ACKNOWLEDGED') statClass = 'needs-improvement';
+        else if (v.status === 'ACTION_REQUIRED') statClass = 'warning';
+        else if (v.status === 'RESOLVED') statClass = 'excellent';
+
+        return `
+          <tr>
+            <td class="font-mono text-muted">#${v.id}</td>
+            <td class="td-primary">
+              ${v.roomNumber||'—'} · F${v.floorNumber||'?'}
+              ${v.roomPersistentNonCompliance ? `<br><span class="badge badge-poor" style="font-size:0.65rem;margin-top:2px;">⚠️ PERSISTENT</span>` : ''}
+            </td>
+            <td>
+              <div style="font-weight:600;">${v.buildingName||'—'}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${v.areaName||''}</div>
+            </td>
+            <td><span class="font-mono" style="font-weight:700;color:${v.inspectionScore < 40 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.inspectionScore ?? '—'}/100</span></td>
+            <td><span class="badge badge-${sevClass}">${v.severity||'—'}</span></td>
+            <td><span class="badge badge-${statClass}">${v.status||'—'}</span></td>
+            <td class="font-mono">₹${v.fineAmount ? Number(v.fineAmount).toLocaleString('en-IN') : '0.00'}</td>
+            <td style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">${Fmt.date(v.createdAt)}</td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${v.id})">🔍 Details / Edit</button>
+                ${!isResolved ? `
+                  <button class="btn btn-primary btn-sm" onclick="quickResolve(${v.id})">✅ Resolve</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function openUpdateModal(id) {
       const v = violations.find(x => x.id === id);
       if (!v) return;
+
       document.getElementById('viol-id').value = id;
+      document.getElementById('modal-title').textContent = `Violation #${v.id} — ${v.buildingName}, Room ${v.roomNumber}`;
       document.getElementById('viol-status').value = v.status;
       document.getElementById('viol-notes').value = v.resolutionNotes || '';
-      document.getElementById('viol-fine').value = v.fineAmount || '';
+      document.getElementById('viol-fine').value = v.fineAmount || '0.00';
+
+      document.getElementById('viol-detail-section').innerHTML = `
+        <div style="margin-bottom:6px;"><strong>Description:</strong> ${v.description || '—'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;color:var(--text-muted);font-size:0.8rem;">
+          <div>Reported: <strong>${Fmt.datetime(v.createdAt)}</strong></div>
+          <div>Resolved: <strong>${v.resolvedAt ? Fmt.datetime(v.resolvedAt) : 'Unresolved'}</strong></div>
+          <div>Severity: <strong style="color:var(--color-${v.severity === 'CRITICAL' ? 'danger' : 'primary'})">${v.severity}</strong></div>
+          <div>Audit Score: <strong>${v.inspectionScore ?? '—'}/100</strong></div>
+        </div>
+      `;
+
       openModal('update-modal');
+    }
+
+    async function quickResolve(id) {
+      const notes = prompt(`Enter resolution notes for Violation #${id}:`);
+      if (notes === null) return;
+      if (!notes.trim()) {
+        alert('Resolution notes are required to resolve a violation.');
+        return;
+      }
+
+      try {
+        await api.resolveViolation(id, { resolutionNotes: notes.trim() });
+        Toast.success('Resolved', `Violation #${id} has been marked as RESOLVED.`);
+        loadViolations();
+      } catch (err) {
+        Toast.error('Resolution Failed', err.message);
+      }
     }
 
     document.getElementById('update-form').addEventListener('submit', async e => {
       e.preventDefault();
       const id = document.getElementById('viol-id').value;
+      const status = document.getElementById('viol-status').value;
+      const notes = document.getElementById('viol-notes').value.trim();
+      const fineVal = document.getElementById('viol-fine').value;
+      const fineAmount = fineVal ? parseFloat(fineVal) : 0.0;
+
+      if (status === 'RESOLVED' && !notes) {
+        Toast.error('Notes Required', 'Resolution notes are mandatory when marking as Resolved.');
+        return;
+      }
+
       const btn = document.getElementById('update-btn');
-      const body = {
-        status: document.getElementById('viol-status').value,
-        resolutionNotes: document.getElementById('viol-notes').value.trim() || undefined,
-        fineAmount: document.getElementById('viol-fine').value ? parseFloat(document.getElementById('viol-fine').value) : undefined
-      };
       btn.disabled = true;
       btn.textContent = 'Saving…';
+
       try {
-        await api.updateViolationStatus(id, body);
+        if (status === 'RESOLVED') {
+          await api.resolveViolation(id, { resolutionNotes: notes, fineAmount });
+        } else {
+          await api.updateViolationStatus(id, { status, resolutionNotes: notes || undefined, fineAmount });
+        }
         closeModal('update-modal');
-        Toast.success('Violation Updated', 'Status updated successfully.');
-        const statusFilter = document.getElementById('status-filter').value;
-        await loadViolations(statusFilter);
+        Toast.success('Updated', `Violation #${id} updated successfully.`);
+        await loadViolations();
       } catch(err) {
         Toast.error('Update Failed', err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Update Status';
+        btn.textContent = 'Save Changes';
       }
     });
 
-    document.getElementById('status-filter').addEventListener('change', e => {
-      loadViolations(e.target.value);
-    });
-
-    document.getElementById('search-input').addEventListener('input', () => {
-      renderViolations(violations);
-    });
-
-    document.getElementById('btn-refresh').addEventListener('click', () => {
-      const s = document.getElementById('status-filter').value;
-      loadViolations(s);
-    });
+    document.getElementById('btn-apply').addEventListener('click', loadViolations);
+    document.getElementById('btn-refresh').addEventListener('click', loadViolations);
+    document.getElementById('search-input').addEventListener('input', renderViolations);
 
     loadViolations();
   </script>

@@ -67,4 +67,11 @@ public interface InspectionRepository extends JpaRepository<Inspection, Long> {
 
     @Query("SELECT i.room.id FROM Inspection i WHERE i.totalScore < 40 GROUP BY i.room.id HAVING COUNT(i) >= 1")
     List<Long> findRoomIdsWithFailedInspections();
+
+    /**
+     * Finds the N most recent inspections for a room, ordered newest first.
+     * Used to detect persistent non-compliance (3 consecutive POOR inspections).
+     */
+    @Query("SELECT i FROM Inspection i WHERE i.room.id = :roomId ORDER BY i.inspectionDate DESC LIMIT :limit")
+    List<Inspection> findTopNByRoomIdOrderByInspectionDateDesc(@Param("roomId") Long roomId, @Param("limit") int limit);
 }

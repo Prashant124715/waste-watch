@@ -2,7 +2,7 @@ package com.wastewatch.entity.enums;
 
 public enum ViolationStatus {
     OPEN,
-    NOTIFIED,
-    RESOLVED,
-    ESCALATED
+    ACKNOWLEDGED,
+    ACTION_REQUIRED,
+    RESOLVED
 }

@@ -25,6 +25,7 @@ public class ViolationResponseDto {
     private String resolutionNotes;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
+    private Boolean roomPersistentNonCompliance;
 
     public ViolationResponseDto() {
     }
@@ -42,6 +43,7 @@ public class ViolationResponseDto {
             dto.setRoomId(violation.getRoom().getId());
             dto.setRoomNumber(violation.getRoom().getRoomNumber());
             dto.setFloorNumber(violation.getRoom().getFloorNumber());
+            dto.setRoomPersistentNonCompliance(Boolean.TRUE.equals(violation.getRoom().getPersistentNonCompliance()));
 
             if (violation.getRoom().getBuilding() != null) {
                 dto.setBuildingId(violation.getRoom().getBuilding().getId());
@@ -191,5 +193,13 @@ public class ViolationResponseDto {
 
     public void setResolvedAt(LocalDateTime resolvedAt) {
         this.resolvedAt = resolvedAt;
+    }
+
+    public Boolean getRoomPersistentNonCompliance() {
+        return roomPersistentNonCompliance;
+    }
+
+    public void setRoomPersistentNonCompliance(Boolean roomPersistentNonCompliance) {
+        this.roomPersistentNonCompliance = roomPersistentNonCompliance;
     }
 }

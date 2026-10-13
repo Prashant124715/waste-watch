@@ -122,7 +122,7 @@ public class DashboardService {
                 .count();
 
         long openViolations = violationRepository.countByStatusIn(
-                List.of(ViolationStatus.OPEN, ViolationStatus.NOTIFIED, ViolationStatus.ESCALATED)
+                List.of(ViolationStatus.OPEN, ViolationStatus.ACKNOWLEDGED, ViolationStatus.ACTION_REQUIRED)
         );
 
         double coveragePercent = totalRooms > 0

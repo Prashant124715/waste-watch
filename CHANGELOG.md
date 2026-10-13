@@ -4,6 +4,92 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Final Hardening & CEP Release] — 2026-10-13
+
+### Hardened & Polished
+- **Zero Framework Debt**: Verified clean Vanilla JS/HTML5/CSS3 frontend architecture with zero client build tool requirements.
+- **Security Hardening**:
+  - Enforced BCrypt password hashing and signed JJWT tokens (HMAC-SHA256).
+  - RBAC authorization verified across all endpoints.
+  - Strict volunteer isolation: field inspectors can only view and submit their own audits.
+  - Anti-privilege escalation defense verified in `VolunteerService`.
+  - Zero sensitive token or credential leakage across audit logs and API responses.
+- **Accidental Cooldown Guard**: Fixed false-positive in 30-second submission cooldown for newly seeded rooms in test executions.
+- **Quality Assurance**: Complete automated test suite of **90/90 passing tests** with 100% pass rate.
+- **Build Verification**: Clean production JAR packaging verified via `mvnw.cmd package`.
+
+---
+
+## [Phase 14: Reporting and Governance] — 2026-10-13
+
+### Added
+- **Volunteer Governance Engine (`VolunteerService`, `VolunteerController`)**:
+  - `GET /api/volunteers`: Query active and inactive volunteer roster with audit metrics.
+  - `PUT /api/volunteers/{id}/status`: Activate or deactivate volunteers with reason tracking.
+  - Privilege escalation defense: Rejects any attempt to modify administrative users via volunteer management.
+- **Multi-Dimensional Reporting Engine (`ReportService`, `ReportController`)**:
+  - `GET /api/reports/overview`: Overall compliance rate, total audits, unique rooms covered, active violations.
+  - `GET /api/reports/areas`: Ward-level compliance, coverage %, and violation rates.
+  - `GET /api/reports/buildings`: Building scorecard matrix with room totals and compliance rankings.
+  - `GET /api/reports/coverage`: Room coverage breakdown and uninspected count.
+  - `GET /api/reports/violations`: Violation distribution grouped by severity and status.
+  - `GET /api/reports/volunteers`: Field volunteer productivity, average scores, and active days.
+  - Dynamic date bounds (`startDate`, `endDate`) supported across all reporting endpoints.
+- **Streaming CSV Export (`/api/reports/export/csv`)**:
+  - Server-side generation of RFC-4180 compliant CSV files with `Content-Disposition: attachment`.
+- **Security Audit Trail (`AuditLogService`, `AuditLogController`, `AuditLogRepository`)**:
+  - Immutable audit logs capturing user login, infrastructure changes, volunteer toggles, and violation resolutions.
+  - Multi-criteria filter query via JPQL (`action`, `entityType`, date range, search).
+- **Administrative UI (`frontend/admin/reports.html`, `frontend/admin/audit-logs.html`)**:
+  - Executive Reports Console with period selectors, summary KPI cards, tabbed views, and instant CSV download.
+  - Security Audit Trail Console with live filtering, search bar, and action badges.
+- **Automated Tests**: 15 new tests in `ReportingAndGovernanceTest` (total: **90/90 passing**).
+
+---
+
+## [Phase 13: Violation and Notification Management] — 2026-10-13
+
+### Added
+- **Automated Violation Generation (`ViolationService`)**:
+  - Automatic creation of violations for inspections scoring <40 (`POOR`).
+  - Severity calculation: 0–19 (`CRITICAL`), 20–39 (`HIGH`), 40–59 (`MEDIUM`).
+  - Idempotent processing preventing duplicate violations for the same inspection.
+- **Persistent Non-Compliance Engine**:
+  - Identifies rooms with 3 consecutive `POOR` inspections and marks them as `PERSISTENT_NON_COMPLIANCE` with `CRITICAL` severity.
+- **Violation Lifecycle Management**:
+  - Statuses: `OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`.
+  - Admin endpoints: `GET /api/violations`, `GET /api/violations/{id}`, `PUT /api/violations/{id}/status`, `PUT /api/violations/{id}/resolve`.
+- **In-App Notification Subsystem (`NotificationService`, `NotificationController`)**:
+  - Generates targeted notifications for high-severity violations, repeat offenders, and coverage deficits.
+  - Endpoints: `GET /api/notifications`, `GET /api/notifications/unread-count`, `PUT /api/notifications/{id}/read`, `PUT /api/notifications/read-all`.
+- **Admin UI Console (`frontend/admin/violations.html`)**:
+  - Status transition dropdowns, severity badges, and quick resolution modal.
+
+---
+
+## [Phase 12: QR Code Workflow] — 2026-10-12
+
+### Added
+- **Deterministic QR Token Generation (`RoomService`)**:
+  - Unique QR identifiers formatted as `WASTEWATCH-ROOM-{BUILDING_CODE}-{ROOM_NUMBER}`.
+- **Safe Metadata Lookup (`GET /api/rooms/qr/{qrCodeToken}`)**:
+  - Non-sensitive room, building, and area metadata returned without exposing database IDs.
+- **Client QR Generator & Mobile Scanner**:
+  - Admin QR code modal with preview and PNG download in `admin/areas.html`.
+  - Volunteer mobile inspection view in `volunteer/inspect.html` supporting camera scan and manual identifier entry.
+
+---
+
+## [Phase 11: Interactive Map & Geographic Visualization] — 2026-10-11
+
+### Added
+- **Geographic Markers Endpoint (`GET /api/map/markers`)**:
+  - Returns building coordinates, compliance status, and room stats.
+- **Leaflet.js Map UI (`frontend/admin/map.html`)**:
+  - OpenStreetMap dark CartoDB tiles with compliance pins, popup stats, and status filtering.
+
+---
+
 ## [Phase 10: Analytics and Decision Support Engine] — 2026-10-09
 
 ### Added

@@ -46,6 +46,14 @@ function buildAdminSidebar() {
       <a class="nav-item ${isActive('volunteers')}" href="/admin/volunteers.html">
         <span class="nav-icon">👷</span> Volunteers
       </a>
+
+      <div class="sidebar-section-label">Governance</div>
+      <a class="nav-item ${isActive('reports')}" href="/admin/reports.html">
+        <span class="nav-icon">📑</span> Reports & Exports
+      </a>
+      <a class="nav-item ${isActive('audit-logs')}" href="/admin/audit-logs.html">
+        <span class="nav-icon">🛡️</span> Audit Logs
+      </a>
     </nav>
 
     <div class="sidebar-footer">

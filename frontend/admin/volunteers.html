@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WasteWatch — Volunteers</title>
-  <meta name="description" content="Track field volunteer performance and inspection history in WasteWatch."/>
+  <title>WasteWatch — Volunteer Governance</title>
+  <meta name="description" content="Manage volunteer status, activity metrics, and performance audit trails."/>
   <link rel="stylesheet" href="/css/variables.css"/>
   <link rel="stylesheet" href="/css/base.css"/>
   <link rel="stylesheet" href="/css/layout.css"/>
@@ -12,7 +12,7 @@
   <style>
     .vol-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
     }
     .vol-card {
@@ -21,7 +21,8 @@
       border-radius: var(--radius-lg);
       padding: var(--space-6);
       transition: all var(--transition-base);
-      cursor: pointer;
+      display: flex;
+      flex-direction: column;
     }
     .vol-card:hover {
       border-color: var(--border-primary);
@@ -57,26 +58,39 @@
     .vol-stat-row:last-child { border-bottom: none; }
     .vol-stat-label { color: var(--text-muted); }
     .vol-stat-value { font-weight: 700; color: var(--text-primary); }
+    .vol-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 16px;
+    }
   </style>
 </head>
 <body>
   <div class="main-content">
     <header class="topbar">
       <div>
-        <div class="topbar-title">Volunteers</div>
-        <div class="topbar-subtitle">Field inspector performance metrics</div>
+        <div class="topbar-title">Volunteer Governance</div>
+        <div class="topbar-subtitle">Monitor activity, view audit productivity, and manage account statuses</div>
       </div>
     </header>
     <div class="page-content">
       <div class="toolbar">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search volunteers…"/>
+          <input type="text" class="search-input" id="search-input" placeholder="Search volunteer name, email, username…"/>
         </div>
-        <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+        <select class="form-control form-control-sm" id="status-filter" style="max-width:180px;">
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+          <option value="SUSPENDED">Suspended</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+        </div>
       </div>
       <div class="vol-grid" id="vol-grid">
-        <!-- Cards injected here -->
         <div class="empty-state" style="grid-column:1/-1;">
           <div class="animate-pulse" style="color:var(--text-muted);">Loading volunteers…</div>
         </div>
@@ -107,7 +121,8 @@
 
     async function loadVolunteers() {
       try {
-        volunteers = await api.getVolunteers();
+        const res = await api.getVolunteers();
+        volunteers = res.data || res;
         renderVolunteers();
       } catch(e) {
         Toast.error('Error', e.message);
@@ -117,93 +132,131 @@
 
     function renderVolunteers() {
       const search = document.getElementById('search-input').value.toLowerCase();
-      const filtered = volunteers.filter(v =>
-        [v.fullName, v.username, v.email].some(f => f && f.toLowerCase().includes(search))
-      );
+      const statusFilter = document.getElementById('status-filter').value;
+
+      const filtered = volunteers.filter(v => {
+        const matchesSearch = [v.fullName, v.username, v.email, v.phoneNumber].some(f => f && f.toLowerCase().includes(search));
+        const matchesStatus = !statusFilter || v.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
       const grid = document.getElementById('vol-grid');
       if (!filtered.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">👷</div><div class="empty-state-title">No volunteers found</div></div>`;
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">👷</div><div class="empty-state-title">No volunteers match the selected filter</div></div>`;
         return;
       }
-      grid.innerHTML = filtered.map(v => `
-        <div class="vol-card" onclick="openPerf(${v.id}, '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+
+      grid.innerHTML = filtered.map(v => {
+        const isActive = v.status === 'ACTIVE';
+        return `
+        <div class="vol-card">
           <div class="vol-card-header">
             <div class="vol-avatar">${Fmt.avatar(v.fullName || v.username)}</div>
-            <div>
-              <div style="font-weight:700;color:var(--text-primary);">${v.fullName || v.username}</div>
-              <div style="font-size:0.8rem;color:var(--text-muted);">${v.email || '—'}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.fullName || v.username}</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${v.username} • ${v.email || '—'}</div>
             </div>
+            <span class="badge badge-${isActive ? 'excellent' : 'poor'}">${v.status || 'ACTIVE'}</span>
+          </div>
+
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Total Audits</span>
+            <span class="vol-stat-value font-mono">${v.inspectionsCount ?? 0}</span>
           </div>
           <div class="vol-stat-row">
-            <span class="vol-stat-label">Total Inspections</span>
-            <span class="vol-stat-value">${v.totalInspections ?? '—'}</span>
+            <span class="vol-stat-label">Avg Score Awarded</span>
+            <span class="vol-stat-value font-mono">${v.averageScoreGiven != null ? v.averageScoreGiven + '/100' : '—'}</span>
           </div>
           <div class="vol-stat-row">
-            <span class="vol-stat-label">Avg Score</span>
-            <span class="vol-stat-value">${v.averageScore != null ? v.averageScore + '/100' : '—'}</span>
+            <span class="vol-stat-label">Rooms Audited</span>
+            <span class="vol-stat-value font-mono">${v.distinctRoomsInspected ?? 0}</span>
+          </div>
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Buildings Covered</span>
+            <span class="vol-stat-value font-mono">${v.distinctBuildingsInspected ?? 0}</span>
           </div>
           <div class="vol-stat-row">
             <span class="vol-stat-label">Violations Raised</span>
-            <span class="vol-stat-value" style="color:${v.violationsRaised > 0 ? 'var(--color-warning)' : 'var(--text-primary)'}">${v.violationsRaised ?? 0}</span>
+            <span class="vol-stat-value font-mono" style="color:${v.violationsFlagged > 0 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.violationsFlagged ?? 0}</span>
           </div>
           <div class="vol-stat-row">
-            <span class="vol-stat-label">Status</span>
-            <span><span class="badge badge-${v.status === 'ACTIVE' ? 'excellent' : 'neutral'}">${v.status || 'ACTIVE'}</span></span>
+            <span class="vol-stat-label">Last Audit</span>
+            <span class="vol-stat-value" style="font-size:0.8rem;">${v.lastInspectionDate ? Fmt.date(v.lastInspectionDate) : 'Never'}</span>
           </div>
-          <div style="margin-top:14px;">
+
+          <div style="margin-top:10px;">
             <div class="score-bar-wrap">
-              <div class="score-bar-fill ${v.averageScore >= 80 ? 'excellent' : v.averageScore >= 60 ? 'good' : v.averageScore >= 40 ? 'needs-improvement' : 'poor'}"
-                style="width:${v.averageScore || 0}%"></div>
+              <div class="score-bar-fill ${v.averageScoreGiven >= 80 ? 'excellent' : v.averageScoreGiven >= 60 ? 'good' : v.averageScoreGiven >= 40 ? 'needs-improvement' : 'poor'}"
+                style="width:${v.averageScoreGiven || 0}%"></div>
             </div>
           </div>
+
+          <div class="vol-card-actions">
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openPerf(${v.id}, '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+              📈 Statistics
+            </button>
+            ${isActive ? `
+              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE', '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+                ⏸️ Deactivate
+              </button>
+            ` : `
+              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE', '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+                ▶️ Activate
+              </button>
+            `}
+          </div>
         </div>
-      `).join('');
+      `}).join('');
+    }
+
+    async function toggleStatus(id, newStatus, name) {
+      const verb = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
+      if (!confirm(`Are you sure you want to ${verb} volunteer "${name}"?`)) return;
+
+      try {
+        await api.updateVolunteerStatus(id, newStatus);
+        Toast.success('Updated', `Volunteer "${name}" is now ${newStatus}`);
+        loadVolunteers();
+      } catch (err) {
+        Toast.error('Action Failed', err.message);
+      }
     }
 
     async function openPerf(id, name) {
       openModal('perf-modal');
-      document.getElementById('perf-modal-title').textContent = name + ' — Performance';
+      document.getElementById('perf-modal-title').textContent = name + ' — Statistics & Performance';
       const body = document.getElementById('perf-body');
       body.innerHTML = `<div style="display:flex;justify-content:center;padding:40px;"><div class="spinner"></div></div>`;
       try {
-        const p = await api.getVolunteerPerformance(id);
+        const res = await api.getVolunteerPerformance(id);
+        const p = res.data || res;
         body.innerHTML = `
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
             ${[
-              ['Total Inspections', p.totalInspections ?? '—', 'kpi-icon-green'],
-              ['Avg Score',          p.averageScore != null ? p.averageScore + '/100' : '—', 'kpi-icon-blue'],
-              ['Violations Raised',  p.violationsRaised ?? 0, 'kpi-icon-amber'],
-              ['Excellent Ratings',  p.excellentCount ?? '—', 'kpi-icon-green'],
-              ['Poor Ratings',       p.poorCount ?? '—', 'kpi-icon-red'],
-              ['Last Inspection',    Fmt.date(p.lastInspectionDate) || '—', 'kpi-icon-purple'],
+              ['Total Audits',        p.inspectionsCount ?? 0, 'kpi-icon-green'],
+              ['Avg Score Given',     p.averageScoreGiven != null ? p.averageScoreGiven + '/100' : '—', 'kpi-icon-blue'],
+              ['Violations Raised',   p.violationsFlagged ?? 0, 'kpi-icon-red'],
+              ['Rooms Audited',       p.distinctRoomsInspected ?? 0, 'kpi-icon-purple'],
+              ['Buildings Covered',   p.distinctBuildingsInspected ?? 0, 'kpi-icon-amber'],
+              ['Status',              p.status || 'ACTIVE', 'kpi-icon-blue'],
             ].map(([label, val, cls]) => `
               <div class="kpi-card" style="padding:16px;">
-                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;">${label.split(' ')[0][0]}${label.split(' ')[1]?.[0]??''}</div>
-                <div class="kpi-value" style="font-size:1.5rem;">${val}</div>
+                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;">${label[0]}</div>
+                <div class="kpi-value" style="font-size:1.4rem;">${val}</div>
                 <div class="kpi-label" style="font-size:0.75rem;">${label}</div>
               </div>
             `).join('')}
           </div>
-          ${p.recentInspections && p.recentInspections.length ? `
-          <div>
-            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary);margin-bottom:12px;">Recent Inspections</div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead><tr><th>Room</th><th>Building</th><th>Score</th><th>Classification</th><th>Date</th></tr></thead>
-                <tbody>
-                  ${p.recentInspections.map(i => `
-                    <tr>
-                      <td class="td-primary">${i.roomNumber||'—'}</td>
-                      <td>${i.buildingName||'—'}</td>
-                      <td class="font-mono">${i.totalScore}/100</td>
-                      <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
-                      <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.date(i.inspectionDate)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
+
+          <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:16px;">
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Governance Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
+              <div><span style="color:var(--text-muted)">Username:</span> <strong>${p.username}</strong></div>
+              <div><span style="color:var(--text-muted)">Email:</span> <strong>${p.email || '—'}</strong></div>
+              <div><span style="color:var(--text-muted)">Phone:</span> <strong>${p.phoneNumber || '—'}</strong></div>
+              <div><span style="color:var(--text-muted)">Last Activity:</span> <strong>${p.lastInspectionDate ? Fmt.date(p.lastInspectionDate) : 'Never'}</strong></div>
             </div>
-          </div>` : ''}
+          </div>
         `;
       } catch(err) {
         body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message}</div>`;
@@ -211,6 +264,7 @@
     }
 
     document.getElementById('search-input').addEventListener('input', renderVolunteers);
+    document.getElementById('status-filter').addEventListener('change', renderVolunteers);
     document.getElementById('btn-refresh').addEventListener('click', loadVolunteers);
     loadVolunteers();
   </script>

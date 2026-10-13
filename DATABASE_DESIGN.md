@@ -1,33 +1,31 @@
 # WasteWatch — Database Design & Schema Specification
 
-> **STATUS: IMPLEMENTED IN RUNTIME (PHASE 3)**  
-> *The core relational schema and JPA entities described below are fully implemented in `com.wastewatch.entity`, backed by Spring Data JPA repositories in `com.wastewatch.repository`, and automatically created and seeded in H2 database upon application startup.*
+> **STATUS: FULLY IMPLEMENTED IN RUNTIME (PHASES 1–14)**  
+> *The relational schema, JPA entities, repositories, and constraints described below are actively running in `com.wastewatch.entity` and `com.wastewatch.repository`, initialized and auto-seeded upon application startup.*
 
 ---
 
 ## 1. Overview & Portability Strategy
 
-WasteWatch uses a relational database design managed through Spring Data JPA / Hibernate.
-- **Development & Academic Target**: H2 Database (file-persisted or in-memory mode) for zero-dependency local execution.
+WasteWatch uses a clean relational database schema managed through Spring Data JPA and Hibernate.
+- **Development & Demonstration Target**: In-memory H2 Database (`jdbc:h2:mem:wastewatchdb`) for zero-friction setup and deterministic evaluation.
 - **Production & SaaS Target**: PostgreSQL 15+ (or MySQL 8+).
 - **Portability Rules**:
-  - Strictly use ANSI-standard SQL conventions and JPA annotations.
-  - Avoid proprietary H2 syntax or database-specific triggers/procedures.
-  - Table and column names use uppercase snake_case (e.g., `APP_USERS`, `INSPECTIONS`, `CREATED_AT`).
-  - Table name `APP_USERS` is used instead of `USERS` to avoid SQL keyword conflicts across PostgreSQL, H2, and Oracle.
+  - Strictly use ANSI-standard SQL column types and JPA annotations.
+  - Avoid proprietary database-specific triggers or stored procedures.
+  - Table name `APP_USERS` is used instead of `USERS` to avoid SQL reserved keyword conflicts across PostgreSQL, H2, and Oracle.
+  - Explicit composite unique constraints on `(building_id, room_number)` and `(inspection_id)`.
 
 ---
 
-## 2. Entity-Relationship (ER) Conceptual Model
+## 2. Entity-Relationship (ER) Model
 
 ```mermaid
 erDiagram
-    CITY ||--o{ AREA : contains
     AREA ||--o{ BUILDING : contains
-    BUILDING ||--o{ FLOOR : contains
-    FLOOR ||--o{ ROOM : contains
-    APP_USER ||--o{ INSPECTION : conducts
+    BUILDING ||--o{ ROOM : contains
     ROOM ||--o{ INSPECTION : audited_in
+    APP_USER ||--o{ INSPECTION : conducts
     INSPECTION ||--o| VIOLATION : triggers
     APP_USER ||--o{ NOTIFICATION : receives
     APP_USER ||--o{ AUDIT_LOG : generates
@@ -35,144 +33,111 @@ erDiagram
 
 ---
 
-## 3. Planned Table Specifications
+## 3. Runtime Table Specifications
 
 ### 3.1. `APP_USERS`
-* **Purpose**: Stores authenticated credentials, personal details, and assigned roles for system users (Admins, Volunteers).
+* **Purpose**: User accounts, credentials, and role assignments.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique user identifier |
-  | `username` | `VARCHAR(50)` | `NOT NULL, UNIQUE` | Unique handle / login identifier |
-  | `email` | `VARCHAR(100)`| `NOT NULL, UNIQUE` | Contact email address |
-  | `password_hash` | `VARCHAR(255)`| `NOT NULL` | BCrypt encrypted password hash |
-  | `full_name` | `VARCHAR(100)`| `NOT NULL` | Display name of the user |
+  | `username` | `VARCHAR(50)` | `NOT NULL, UNIQUE` | Login username |
+  | `email` | `VARCHAR(100)`| `NOT NULL, UNIQUE` | User email address |
+  | `password_hash` | `VARCHAR(255)`| `NOT NULL` | BCrypt encrypted password |
+  | `full_name` | `VARCHAR(100)`| `NOT NULL` | Full display name |
   | `phone_number` | `VARCHAR(20)` | `NULLABLE` | Contact telephone number |
   | `role` | `VARCHAR(20)` | `NOT NULL` | Enum: `ADMIN`, `VOLUNTEER` |
   | `status` | `VARCHAR(20)` | `NOT NULL, DEFAULT 'ACTIVE'`| Enum: `ACTIVE`, `INACTIVE`, `SUSPENDED` |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Record creation timestamp |
-  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
-* **Relationships**:
-  - `1:N` with `INSPECTIONS` (a volunteer conducts zero or many inspections).
-  - `1:N` with `NOTIFICATIONS` (a user receives zero or many notifications).
-  - `1:N` with `AUDIT_LOGS` (a user triggers zero or many audit logs).
-* **Future Considerations**: Support for Multi-Factor Authentication (MFA), external OAuth2/SSO providers, and multi-tenant organization IDs.
-
----
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp created |
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Timestamp updated |
 
 ### 3.2. `AREAS`
-* **Purpose**: Represents municipal zones, sectors, or neighborhoods within an urban jurisdiction.
+* **Purpose**: Municipal administrative zones, wards, or sectors.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique area identifier |
-  | `area_code` | `VARCHAR(20)` | `NOT NULL, UNIQUE` | Short code (e.g., `ZONE-NORTH-01`) |
-  | `name` | `VARCHAR(100)`| `NOT NULL` | Descriptive name (e.g., "Ward 14 - Green Hills") |
-  | `city` | `VARCHAR(100)`| `NOT NULL` | Associated city name |
+  | `area_code` | `VARCHAR(20)` | `NOT NULL, UNIQUE` | Area identifier (e.g., `ZONE-NORTH-01`) |
+  | `name` | `VARCHAR(100)`| `NOT NULL` | Descriptive name (e.g., "North Ward - Sector 14") |
+  | `city` | `VARCHAR(100)`| `NOT NULL` | Associated city |
   | `pincode` | `VARCHAR(10)` | `NOT NULL` | Postal zip code |
-  | `description` | `VARCHAR(255)`| `NULLABLE` | Administrative notes |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Record creation timestamp |
-  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
-* **Relationships**:
-  - `1:N` with `BUILDINGS` (an area contains one or many buildings).
-* **Future Considerations**: Storing GeoJSON boundary polygons for spatial GIS analytics and zone health mapping.
-
----
+  | `description` | `VARCHAR(255)`| `NULLABLE` | Administrative description |
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp created |
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Timestamp updated |
 
 ### 3.3. `BUILDINGS`
-* **Purpose**: Represents physical structures, residential complexes, societies, or commercial premises.
+* **Purpose**: Physical structures, apartment societies, or commercial premises.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique building identifier |
   | `area_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `AREAS(id)` |
-  | `building_code`| `VARCHAR(30)` | `NOT NULL, UNIQUE` | System code (e.g., `BLD-GH-101`) |
-  | `name` | `VARCHAR(120)`| `NOT NULL` | Building or apartment society name |
+  | `building_code`| `VARCHAR(30)` | `NOT NULL, UNIQUE` | Building code (e.g., `BLD-NW-101`) |
+  | `name` | `VARCHAR(120)`| `NOT NULL` | Society or complex name |
   | `address` | `VARCHAR(255)`| `NOT NULL` | Street address |
-  | `latitude` | `DECIMAL(10,8)`| `NULLABLE` | GPS latitude for map visualization |
-  | `longitude` | `DECIMAL(11,8)`| `NULLABLE` | GPS longitude for map visualization |
+  | `latitude` | `DECIMAL(10,8)`| `NULLABLE` | GPS latitude for map markers |
+  | `longitude` | `DECIMAL(11,8)`| `NULLABLE` | GPS longitude for map markers |
   | `building_type`| `VARCHAR(30)` | `NOT NULL` | Enum: `RESIDENTIAL`, `COMMERCIAL`, `MIXED`, `INSTITUTIONAL` |
   | `total_floors` | `INT` | `NOT NULL, DEFAULT 1` | Floor count |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Record creation timestamp |
-  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
-* **Relationships**:
-  - `N:1` with `AREAS` (belongs to one area).
-  - `1:N` with `FLOORS` / `ROOMS` (contains many floors and rooms).
-* **Future Considerations**: Spatial indexing (PostGIS `GEOMETRY(Point, 4326)` when migrating to PostgreSQL) for ultra-fast radius queries.
-
----
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp created |
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Timestamp updated |
 
 ### 3.4. `ROOMS`
-* **Purpose**: The atomic audit unit representing an individual flat, apartment, office, or shop.
+* **Purpose**: Fundamental inspection target units (flats, suites, rooms).
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique room identifier |
   | `building_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `BUILDINGS(id)` |
-  | `floor_number`| `INT` | `NOT NULL` | Floor level (e.g., 0 for Ground, 1, 2) |
-  | `room_number` | `VARCHAR(30)` | `NOT NULL` | Unit identifier (e.g., "Flat 302", "Suite B") |
-  | `qr_code_token`| `VARCHAR(64)` | `NOT NULL, UNIQUE` | Unique token embedded in room QR code |
-  | `occupant_name`| `VARCHAR(100)`| `NULLABLE` | Primary occupant/tenant name |
-  | `contact_phone`| `VARCHAR(20)` | `NULLABLE` | Occupant contact number |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Record creation timestamp |
-  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
-* **Relationships**:
-  - `N:1` with `BUILDINGS` (belongs to a building).
-  - `1:N` with `INSPECTIONS` (audited across time).
-* **Unique Key**: Composite unique constraint on `(building_id, room_number)`.
-* **Future Considerations**: QR code asset regeneration, occupant consent/notification flags.
-
----
+  | `room_number` | `VARCHAR(20)` | `NOT NULL` | Flat or suite number |
+  | `floor_number`| `INT` | `NOT NULL, DEFAULT 1` | Floor location |
+  | `qr_code_token`| `VARCHAR(100)`| `NOT NULL, UNIQUE` | Scannable identifier token |
+  | `occupant_name`| `VARCHAR(100)`| `NULLABLE` | Name of occupant |
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp created |
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Timestamp updated |
+* **Constraint**: `UNIQUE(building_id, room_number)` prevents duplicate unit numbers within the same building.
 
 ### 3.5. `INSPECTIONS`
-* **Purpose**: Immutable historical record of an on-site waste segregation audit.
+* **Purpose**: Field compliance audit records conducted by volunteers.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
-  | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique inspection record ID |
+  | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique inspection ID |
   | `room_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `ROOMS(id)` |
   | `volunteer_id`| `BIGINT` | `NOT NULL, FOREIGN KEY` | References `APP_USERS(id)` |
   | `inspection_date`| `TIMESTAMP` | `NOT NULL` | Audit timestamp |
-  | `wet_waste_separated` | `BOOLEAN` | `NOT NULL` | +25 points |
-  | `dry_waste_separated` | `BOOLEAN` | `NOT NULL` | +25 points |
-  | `sanitary_waste_separated` | `BOOLEAN`| `NOT NULL` | +20 points |
-  | `correct_bins_used` | `BOOLEAN` | `NOT NULL` | +15 points |
-  | `bins_labelled` | `BOOLEAN` | `NOT NULL` | +10 points |
-  | `no_mixed_waste` | `BOOLEAN` | `NOT NULL` | +5 points |
-  | `total_score` | `INT` | `NOT NULL` | Calculated score: 0 to 100 |
-  | `classification` | `VARCHAR(20)` | `NOT NULL` | `EXCELLENT`, `GOOD`, `NEEDS_IMPROVEMENT`, `POOR` |
-  | `remarks` | `TEXT` | `NULLABLE` | Volunteer notes/observations |
-  | `evidence_image_url` | `VARCHAR(255)`| `NULLABLE` | Photo path or cloud storage URL |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp record logged |
-* **Relationships**:
-  - `N:1` with `ROOMS`.
-  - `N:1` with `APP_USERS` (volunteer).
-  - `1:1` (or `1:N`) with `VIOLATIONS` (optional linkage when compliance score fails thresholds).
-* **Future Considerations**: Index on `(room_id, inspection_date DESC)` for fast historical lookups; database partition by year/month for historical scaling.
-
----
+  | `wet_waste_separated` | `BOOLEAN` | `NOT NULL` | Criteria 1 (25 pts) |
+  | `dry_waste_separated` | `BOOLEAN` | `NOT NULL` | Criteria 2 (25 pts) |
+  | `sanitary_waste_separated`| `BOOLEAN`| `NOT NULL` | Criteria 3 (20 pts) |
+  | `correct_bins_used` | `BOOLEAN` | `NOT NULL` | Criteria 4 (15 pts) |
+  | `bins_labelled` | `BOOLEAN` | `NOT NULL` | Criteria 5 (10 pts) |
+  | `no_mixed_waste`| `BOOLEAN` | `NOT NULL` | Criteria 6 (5 pts) |
+  | `total_score` | `INT` | `NOT NULL` | Calculated score (0–100) |
+  | `classification`| `VARCHAR(25)` | `NOT NULL` | Enum: `EXCELLENT`, `GOOD`, `NEEDS_IMPROVEMENT`, `POOR` |
+  | `status` | `VARCHAR(20)` | `NOT NULL` | Enum: `COMPLETED`, `FLAGGED`, `RESOLVED` |
+  | `remarks` | `TEXT` | `NULLABLE` | Auditor observations |
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Record creation timestamp |
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
 
 ### 3.6. `VIOLATIONS`
-* **Purpose**: Tracks non-compliant inspection events requiring corrective action or fine escalation.
+* **Purpose**: Tracks non-compliance incidents generated from poor audit scores (<40).
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique violation ID |
   | `inspection_id`| `BIGINT` | `NOT NULL, UNIQUE, FOREIGN KEY`| References `INSPECTIONS(id)` |
-  | `severity` | `VARCHAR(20)` | `NOT NULL` | Enum: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
-  | `status` | `VARCHAR(20)` | `NOT NULL, DEFAULT 'OPEN'` | Enum: `OPEN`, `NOTIFIED`, `RESOLVED`, `ESCALATED` |
-  | `fine_amount` | `DECIMAL(10,2)`| `DEFAULT 0.00` | Optional penalty assessed |
-  | `resolution_notes`| `TEXT` | `NULLABLE` | Notes upon verification of correction |
-  | `resolved_at` | `TIMESTAMP` | `NULLABLE` | Timestamp when issue was closed |
+  | `room_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `ROOMS(id)` |
+  | `severity` | `VARCHAR(20)` | `NOT NULL` | Enum: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` |
+  | `status` | `VARCHAR(20)` | `NOT NULL, DEFAULT 'OPEN'` | Enum: `OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED` |
+  | `description` | `TEXT` | `NOT NULL` | Violation reason or auto-flag details |
+  | `fine_amount` | `DECIMAL(10,2)`| `DEFAULT 0.00` | Assessed municipal fine |
+  | `resolution_notes`| `TEXT` | `NULLABLE` | Official notes upon correction |
+  | `resolved_at` | `TIMESTAMP` | `NULLABLE` | Resolution timestamp |
   | `created_at` | `TIMESTAMP` | `NOT NULL` | Created timestamp |
-* **Relationships**:
-  - `1:1` with `INSPECTIONS`.
-* **Future Considerations**: Escalation timelines with automated scheduled reminders.
-
----
+  | `updated_at` | `TIMESTAMP` | `NOT NULL` | Updated timestamp |
 
 ### 3.7. `NOTIFICATIONS`
-* **Purpose**: In-app alert queue for both administrators and volunteers.
+* **Purpose**: In-app alert queue for administrators and volunteers.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
@@ -180,39 +145,32 @@ erDiagram
   | `user_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `APP_USERS(id)` |
   | `title` | `VARCHAR(150)`| `NOT NULL` | Alert headline |
   | `message` | `TEXT` | `NOT NULL` | Alert body |
-  | `notification_type`| `VARCHAR(30)` | `NOT NULL` | Enum: `INSPECTION_ASSIGNED`, `VIOLATION_RAISED`, `SYSTEM` |
-  | `is_read` | `BOOLEAN` | `NOT NULL, DEFAULT FALSE`| Read status |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp generated |
-* **Relationships**:
-  - `N:1` with `APP_USERS`.
-
----
+  | `notification_type`| `VARCHAR(30)` | `NOT NULL` | Enum: `VIOLATION_ALERT`, `REPEAT_VIOLATION`, `COVERAGE_DEFICIT`, `SYSTEM` |
+  | `is_read` | `BOOLEAN` | `NOT NULL, DEFAULT FALSE`| Read flag |
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Created timestamp |
 
 ### 3.8. `AUDIT_LOGS`
-* **Purpose**: Immutable security audit trail recording critical platform operations.
+* **Purpose**: Immutable security audit trail recording system and administrative operations.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique audit log ID |
-  | `user_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `APP_USERS(id)` (null for system events) |
-  | `action` | `VARCHAR(50)` | `NOT NULL` | Action code (e.g., `USER_LOGIN`, `SUBMIT_INSPECTION`, `DELETE_BUILDING`) |
-  | `entity_type` | `VARCHAR(50)` | `NOT NULL` | Affected domain entity |
-  | `entity_id` | `VARCHAR(50)` | `NULLABLE` | Identifier of affected record |
-  | `ip_address` | `VARCHAR(45)` | `NULLABLE` | Client IPv4/IPv6 address |
-  | `details` | `TEXT` | `NULLABLE` | JSON payload of modifications |
-  | `created_at` | `TIMESTAMP` | `NOT NULL` | Event timestamp |
-* **Future Considerations**: Write-only storage (append-only) to ensure tamper-proof audit trails.
+  | `user_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `APP_USERS(id)` |
+  | `action` | `VARCHAR(50)` | `NOT NULL` | Action code (e.g. `USER_LOGIN`, `CREATE_AREA`) |
+  | `entity_type` | `VARCHAR(50)` | `NOT NULL` | Entity affected (e.g. `Inspection`, `Room`) |
+  | `entity_id` | `VARCHAR(50)` | `NULLABLE` | Primary key identifier of target |
+  | `ip_address` | `VARCHAR(45)` | `NULLABLE` | Client IP address |
+  | `details` | `TEXT` | `NULLABLE` | Detailed description of change |
+  | `created_at` | `TIMESTAMP` | `NOT NULL` | Created timestamp |
 
 ---
 
-## 4. Planned Indexes
-
-To optimize query latency across dashboard aggregation and mobile audit queries:
-- `IDX_AREAS_CODE` on `AREAS(area_code)`
-- `IDX_BUILDINGS_AREA` on `BUILDINGS(area_id)`
-- `IDX_ROOMS_BUILDING` on `ROOMS(building_id)`
-- `IDX_ROOMS_QR` on `ROOMS(qr_code_token)`
-- `IDX_INSPECTIONS_ROOM_DATE` on `INSPECTIONS(room_id, inspection_date DESC)`
-- `IDX_INSPECTIONS_VOLUNTEER` on `INSPECTIONS(volunteer_id)`
-- `IDX_VIOLATIONS_STATUS` on `VIOLATIONS(status)`
-- `IDX_NOTIFICATIONS_USER_READ` on `NOTIFICATIONS(user_id, is_read)`
+## 4. Database Indexes
+- `IDX_ROOMS_BUILDING`: `ROOMS(building_id)`
+- `IDX_ROOMS_QR`: `ROOMS(qr_code_token)`
+- `IDX_INSPECTIONS_ROOM`: `INSPECTIONS(room_id)`
+- `IDX_INSPECTIONS_VOLUNTEER`: `INSPECTIONS(volunteer_id)`
+- `IDX_INSPECTIONS_DATE`: `INSPECTIONS(inspection_date DESC)`
+- `IDX_VIOLATIONS_STATUS`: `VIOLATIONS(status)`
+- `IDX_NOTIFICATIONS_USER_READ`: `NOTIFICATIONS(user_id, is_read)`
+- `IDX_AUDIT_LOGS_CREATED`: `AUDIT_LOGS(created_at DESC)`

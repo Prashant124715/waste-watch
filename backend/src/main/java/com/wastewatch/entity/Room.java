@@ -46,6 +46,9 @@ public class Room {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "persistent_non_compliance", nullable = false)
+    private Boolean persistentNonCompliance = false;
+
     public Room() {
     }
 
@@ -155,5 +158,13 @@ public class Room {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getPersistentNonCompliance() {
+        return persistentNonCompliance;
+    }
+
+    public void setPersistentNonCompliance(Boolean persistentNonCompliance) {
+        this.persistentNonCompliance = persistentNonCompliance != null ? persistentNonCompliance : false;
     }
 }

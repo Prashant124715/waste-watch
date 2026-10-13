@@ -124,23 +124,95 @@ class ApiClient {
   getMyInspections()      { return this.get('/volunteers/me/inspections'); }
   getRecentInspections()  { return this.get('/inspections/recent'); }
 
-  // ── Violations ──
+  // ── Violations (Phase 6, 13) ──
   getViolations(params = {}) {
     const q = new URLSearchParams();
-    if (params.status) q.set('status', params.status);
-    if (params.roomId) q.set('roomId', params.roomId);
+    if (params.status)     q.set('status', params.status);
+    if (params.severity)   q.set('severity', params.severity);
+    if (params.roomId)     q.set('roomId', params.roomId);
+    if (params.buildingId) q.set('buildingId', params.buildingId);
+    if (params.areaId)     q.set('areaId', params.areaId);
+    if (params.from)       q.set('from', params.from);
+    if (params.to)         q.set('to', params.to);
     const qs = q.toString() ? `?${q}` : '';
     return this.get(`/violations${qs}`);
   }
   getViolation(id)                { return this.get(`/violations/${id}`); }
   updateViolationStatus(id, data) { return this.put(`/violations/${id}/status`, data); }
+  resolveViolation(id, data)      { return this.put(`/violations/${id}/resolve`, data); }
 
   // ── Map ──
   getMapBuildings() { return this.get('/map/buildings'); }
 
-  // ── Volunteers ──
-  getVolunteers()              { return this.get('/volunteers'); }
-  getVolunteerPerformance(id)  { return this.get(`/volunteers/${id}/performance`); }
+  // ── Volunteers & User Governance (Phase 6, 14) ──
+  getVolunteers()                     { return this.get('/volunteers'); }
+  getVolunteerPerformance(id)         { return this.get(`/volunteers/${id}/performance`); }
+  updateVolunteerStatus(id, status)   { return this.put(`/volunteers/${id}/status`, { status }); }
+
+  // ── In-App Notifications (Phase 13) ──
+  getNotifications()                  { return this.get('/notifications'); }
+  getUnreadNotifications()            { return this.get('/notifications/unread'); }
+  getUnreadNotificationCount()        { return this.get('/notifications/count'); }
+  markNotificationRead(id)            { return this.request('PATCH', `/notifications/${id}/read`); }
+  markAllNotificationsRead()          { return this.request('PATCH', '/notifications/read-all'); }
+
+  // ── Audit Logs (Phase 14) ──
+  getAuditLogs(params = {}) {
+    const q = new URLSearchParams();
+    if (params.action)     q.set('action', params.action);
+    if (params.entityType) q.set('entityType', params.entityType);
+    if (params.userId)     q.set('userId', params.userId);
+    if (params.from)       q.set('from', params.from);
+    if (params.to)         q.set('to', params.to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/audit-logs${qs}`);
+  }
+
+  // ── Reports & Governance (Phase 14) ──
+  getReportOverview(from, to) {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/reports/overview${qs}`);
+  }
+  getReportAreas(from, to) {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/reports/areas${qs}`);
+  }
+  getReportBuildings(from, to) {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/reports/buildings${qs}`);
+  }
+  getReportCoverage() {
+    return this.get('/reports/coverage');
+  }
+  getReportViolations(from, to) {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/reports/violations${qs}`);
+  }
+  getReportVolunteers(from, to) {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/reports/volunteers${qs}`);
+  }
+  getReportCsvUrl(type, from, to) {
+    const q = new URLSearchParams({ type: type || 'overview' });
+    if (from) q.set('from', from);
+    if (to)   q.set('to', to);
+    return `${this.baseUrl}/reports/export/csv?${q.toString()}`;
+  }
 
   // ── Analytics Engine (Phase 10) ──
   getAnalyticsOverview()               { return this.get('/analytics/overview'); }

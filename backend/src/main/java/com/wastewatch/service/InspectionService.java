@@ -9,10 +9,10 @@ import com.wastewatch.exception.DuplicateResourceException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.*;
 import com.wastewatch.security.UserPrincipal;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,19 +27,22 @@ public class InspectionService {
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final ComplianceScoringService scoringService;
+    private final ViolationService violationService;
 
     public InspectionService(InspectionRepository inspectionRepository,
                              ViolationRepository violationRepository,
                              RoomRepository roomRepository,
                              UserRepository userRepository,
                              AuditLogRepository auditLogRepository,
-                             ComplianceScoringService scoringService) {
+                             ComplianceScoringService scoringService,
+                             @Lazy ViolationService violationService) {
         this.inspectionRepository = inspectionRepository;
         this.violationRepository = violationRepository;
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
         this.auditLogRepository = auditLogRepository;
         this.scoringService = scoringService;
+        this.violationService = violationService;
     }
 
     @Transactional
@@ -85,27 +88,15 @@ public class InspectionService {
 
         Inspection savedInspection = inspectionRepository.save(inspection);
 
-        boolean violationCreated = false;
-        Long violationId = null;
-
+        // Phase 13: Delegate violation creation, persistent non-compliance detection,
+        //           and notifications to ViolationService
+        Violation savedViolation = null;
         if (scoringResult.isViolationRequired()) {
-            Violation violation = new Violation();
-            violation.setInspection(savedInspection);
-            violation.setRoom(room);
-            violation.setSeverity(scoringResult.getViolationSeverity());
-            violation.setStatus(ViolationStatus.OPEN);
-            violation.setDescription(String.format("Automatic non-compliance flag: Score was %d/100 (%s). Remarks: %s",
-                    scoringResult.getTotalScore(),
-                    scoringResult.getClassification().name(),
-                    dto.getRemarks() != null && !dto.getRemarks().isBlank() ? dto.getRemarks().trim() : "Failed required waste segregation thresholds."));
-            
-            BigDecimal fine = scoringResult.getTotalScore() < 20 ? new BigDecimal("500.00") : new BigDecimal("250.00");
-            violation.setFineAmount(fine);
-
-            Violation savedViolation = violationRepository.save(violation);
-            violationCreated = true;
-            violationId = savedViolation.getId();
+            savedViolation = violationService.processInspectionForViolation(savedInspection, room);
         }
+
+        boolean violationCreated = savedViolation != null;
+        Long violationId = violationCreated ? savedViolation.getId() : null;
 
         // Record Audit Log
         AuditLog auditLog = new AuditLog(
