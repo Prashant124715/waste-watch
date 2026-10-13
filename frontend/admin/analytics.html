@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Analytics & Decision Support Engine</title>
+  <meta name="description" content="Management analytics, Area Health Scores, Inspection Coverage vs Compliance insights, and Hotspot tracking."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .analytics-nav {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: var(--space-6);
+      overflow-x: auto;
+    }
+    .analytics-tab {
+      padding: 10px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .analytics-tab:hover {
+      color: var(--text-primary);
+    }
+    .analytics-tab.active {
+      color: var(--color-primary-light);
+      border-bottom-color: var(--color-primary);
+    }
+
+    .kpi-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 1100px) { .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .kpi-grid-4 { grid-template-columns: 1fr; } }
+
+    .formula-banner {
+      background: linear-gradient(135deg, hsla(154,72%,37%,0.1), hsla(196,90%,56%,0.08));
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    .formula-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .formula-equation {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: var(--bg-surface-3);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-default);
+      color: var(--text-primary);
+    }
+
+    .confidence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .confidence-high   { background: rgba(46,204,113,0.15); color: #2ECC71; border: 1px solid rgba(46,204,113,0.3); }
+    .confidence-medium { background: rgba(243,156,18,0.15);  color: #F39C12; border: 1px solid rgba(243,156,18,0.3); }
+    .confidence-low    { background: rgba(231,76,60,0.15);   color: #E74C3C; border: 1px solid rgba(231,76,60,0.3); }
+
+    .risk-critical { background: rgba(231,76,60,0.15); color: #FF6B6B; border: 1px solid rgba(231,76,60,0.4); font-weight: 800; }
+    .risk-high     { background: rgba(243,156,18,0.15); color: #FFA94D; border: 1px solid rgba(243,156,18,0.4); font-weight: 700; }
+    .risk-medium   { background: rgba(0,191,255,0.15); color: #74C0FC; border: 1px solid rgba(0,191,255,0.4); font-weight: 600; }
+
+    .trend-bars-container {
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding-bottom: 24px;
+      position: relative;
+    }
+    .trend-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      position: relative;
+    }
+    .trend-bar-fill {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+    .trend-bar-fill:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface-3);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      white-space: pre-line;
+      color: var(--text-primary);
+      z-index: 30;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+      text-align: left;
+    }
+    .trend-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .analytics-panel { display: none; }
+    .analytics-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Analytics & Decision Support</div>
+        <div class="topbar-subtitle">Backend-computed intelligence, Area Health Scores & chronic problem detection</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadAllAnalytics()">🔄 Refresh</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Navigation Tabs -->
+      <div class="analytics-nav">
+        <div class="analytics-tab active" onclick="switchTab('overview')">📊 Overview & Health</div>
+        <div class="analytics-tab" onclick="switchTab('areas')">🏙️ Area Health Index</div>
+        <div class="analytics-tab" onclick="switchTab('buildings')">🏢 Building Matrix</div>
+        <div class="analytics-tab" onclick="switchTab('trends')">📈 Time-Series Trends</div>
+        <div class="analytics-tab" onclick="switchTab('improvements')">🚀 Most Improved Areas</div>
+        <div class="analytics-tab" onclick="switchTab('hotspots')">🚨 Hotspots & Repeat Offenders</div>
+        <div class="analytics-tab" onclick="switchTab('volunteers')">👷 Volunteer Productivity</div>
+      </div>
+
+      <!-- Formula Banner -->
+      <div class="formula-banner">
+        <div>
+          <div class="formula-title">💡 Standardized Area Health Score Formula</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:2px;">
+            Weighted model preventing false-confidence from high compliance on low coverage.
+          </div>
+        </div>
+        <div class="formula-equation">
+          Area Health = (70% × Segregation Compliance) + (20% × Inspection Coverage) + (10% × Violation Resolution)
+        </div>
+      </div>
+
+      <!-- TAB 1: OVERVIEW -->
+      <div class="analytics-panel active" id="tab-overview">
+        <div class="kpi-grid-4">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">System Health Score</span>
+              <span class="stat-card-icon">🌟</span>
+            </div>
+            <div class="stat-card-value" id="ov-health" style="color:var(--color-primary-light);">—</div>
+            <div class="stat-card-change" id="ov-health-note">Weighted operational index</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Overall Compliance</span>
+              <span class="stat-card-icon">♻️</span>
+            </div>
+            <div class="stat-card-value" id="ov-comp" style="color:var(--color-accent);">—</div>
+            <div class="stat-card-change" id="ov-comp-note">Avg across valid audits</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Inspection Coverage</span>
+              <span class="stat-card-icon">🎯</span>
+            </div>
+            <div class="stat-card-value" id="ov-cov" style="color:#2ECC71;">—</div>
+            <div class="stat-card-change" id="ov-cov-note">Rooms inspected / Total</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Violation Resolution</span>
+              <span class="stat-card-icon">✅</span>
+            </div>
+            <div class="stat-card-value" id="ov-res" style="color:#00BFFF;">—</div>
+            <div class="stat-card-change" id="ov-res-note">Resolved / Total Violations</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">⚠️ Compliance vs. Coverage Confidence Rule</h2>
+            </div>
+            <div style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;">
+              <p style="margin-bottom:10px;">
+                <strong>Key Governance Principle:</strong> High compliance on a low coverage rate does <em>not</em> represent high-confidence hygiene performance.
+              </p>
+              <div style="background:var(--bg-surface-3);padding:12px;border-radius:var(--radius-md);border-left:3px solid var(--color-warning);margin-bottom:12px;">
+                <strong>Example Scenario:</strong> If an Area has <strong>94% Compliance</strong> but only <strong>12% Coverage</strong> (e.g. 6 of 50 rooms inspected), the sample size is inadequate. Its Confidence Rating is <strong>LOW</strong>, and its overall Health Score reflects the missing audit data.
+              </div>
+              <ul style="margin-left:18px;font-size:0.8125rem;color:var(--text-muted);">
+                <li><strong>High Confidence:</strong> ≥ 75% rooms inspected</li>
+                <li><strong>Medium Confidence:</strong> 40% – 74% rooms inspected</li>
+                <li><strong>Low Confidence:</strong> &lt; 40% rooms inspected</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Classification Breakdown</h2>
+            </div>
+            <div id="class-breakdown-rows">
+              <div class="animate-pulse" style="color:var(--text-muted);padding:20px;text-align:center;">Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: AREAS -->
+      <div class="analytics-panel" id="tab-areas">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Health Score</th>
+                <th>Compliance</th>
+                <th>Coverage</th>
+                <th>Audited / Total</th>
+                <th>Poor Units</th>
+                <th>Violations</th>
+                <th>Resolution</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="areas-tbody">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading areas…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: BUILDINGS -->
+      <div class="analytics-panel" id="tab-buildings">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Area</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Coverage</th>
+                <th>Inspected / Total</th>
+                <th>Poor Rooms</th>
+                <th>Open Violations</th>
+              </tr>
+            </thead>
+            <tbody id="buildings-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading buildings…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: TRENDS -->
+      <div class="analytics-panel" id="tab-trends">
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:12px;">
+            <h2 class="card-title">Time-Series Trend Analysis</h2>
+            <div style="display:flex;gap:8px;">
+              <select class="form-control form-control-sm" id="trend-period" onchange="loadTrends()" style="width:110px;">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <select class="form-control form-control-sm" id="trend-days" onchange="loadTrends()" style="width:110px;">
+                <option value="7">Last 7 Days</option>
+                <option value="14">Last 14 Days</option>
+                <option value="30" selected>Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+            </div>
+          </div>
+          <div class="trend-bars-container" id="trend-chart">
+            <div class="animate-pulse" style="color:var(--text-muted);width:100%;text-align:center;padding-top:80px;">Loading trend metrics…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: IMPROVEMENTS -->
+      <div class="analytics-panel" id="tab-improvements">
+        <div class="card" style="margin-bottom:var(--space-6);">
+          <div class="card-header">
+            <h2 class="card-title">Period-over-Period Performance Comparison</h2>
+            <select class="form-control form-control-sm" id="impr-window" onchange="loadImprovements()" style="width:140px;">
+              <option value="7">7-Day Window</option>
+              <option value="14" selected>14-Day Window</option>
+              <option value="30">30-Day Window</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Area</th>
+                  <th>Recent Avg Score</th>
+                  <th>Previous Avg Score</th>
+                  <th>Score Delta</th>
+                  <th>Recent Coverage</th>
+                  <th>Coverage Delta</th>
+                  <th>Audits Count</th>
+                  <th>Trend Status</th>
+                </tr>
+              </thead>
+              <tbody id="improvements-tbody">
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading comparisons…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: HOTSPOTS -->
+      <div class="analytics-panel" id="tab-hotspots">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);">
+          <!-- Repeat Offender Rooms -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">🚨 Repeat Offender Rooms (Chronic Non-Compliance)</h2>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Room</th>
+                    <th>Building / Area</th>
+                    <th>Failed Audits</th>
+                    <th>Latest Score</th>
+                    <th>Open Viols</th>
+                    <th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="repeat-rooms-tbody">
+                  <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading repeat offenders…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Problem Buildings -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">🏢 Problem Buildings (Low Score / High Poor Rate)</h2>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Building</th>
+                    <th>Area</th>
+                    <th>Avg Score</th>
+                    <th>Poor Units %</th>
+                    <th>Open Viols</th>
+                    <th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="prob-buildings-tbody">
+                  <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading problem buildings…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 7: VOLUNTEERS -->
+      <div class="analytics-panel" id="tab-volunteers">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Volunteer</th>
+                <th>Audits Completed</th>
+                <th>Avg Score Awarded</th>
+                <th>Unique Rooms Audited</th>
+                <th>Buildings Covered</th>
+                <th>Violations Flagged</th>
+                <th>Active Days</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="volunteers-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading volunteer productivity…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireAdmin()) throw new Error();
+    injectSidebar('ADMIN');
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.analytics-panel').forEach(p => p.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    async function loadAllAnalytics() {
+      loadOverview();
+      loadAreas();
+      loadBuildings();
+      loadTrends();
+      loadImprovements();
+      loadHotspots();
+      loadVolunteers();
+    }
+
+    async function loadOverview() {
+      try {
+        const ov = await api.getAnalyticsOverview();
+        document.getElementById('ov-health').textContent = ov.systemHealthScore + ' / 100';
+        document.getElementById('ov-comp').textContent = ov.overallComplianceRate + '%';
+        document.getElementById('ov-cov').textContent = ov.overallInspectionCoverage + '%';
+        document.getElementById('ov-cov-note').textContent = `${ov.inspectedRooms} of ${ov.totalRooms} rooms audited`;
+        document.getElementById('ov-res').textContent = ov.overallViolationResolutionRate + '%';
+        document.getElementById('ov-res-note').textContent = `${ov.resolvedViolationsCount} resolved / ${ov.openViolationsCount} open`;
+
+        // Classification breakdown
+        const counts = ov.classificationCounts || {};
+        const total = ov.totalInspections || 1;
+        const tiers = [
+          { label: 'Excellent (80-100)', key: 'EXCELLENT', color: '#2ECC71' },
+          { label: 'Good (60-79)', key: 'GOOD', color: '#00BFFF' },
+          { label: 'Needs Improvement (40-59)', key: 'NEEDS_IMPROVEMENT', color: '#F39C12' },
+          { label: 'Poor (0-39)', key: 'POOR', color: '#E74C3C' }
+        ];
+
+        document.getElementById('class-breakdown-rows').innerHTML = tiers.map(t => {
+          const val = counts[t.key] || 0;
+          const pct = Math.round((val / total) * 100);
+          return `
+            <div style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">
+                <span>${t.label}</span>
+                <span style="color:${t.color}">${val} (${pct}%)</span>
+              </div>
+              <div style="height:8px;background:var(--bg-surface-3);border-radius:999px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:${t.color};border-radius:999px;transition:width 0.6s ease;"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        Toast.error('Overview Error', err.message);
+      }
+    }
+
+    async function loadAreas() {
+      const tbody = document.getElementById('areas-tbody');
+      try {
+        const areas = await api.getAnalyticsAreas();
+        if (!areas.length) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-muted text-center">No areas registered.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = areas.map(a => `
+          <tr>
+            <td class="td-primary">${escapeHtml(a.areaName)} <span class="font-mono text-muted" style="font-size:0.75rem;">(${escapeHtml(a.areaCode)})</span></td>
+            <td><strong style="color:var(--color-primary-light);font-size:1.05rem;">${a.areaHealthScore}</strong></td>
+            <td>${a.averageCompliance}% <span class="badge ${getStatusBadge(a.complianceStatus)}">${a.complianceStatus}</span></td>
+            <td><strong>${a.inspectionCoverage}%</strong></td>
+            <td>${a.inspectedRooms} / ${a.totalRooms} rooms</td>
+            <td><span class="${a.poorRoomCount > 0 ? 'text-danger font-bold' : 'text-muted'}">${a.poorRoomCount}</span></td>
+            <td>${a.totalViolations} <span class="text-muted" style="font-size:0.75rem;">(${a.openViolations} open)</span></td>
+            <td>${a.violationResolutionRate}%</td>
+            <td><span class="confidence-badge confidence-${a.confidenceRating.toLowerCase()}">${a.confidenceRating}</span></td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-danger text-center">Error loading areas: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadBuildings() {
+      const tbody = document.getElementById('buildings-tbody');
+      try {
+        const buildings = await api.getAnalyticsBuildings();
+        if (!buildings.length) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-muted text-center">No buildings found.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = buildings.map(b => `
+          <tr>
+            <td class="td-primary">${escapeHtml(b.buildingName)}</td>
+            <td>${escapeHtml(b.areaName || '—')}</td>
+            <td><strong>${b.averageScore}</strong></td>
+            <td><span class="badge ${getStatusBadge(b.complianceStatus)}">${b.complianceStatus}</span></td>
+            <td>${b.inspectionCoverage}%</td>
+            <td>${b.inspectedRooms} / ${b.totalRooms}</td>
+            <td><span class="${b.poorRoomCount > 0 ? 'text-danger font-bold' : 'text-muted'}">${b.poorRoomCount}</span></td>
+            <td><span class="${b.openViolationsCount > 0 ? 'text-warning font-bold' : 'text-muted'}">${b.openViolationsCount}</span></td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Error loading buildings: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadTrends() {
+      const period = document.getElementById('trend-period').value;
+      const days = document.getElementById('trend-days').value;
+      const chart = document.getElementById('trend-chart');
+      try {
+        const trendData = await api.getAnalyticsTrends(period, days);
+        const points = trendData.points || [];
+        if (!points.length) {
+          chart.innerHTML = `<div class="text-muted text-center" style="width:100%;padding-top:80px;">No trend data available for this period.</div>`;
+          return;
+        }
+        const maxScore = 100;
+        chart.innerHTML = points.map(p => {
+          const heightPct = p.inspectionCount > 0 ? Math.max(8, (p.averageScore / maxScore) * 100) : 4;
+          const barColor = p.averageScore >= 80 ? '#2ECC71' : p.averageScore >= 60 ? '#00BFFF' : p.averageScore >= 40 ? '#F39C12' : '#E74C3C';
+          const tip = `${p.label}
+Avg Score: ${p.averageScore}
+Audits: ${p.inspectionCount}
+Violations: ${p.violationsCount}`;
+          return `
+            <div class="trend-col">
+              <div class="trend-bar-fill" style="height:${heightPct}%;background:${barColor};" data-tooltip="${tip}"></div>
+              <div class="trend-label">${escapeHtml(p.label)}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        chart.innerHTML = `<div class="text-danger text-center" style="width:100%;padding-top:80px;">Error loading trends: ${err.message}</div>`;
+      }
+    }
+
+    async function loadImprovements() {
+      const days = document.getElementById('impr-window').value;
+      const tbody = document.getElementById('improvements-tbody');
+      try {
+        const list = await api.getAnalyticsImprovements(days);
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-muted text-center">No area comparison data.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list.map(item => {
+          const deltaColor = item.scoreDelta > 0 ? '#2ECC71' : item.scoreDelta < 0 ? '#E74C3C' : 'var(--text-muted)';
+          const deltaSign = item.scoreDelta > 0 ? '+' : '';
+          const statusBadge = item.trendStatus === 'IMPROVED' ? 'badge-success' : item.trendStatus === 'DECLINED' ? 'badge-danger' : 'badge-neutral';
+          return `
+            <tr>
+              <td class="td-primary">${escapeHtml(item.areaName)} <span class="font-mono text-muted" style="font-size:0.75rem;">(${escapeHtml(item.areaCode)})</span></td>
+              <td><strong>${item.recentAverageScore}</strong></td>
+              <td>${item.previousAverageScore}</td>
+              <td style="color:${deltaColor};font-weight:700;">${deltaSign}${item.scoreDelta}</td>
+              <td>${item.recentCoverage}%</td>
+              <td>${item.coverageDelta > 0 ? '+' : ''}${item.coverageDelta}%</td>
+              <td>${item.recentInspectionsCount} <span class="text-muted" style="font-size:0.75rem;">(vs ${item.previousInspectionsCount})</span></td>
+              <td><span class="badge ${statusBadge}">${item.trendStatus}</span></td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Error loading improvements: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadHotspots() {
+      const rTbody = document.getElementById('repeat-rooms-tbody');
+      const pTbody = document.getElementById('prob-buildings-tbody');
+      try {
+        const data = await api.getAnalyticsHotspots();
+        const rooms = data.repeatOffenderRooms || [];
+        const buildings = data.problemBuildings || [];
+
+        if (!rooms.length) {
+          rTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center">🎉 No chronic repeat offender rooms found!</td></tr>`;
+        } else {
+          rTbody.innerHTML = rooms.map(r => `
+            <tr>
+              <td class="td-primary font-mono">${escapeHtml(r.roomNumber)} <span class="text-muted" style="font-size:0.75rem;">(F${r.floorNumber})</span></td>
+              <td>${escapeHtml(r.buildingName)}<br><span class="text-muted" style="font-size:0.75rem;">${escapeHtml(r.areaName || '')}</span></td>
+              <td><strong class="text-danger">${r.failedInspectionsCount}</strong> / ${r.totalInspectionsCount}</td>
+              <td><strong>${r.latestScore !== null ? r.latestScore : '—'}</strong></td>
+              <td><span class="${r.openViolationsCount > 0 ? 'text-warning font-bold' : 'text-muted'}">${r.openViolationsCount}</span></td>
+              <td><span class="confidence-badge risk-${r.riskLevel.toLowerCase()}">${r.riskLevel}</span></td>
+            </tr>
+          `).join('');
+        }
+
+        if (!buildings.length) {
+          pTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center">🎉 No problem buildings identified!</td></tr>`;
+        } else {
+          pTbody.innerHTML = buildings.map(b => `
+            <tr>
+              <td class="td-primary">${escapeHtml(b.buildingName)}</td>
+              <td>${escapeHtml(b.areaName || '—')}</td>
+              <td><strong style="color:#E74C3C;">${b.averageScore}</strong></td>
+              <td>${b.poorRoomPercentage}% <span class="text-muted" style="font-size:0.75rem;">(${b.poorRoomCount}/${b.inspectedRooms})</span></td>
+              <td><span class="${b.openViolationsCount > 0 ? 'text-warning font-bold' : 'text-muted'}">${b.openViolationsCount}</span></td>
+              <td><span class="confidence-badge risk-${b.riskLevel.toLowerCase()}">${b.riskLevel}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        rTbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">${err.message}</td></tr>`;
+        pTbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadVolunteers() {
+      const tbody = document.getElementById('volunteers-tbody');
+      try {
+        const vols = await api.getAnalyticsVolunteers();
+        if (!vols.length) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-muted text-center">No volunteers registered.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = vols.map(v => `
+          <tr>
+            <td class="td-primary">${escapeHtml(v.fullName || v.username)}</td>
+            <td><strong>${v.inspectionsCount}</strong></td>
+            <td><strong>${v.averageScoreAwarded}</strong></td>
+            <td>${v.distinctRoomsInspected}</td>
+            <td>${v.distinctBuildingsCovered}</td>
+            <td><span class="${v.violationsFlagged > 0 ? 'text-warning font-bold' : 'text-muted'}">${v.violationsFlagged}</span></td>
+            <td>${v.activeDaysCount} days</td>
+            <td><span class="badge ${v.activityStatus === 'ACTIVE' ? 'badge-success' : v.activityStatus === 'RECENT' ? 'badge-info' : 'badge-neutral'}">${v.activityStatus}</span></td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Error loading volunteers: ${err.message}</td></tr>`;
+      }
+    }
+
+    function getStatusBadge(st) {
+      if (st === 'EXCELLENT') return 'badge-success';
+      if (st === 'GOOD') return 'badge-info';
+      if (st === 'NEEDS_IMPROVEMENT') return 'badge-warning';
+      if (st === 'POOR') return 'badge-danger';
+      return 'badge-neutral';
+    }
+
+    loadAllAnalytics();
+  </script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Executive Compliance Dashboard</title>
+  <meta name="description" content="WasteWatch real-time compliance monitoring, KPI intelligence, and waste segregation analytics dashboard."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .kpi-grid-8 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 1200px) { .kpi-grid-8 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .kpi-grid-8 { grid-template-columns: 1fr; } }
+
+    .trend-chart-wrap {
+      height: 220px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+    .trend-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 100%;
+      width: 100%;
+      padding-bottom: 24px;
+    }
+    .trend-bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      height: 100%;
+    }
+    .trend-bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    .trend-bar:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface-3);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+      color: var(--text-primary);
+      z-index: 20;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+    }
+    .trend-bar-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .distribution-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .distribution-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      width: 150px;
+      flex-shrink: 0;
+      color: var(--text-secondary);
+    }
+    .distribution-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: var(--bg-surface-3);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .distribution-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.7s ease;
+    }
+    .distribution-count {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      width: 54px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .area-rank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 10px;
+      transition: all var(--transition-fast);
+    }
+    .area-rank-item:hover {
+      border-color: var(--border-default);
+      background: var(--bg-glass-light);
+    }
+    .area-rank-info { display: flex; align-items: center; gap: 12px; }
+    .area-rank-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-surface-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .area-rank-num.gold   { background: hsla(38,92%,55%,0.2); color: var(--color-warning); }
+    .area-rank-num.silver { background: hsla(210,14%,60%,0.2); color: hsl(210,14%,80%); }
+    .area-rank-num.bronze { background: hsla(25,75%,45%,0.2); color: hsl(25,75%,65%); }
+    .area-rank-name { font-weight: 600; font-size: var(--text-sm); color: var(--text-primary); }
+    .area-rank-meta { font-size: var(--text-xs); color: var(--text-muted); }
+
+    .attention-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-active-viol { background: hsla(0,78%,58%,0.18); color: hsl(0,78%,70%); border: 1px solid hsla(0,78%,58%,0.35); }
+    .tag-poor-comp  { background: hsla(38,92%,55%,0.18); color: hsl(38,92%,65%); border: 1px solid hsla(38,92%,55%,0.35); }
+    .tag-overdue    { background: hsla(215,80%,57%,0.18); color: hsl(215,80%,70%); border: 1px solid hsla(215,80%,57%,0.35); }
+    .tag-uninspected{ background: hsla(210,14%,50%,0.18); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+  </style>
+</head>
+<body>
+  <!-- Dynamic sidebar injected here -->
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Executive Compliance Monitoring</div>
+        <div class="topbar-subtitle" id="dash-time">Loading system status…</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh analytics">🔄 Refresh</button>
+        <a href="/admin/inspections.html" class="btn btn-primary btn-sm">📋 All Inspections</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- TOP 8 KPI CARDS -->
+      <div class="kpi-grid-8" id="kpi-grid">
+        <div class="kpi-card" id="card-kpi-areas">
+          <div class="kpi-icon kpi-icon-blue">🏙️</div>
+          <div class="kpi-value" id="kpi-total-areas">—</div>
+          <div class="kpi-label">Total Areas</div>
+          <div class="kpi-delta" id="kpi-areas-audited-sub">— audited</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-buildings">
+          <div class="kpi-icon kpi-icon-green">🏢</div>
+          <div class="kpi-value" id="kpi-total-buildings">—</div>
+          <div class="kpi-label">Total Buildings</div>
+          <div class="kpi-delta" id="kpi-buildings-audited-sub">— audited</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-rooms">
+          <div class="kpi-icon kpi-icon-purple">🚪</div>
+          <div class="kpi-value" id="kpi-total-rooms">—</div>
+          <div class="kpi-label">Total Rooms</div>
+          <div class="kpi-delta" id="kpi-rooms-covered-sub">— units covered</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-today">
+          <div class="kpi-icon kpi-icon-green">⚡</div>
+          <div class="kpi-value" id="kpi-inspections-today">—</div>
+          <div class="kpi-label">Inspections Today</div>
+          <div class="kpi-delta" id="kpi-total-inspections-sub">— total records</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-compliance">
+          <div class="kpi-icon kpi-icon-blue">📈</div>
+          <div class="kpi-value" id="kpi-avg-compliance">—</div>
+          <div class="kpi-label">Average Compliance</div>
+          <div class="kpi-delta" id="kpi-compliance-status-sub">Weighted 100-pt index</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-poor">
+          <div class="kpi-icon kpi-icon-red">❗</div>
+          <div class="kpi-value" id="kpi-poor-rooms">—</div>
+          <div class="kpi-label">Poor/Non-Compliant Units</div>
+          <div class="kpi-delta" style="color:var(--color-danger)">Score &lt; 40 / At-Risk</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-violations">
+          <div class="kpi-icon kpi-icon-amber">⚠️</div>
+          <div class="kpi-value" id="kpi-open-violations">—</div>
+          <div class="kpi-label">Open Violations</div>
+          <div class="kpi-delta">Pending resolution</div>
+        </div>
+
+        <div class="kpi-card" id="card-kpi-coverage">
+          <div class="kpi-icon kpi-icon-purple">🎯</div>
+          <div class="kpi-value" id="kpi-coverage-percent">—</div>
+          <div class="kpi-label">Inspection Coverage</div>
+          <div class="kpi-delta" id="kpi-active-volunteers-sub">— active volunteers</div>
+        </div>
+      </div>
+
+      <!-- CHARTS SECTION: TRENDS & DISTRIBUTION -->
+      <div class="grid-2">
+        <!-- Daily Trend Bar Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Daily Compliance Trends</div>
+              <div class="card-subtitle">Authoritative average compliance score over time</div>
+            </div>
+          </div>
+          <div class="trend-chart-wrap" id="trend-chart">
+            <div class="empty-state">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score Distribution Breakdown -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Compliance Classification Distribution</div>
+              <div class="card-subtitle">Breakdown across all audit submissions</div>
+            </div>
+          </div>
+          <div id="distribution-chart" style="padding-top:8px;">
+            <div class="empty-state">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AREA RANKINGS: TOP & WORST PERFORMING AREAS -->
+      <div class="grid-2">
+        <!-- Top Performing Areas -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🏆 Top Performing Areas</div>
+              <div class="card-subtitle">Municipal zones with highest waste segregation compliance</div>
+            </div>
+          </div>
+          <div id="top-areas-list">
+            <div class="empty-state"><div class="spinner spinner-sm"></div></div>
+          </div>
+        </div>
+
+        <!-- Worst Performing Areas / Needs Improvement -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">⚠️ Priority Attention Areas</div>
+              <div class="card-subtitle">Zones requiring targeted enforcement and volunteer deployment</div>
+            </div>
+          </div>
+          <div id="worst-areas-list">
+            <div class="empty-state"><div class="spinner spinner-sm"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTENTION REQUIRED UNITS -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🚨 Units Requiring Urgent Attention</div>
+            <div class="card-subtitle">Rooms with active violation tickets, poor scores, or overdue audits</div>
+          </div>
+          <span class="badge badge-danger" id="badge-attention-count">0 flagged</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Unit / Room</th>
+                <th>Building</th>
+                <th>Area</th>
+                <th>Latest Score</th>
+                <th>Status Tier</th>
+                <th>Reason</th>
+                <th>Last Inspected</th>
+              </tr>
+            </thead>
+            <tbody id="attention-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Loading priority units…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RECENT AUDIT LOGS -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📋 Recent Field Audits</div>
+            <div class="card-subtitle">Latest verified room inspections from field volunteers</div>
+          </div>
+          <a href="/admin/inspections.html" class="btn btn-ghost btn-sm">Full Audit Trail →</a>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Room</th>
+                <th>Building</th>
+                <th>Inspector</th>
+                <th>Score</th>
+                <th>Classification</th>
+                <th>Violation</th>
+                <th>Date & Time</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Loading inspection logs…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireAdmin()) throw new Error('Unauthorized');
+    injectSidebar('ADMIN');
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('dash-time').textContent = now.toLocaleString('en-IN', {
+        weekday: 'long', day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    document.getElementById('btn-refresh').addEventListener('click', () => {
+      Toast.info('Refreshing Dashboard', 'Retrieving latest analytics from server…');
+      loadDashboard();
+    });
+
+    async function loadDashboard() {
+      try {
+        const [summaryRes, trendsRes, areasRes, attentionRes, inspections] = await Promise.all([
+          api.getDashboardSummary(),
+          api.getDashboardTrends(),
+          api.getDashboardAreas(),
+          api.getDashboardAttentionRequired(),
+          api.getRecentInspections()
+        ]);
+
+        const summary = summaryRes.data ?? summaryRes;
+        const trends = trendsRes.data ?? trendsRes;
+        const areas = areasRes.data ?? areasRes;
+        const attention = attentionRes.data ?? attentionRes;
+
+        renderKpiCards(summary);
+        renderTrendChart(trends);
+        renderDistribution(summary.scoreDistribution, summary.totalInspections);
+        renderAreaRankings(areas);
+        renderAttentionRequired(attention);
+        renderRecentInspections(inspections || []);
+
+      } catch (err) {
+        Toast.error('Dashboard Error', err.message || 'Failed to load analytics data.');
+      }
+    }
+
+    function renderKpiCards(d) {
+      document.getElementById('kpi-total-areas').textContent = d.totalAreas ?? '0';
+      document.getElementById('kpi-areas-audited-sub').textContent = `${d.totalAreasAudited ?? 0} active zones audited`;
+
+      document.getElementById('kpi-total-buildings').textContent = d.totalBuildings ?? '0';
+      document.getElementById('kpi-buildings-audited-sub').textContent = `${d.totalBuildingsAudited ?? 0} audited structures`;
+
+      document.getElementById('kpi-total-rooms').textContent = d.totalRooms ?? '0';
+      document.getElementById('kpi-rooms-covered-sub').textContent = `${d.totalRoomsCovered ?? 0} units covered`;
+
+      document.getElementById('kpi-inspections-today').textContent = d.inspectionsToday ?? '0';
+      document.getElementById('kpi-total-inspections-sub').textContent = `${d.totalInspections ?? 0} lifetime audits`;
+
+      document.getElementById('kpi-avg-compliance').textContent = d.overallComplianceRate ? `${d.overallComplianceRate}%` : '0.0%';
+      document.getElementById('kpi-poor-rooms').textContent = d.poorRoomsCount ?? '0';
+
+      document.getElementById('kpi-open-violations').textContent = d.openViolationsCount ?? '0';
+      document.getElementById('kpi-coverage-percent').textContent = d.inspectionCoveragePercent ? `${d.inspectionCoveragePercent}%` : '0.0%';
+      document.getElementById('kpi-active-volunteers-sub').textContent = `${d.activeVolunteersCount ?? 0} active volunteers`;
+    }
+
+    function renderTrendChart(trends) {
+      const wrap = document.getElementById('trend-chart');
+      if (!trends || !trends.length) {
+        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No Trend Data Recorded Yet</div><div class="empty-state-desc">Daily trend averages will appear once inspections are logged.</div></div>';
+        return;
+      }
+      const maxScore = 100;
+      const last14 = trends.slice(-14);
+      wrap.innerHTML = `<div class="trend-bars" id="trend-bars"></div>`;
+      const container = document.getElementById('trend-bars');
+
+      last14.forEach(item => {
+        const heightPct = Math.max(8, (item.averageScore / maxScore) * 100);
+        const cls = item.averageScore >= 80 ? 'excellent' : item.averageScore >= 60 ? 'good' : item.averageScore >= 40 ? 'needs-improvement' : 'poor';
+        const colorMap = { excellent: '#2ECC71', good: '#00BFFF', 'needs-improvement': '#F39C12', poor: '#E74C3C' };
+        const dateLabel = item.date ? item.date.slice(5) : '';
+
+        container.insertAdjacentHTML('beforeend', `
+          <div class="trend-bar-item">
+            <div class="trend-bar score-bar-fill ${cls}"
+              style="height:${heightPct}%;background:${colorMap[cls]};"
+              data-tip="${item.averageScore}% avg · ${item.inspectionsCount} audit(s) · ${item.date}"></div>
+            <div class="trend-bar-label">${dateLabel}</div>
+          </div>
+        `);
+      });
+    }
+
+    function renderDistribution(dist, totalInspections) {
+      const wrap = document.getElementById('distribution-chart');
+      dist = dist || {};
+      const total = totalInspections || ((dist.excellent||0) + (dist.good||0) + (dist.needsImprovement||0) + (dist.poor||0));
+
+      if (!total) {
+        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🥧</div><div class="empty-state-title">No Audit Submissions Yet</div></div>';
+        return;
+      }
+
+      const rows = [
+        { label: '⭐ Excellent (80–100)', count: dist.excellent || 0, color: '#2ECC71' },
+        { label: '👍 Good (60–79)',       count: dist.good || 0,      color: '#00BFFF' },
+        { label: '🔸 Needs Imp. (40–59)', count: dist.needsImprovement || 0, color: '#F39C12' },
+        { label: '❗ Poor (0–39)',        count: dist.poor || 0,      color: '#E74C3C' },
+      ];
+
+      wrap.innerHTML = rows.map(r => {
+        const pct = total > 0 ? Math.round((r.count / total) * 100) : 0;
+        return `
+        <div class="distribution-row">
+          <div class="distribution-label">${r.label}</div>
+          <div class="distribution-bar-wrap">
+            <div class="distribution-bar" style="width:${pct}%;background:${r.color};"></div>
+          </div>
+          <div class="distribution-count">${r.count} <span style="font-size:10px;color:var(--text-muted)">(${pct}%)</span></div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderAreaRankings(areas) {
+      const topWrap = document.getElementById('top-areas-list');
+      const worstWrap = document.getElementById('worst-areas-list');
+
+      if (!areas || !areas.length) {
+        topWrap.innerHTML = '<div class="empty-state"><div class="empty-state-title">No registered areas</div></div>';
+        worstWrap.innerHTML = '<div class="empty-state"><div class="empty-state-title">No registered areas</div></div>';
+        return;
+      }
+
+      // Top areas (sorted highest first)
+      const top3 = areas.slice(0, 3);
+      const medals = ['gold', 'silver', 'bronze'];
+      topWrap.innerHTML = top3.map((a, idx) => `
+        <div class="area-rank-item">
+          <div class="area-rank-info">
+            <div class="area-rank-num ${medals[idx] || ''}">#${idx + 1}</div>
+            <div>
+              <div class="area-rank-name">${a.name} <span style="font-size:11px;color:var(--text-muted)">(${a.areaCode})</span></div>
+              <div class="area-rank-meta">${a.city} · ${a.totalBuildings} bldgs · ${a.inspectionsCount} audits</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span class="badge badge-${Fmt.classifyBadge(a.status)}">${a.averageComplianceScore}%</span>
+          </div>
+        </div>
+      `).join('');
+
+      // Priority attention areas (lowest first)
+      const worst3 = [...areas].sort((a, b) => Double(a.averageComplianceScore, b.averageComplianceScore)).slice(0, 3);
+      worstWrap.innerHTML = worst3.map((a, idx) => `
+        <div class="area-rank-item">
+          <div class="area-rank-info">
+            <div class="area-rank-num">!</div>
+            <div>
+              <div class="area-rank-name">${a.name}</div>
+              <div class="area-rank-meta">${a.openViolationsCount} open violations · ${a.totalRooms} registered units</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span class="badge badge-${Fmt.classifyBadge(a.status)}">${a.averageComplianceScore}% Avg</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function Double(a, b) {
+      return (a ?? 0) - (b ?? 0);
+    }
+
+    function renderAttentionRequired(items) {
+      const tbody = document.getElementById('attention-tbody');
+      const badgeCount = document.getElementById('badge-attention-count');
+      const filtered = (items || []).filter(i => i.reason !== 'NEVER_INSPECTED' || i.activeViolation);
+
+      badgeCount.textContent = `${filtered.length} flagged unit(s)`;
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No Urgent Unit Alerts</div><div class="empty-state-desc">All inspected rooms meet acceptable compliance thresholds.</div></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.slice(0, 8).map(item => {
+        let tagClass = 'tag-uninspected';
+        let reasonLabel = item.reason;
+        if (item.activeViolation) { tagClass = 'tag-active-viol'; reasonLabel = 'Active Violation'; }
+        else if (item.reason === 'POOR_COMPLIANCE') { tagClass = 'tag-poor-comp'; reasonLabel = 'Poor Compliance'; }
+        else if (item.reason === 'OVERDUE_INSPECTION') { tagClass = 'tag-overdue'; reasonLabel = 'Audit Overdue'; }
+
+        return `
+          <tr>
+            <td class="td-primary"><strong>${item.roomNumber || '—'}</strong> (Floor ${item.floorNumber ?? '?'})</td>
+            <td>${item.buildingName || '—'}</td>
+            <td>${item.areaName || '—'}</td>
+            <td class="font-mono">${item.latestScore != null ? item.latestScore + '/100' : '—'}</td>
+            <td><span class="badge badge-${Fmt.classifyBadge(item.latestClassification)}">${Fmt.classify(item.latestClassification) || '—'}</span></td>
+            <td><span class="attention-tag ${tagClass}">${reasonLabel}</span></td>
+            <td style="font-size:0.8125rem;color:var(--text-muted)">${Fmt.datetime(item.lastInspectedAt)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderRecentInspections(list) {
+      const tbody = document.getElementById('recent-tbody');
+      if (!list || !list.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No Inspections Recorded Yet</div></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.slice(0, 10).map(i => `
+        <tr class="recent-table-row">
+          <td class="td-primary"><strong>${i.roomNumber || '—'}</strong> (Floor ${i.floorNumber ?? '?'})</td>
+          <td>${i.buildingName || '—'}</td>
+          <td>${i.volunteerName || '—'}</td>
+          <td class="td-primary font-mono"><strong>${i.totalScore}</strong>/100</td>
+          <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
+          <td>${i.violationCreated ? '<span class="badge badge-danger">Violation Flagged</span>' : '<span class="badge badge-neutral">Normal</span>'}</td>
+          <td style="font-size:0.8125rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
+        </tr>
+      `).join('');
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

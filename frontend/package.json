@@ -1,0 +1,10 @@
+{
+  "name": "wastewatch-frontend",
+  "version": "1.0.0",
+  "description": "WasteWatch Frontend — Waste Segregation Compliance Monitoring UI",
+  "private": true,
+  "scripts": {
+    "dev": "npx -y serve@latest -l 3000 -s .",
+    "start": "npx -y serve@latest -l 3000 -s ."
+  }
+}

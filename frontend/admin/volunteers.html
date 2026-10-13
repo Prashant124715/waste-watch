@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Volunteers</title>
+  <meta name="description" content="Track field volunteer performance and inspection history in WasteWatch."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .vol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .vol-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      transition: all var(--transition-base);
+      cursor: pointer;
+    }
+    .vol-card:hover {
+      border-color: var(--border-primary);
+      box-shadow: var(--shadow-glow-primary);
+      transform: translateY(-2px);
+    }
+    .vol-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .vol-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .vol-stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.875rem;
+    }
+    .vol-stat-row:last-child { border-bottom: none; }
+    .vol-stat-label { color: var(--text-muted); }
+    .vol-stat-value { font-weight: 700; color: var(--text-primary); }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Volunteers</div>
+        <div class="topbar-subtitle">Field inspector performance metrics</div>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search volunteers…"/>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+      </div>
+      <div class="vol-grid" id="vol-grid">
+        <!-- Cards injected here -->
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="animate-pulse" style="color:var(--text-muted);">Loading volunteers…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Detail Modal -->
+  <div class="modal-overlay hidden" id="perf-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="perf-modal-title">Volunteer Performance</h2>
+        <button class="modal-close" onclick="closeModal('perf-modal')">✕</button>
+      </div>
+      <div id="perf-body" style="color:var(--text-secondary);"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireAdmin()) throw new Error();
+    injectSidebar('ADMIN');
+
+    let volunteers = [];
+
+    async function loadVolunteers() {
+      try {
+        volunteers = await api.getVolunteers();
+        renderVolunteers();
+      } catch(e) {
+        Toast.error('Error', e.message);
+        document.getElementById('vol-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Failed to load volunteers</div></div>`;
+      }
+    }
+
+    function renderVolunteers() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filtered = volunteers.filter(v =>
+        [v.fullName, v.username, v.email].some(f => f && f.toLowerCase().includes(search))
+      );
+      const grid = document.getElementById('vol-grid');
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">👷</div><div class="empty-state-title">No volunteers found</div></div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(v => `
+        <div class="vol-card" onclick="openPerf(${v.id}, '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+          <div class="vol-card-header">
+            <div class="vol-avatar">${Fmt.avatar(v.fullName || v.username)}</div>
+            <div>
+              <div style="font-weight:700;color:var(--text-primary);">${v.fullName || v.username}</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);">${v.email || '—'}</div>
+            </div>
+          </div>
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Total Inspections</span>
+            <span class="vol-stat-value">${v.totalInspections ?? '—'}</span>
+          </div>
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Avg Score</span>
+            <span class="vol-stat-value">${v.averageScore != null ? v.averageScore + '/100' : '—'}</span>
+          </div>
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Violations Raised</span>
+            <span class="vol-stat-value" style="color:${v.violationsRaised > 0 ? 'var(--color-warning)' : 'var(--text-primary)'}">${v.violationsRaised ?? 0}</span>
+          </div>
+          <div class="vol-stat-row">
+            <span class="vol-stat-label">Status</span>
+            <span><span class="badge badge-${v.status === 'ACTIVE' ? 'excellent' : 'neutral'}">${v.status || 'ACTIVE'}</span></span>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="score-bar-wrap">
+              <div class="score-bar-fill ${v.averageScore >= 80 ? 'excellent' : v.averageScore >= 60 ? 'good' : v.averageScore >= 40 ? 'needs-improvement' : 'poor'}"
+                style="width:${v.averageScore || 0}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function openPerf(id, name) {
+      openModal('perf-modal');
+      document.getElementById('perf-modal-title').textContent = name + ' — Performance';
+      const body = document.getElementById('perf-body');
+      body.innerHTML = `<div style="display:flex;justify-content:center;padding:40px;"><div class="spinner"></div></div>`;
+      try {
+        const p = await api.getVolunteerPerformance(id);
+        body.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+            ${[
+              ['Total Inspections', p.totalInspections ?? '—', 'kpi-icon-green'],
+              ['Avg Score',          p.averageScore != null ? p.averageScore + '/100' : '—', 'kpi-icon-blue'],
+              ['Violations Raised',  p.violationsRaised ?? 0, 'kpi-icon-amber'],
+              ['Excellent Ratings',  p.excellentCount ?? '—', 'kpi-icon-green'],
+              ['Poor Ratings',       p.poorCount ?? '—', 'kpi-icon-red'],
+              ['Last Inspection',    Fmt.date(p.lastInspectionDate) || '—', 'kpi-icon-purple'],
+            ].map(([label, val, cls]) => `
+              <div class="kpi-card" style="padding:16px;">
+                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;">${label.split(' ')[0][0]}${label.split(' ')[1]?.[0]??''}</div>
+                <div class="kpi-value" style="font-size:1.5rem;">${val}</div>
+                <div class="kpi-label" style="font-size:0.75rem;">${label}</div>
+              </div>
+            `).join('')}
+          </div>
+          ${p.recentInspections && p.recentInspections.length ? `
+          <div>
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary);margin-bottom:12px;">Recent Inspections</div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Room</th><th>Building</th><th>Score</th><th>Classification</th><th>Date</th></tr></thead>
+                <tbody>
+                  ${p.recentInspections.map(i => `
+                    <tr>
+                      <td class="td-primary">${i.roomNumber||'—'}</td>
+                      <td>${i.buildingName||'—'}</td>
+                      <td class="font-mono">${i.totalScore}/100</td>
+                      <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
+                      <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.date(i.inspectionDate)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>` : ''}
+        `;
+      } catch(err) {
+        body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message}</div>`;
+      }
+    }
+
+    document.getElementById('search-input').addEventListener('input', renderVolunteers);
+    document.getElementById('btn-refresh').addEventListener('click', loadVolunteers);
+    loadVolunteers();
+  </script>
+</body>
+</html>

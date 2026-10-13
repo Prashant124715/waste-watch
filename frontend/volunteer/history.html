@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — My Inspection History</title>
+  <meta name="description" content="Review your past inspection submissions and scores."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stats-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+    }
+    .stats-val { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; }
+    .stats-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">My History</div>
+        <div class="topbar-subtitle">Your inspection records and performance</div>
+      </div>
+      <a href="/volunteer/inspect.html" class="btn btn-primary btn-sm">📝 New Inspection</a>
+    </header>
+    <div class="page-content">
+
+      <!-- My stats -->
+      <div class="stats-row" id="my-stats">
+        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-total" style="color:var(--color-primary-light);">—</div><div class="stats-label">Inspections</div></div>
+        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-avg" style="color:var(--color-accent);">—</div><div class="stats-label">Avg Score</div></div>
+        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-exc" style="color:#2ECC71;">—</div><div class="stats-label">Excellent</div></div>
+        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-poor" style="color:#E74C3C;">—</div><div class="stats-label">Poor</div></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search by room, building…"/>
+        </div>
+        <select class="form-control form-control-sm" id="filter-class" style="max-width:190px;">
+          <option value="">All Classifications</option>
+          <option value="EXCELLENT">Excellent</option>
+          <option value="GOOD">Good</option>
+          <option value="NEEDS_IMPROVEMENT">Needs Improvement</option>
+          <option value="POOR">Poor</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV">📥 CSV</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-pdf" title="Export to PDF">📄 PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Room</th>
+              <th>Building</th>
+              <th>Score</th>
+              <th>Classification</th>
+              <th>Violation</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireLogin()) throw new Error();
+    injectSidebar('VOLUNTEER');
+
+    const user = Auth.getUser();
+    let inspections = [];
+
+    async function loadHistory() {
+      try {
+        inspections = await api.getInspections({ volunteerId: user.id });
+        renderStats();
+        render();
+      } catch(e) {
+        Toast.error('Error', e.message);
+        document.getElementById('hist-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load</td></tr>`;
+      }
+    }
+
+    function renderStats() {
+      document.querySelectorAll('.stats-card').forEach(c => c.classList.remove('animate-pulse'));
+      const total = inspections.length;
+      const avg   = total ? Math.round(inspections.reduce((s,i) => s + (i.totalScore||0), 0) / total) : 0;
+      const exc   = inspections.filter(i => i.classification === 'EXCELLENT').length;
+      const poor  = inspections.filter(i => i.classification === 'POOR').length;
+      document.getElementById('ms-total').textContent = total;
+      document.getElementById('ms-avg').textContent   = avg + '/100';
+      document.getElementById('ms-exc').textContent   = exc;
+      document.getElementById('ms-poor').textContent  = poor;
+    }
+
+    function render() {
+      const search  = document.getElementById('search-input').value.toLowerCase();
+      const classFil = document.getElementById('filter-class').value;
+
+      const filtered = inspections.filter(i => {
+        const matchSearch = !search || [i.roomNumber, i.buildingName, i.areaName]
+          .some(f => f && f.toLowerCase().includes(search));
+        const matchClass  = !classFil || i.classification === classFil;
+        return matchSearch && matchClass;
+      });
+
+      const tbody = document.getElementById('hist-tbody');
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No inspections yet</div><div class="empty-state-desc">Start by conducting your first inspection!</div></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(i => `
+        <tr>
+          <td class="font-mono text-muted">#${i.id}</td>
+          <td class="td-primary">${i.roomNumber||'—'} · F${i.floorNumber||'?'}</td>
+          <td>${i.buildingName||'—'}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="font-mono td-primary">${i.totalScore}</span>
+              <div class="score-bar-wrap" style="width:60px;">
+                <div class="score-bar-fill ${Fmt.classifyBadge(i.classification)}" style="width:${i.totalScore}%"></div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
+          <td>${i.violationCreated ? '<span class="badge badge-danger">⚠️ Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ══════ CSV Export ══════
+    function exportCSV() {
+      if (!inspections.length) return Toast.warning('Export', 'No data to export.');
+      const headers = ['ID','Room','Floor','Building','Area','Score','Classification','Violation','Status','Date'];
+      const rows = inspections.map(i => [
+        i.id, i.roomNumber, i.floorNumber, i.buildingName, i.areaName,
+        i.totalScore, i.classification, i.violationCreated ? 'Yes' : 'No',
+        i.status, i.inspectionDate
+      ]);
+      let csv = headers.join(',') + '\n';
+      rows.forEach(r => {
+        csv += r.map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(',') + '\n';
+      });
+      downloadFile(csv, 'inspections_export.csv', 'text/csv');
+      Toast.success('Export', 'CSV downloaded successfully.');
+    }
+
+    // ══════ PDF Export ══════
+    function exportPDF() {
+      if (!inspections.length) return Toast.warning('Export', 'No data to export.');
+
+      const total = inspections.length;
+      const avg   = total ? Math.round(inspections.reduce((s,i) => s + (i.totalScore||0), 0) / total) : 0;
+      const vol   = user.fullName || user.username;
+
+      let tableRows = '';
+      inspections.forEach(i => {
+        tableRows += `<tr>
+          <td>#${i.id}</td>
+          <td>${i.roomNumber||'—'}</td>
+          <td>${i.buildingName||'—'}</td>
+          <td style="font-weight:bold;">${i.totalScore}/100</td>
+          <td>${Fmt.classify(i.classification)}</td>
+          <td>${i.violationCreated ? 'Yes' : 'No'}</td>
+          <td>${Fmt.date(i.inspectionDate)}</td>
+        </tr>`;
+      });
+
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+        <title>WasteWatch Inspection Report</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #222; }
+          h1 { color: #1A9D5C; margin-bottom: 4px; }
+          .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+          .summary { display: flex; gap: 24px; margin-bottom: 30px; }
+          .summary-item { background: #f0f9f4; border-radius: 8px; padding: 16px 24px; text-align: center; }
+          .summary-val { font-size: 28px; font-weight: 800; color: #1A9D5C; }
+          .summary-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+          thead th { background: #1A9D5C; color: white; padding: 10px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+          tbody td { padding: 10px 8px; border-bottom: 1px solid #eee; }
+          tbody tr:nth-child(even) { background: #fafafa; }
+          .footer { margin-top: 40px; font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 16px; }
+        </style>
+      </head><body>
+        <h1>♻️ WasteWatch Inspection Report</h1>
+        <p class="subtitle">Volunteer: <strong>${vol}</strong> · Generated: ${new Date().toLocaleString('en-IN')}</p>
+        <div class="summary">
+          <div class="summary-item"><div class="summary-val">${total}</div><div class="summary-label">Inspections</div></div>
+          <div class="summary-item"><div class="summary-val">${avg}%</div><div class="summary-label">Avg Score</div></div>
+        </div>
+        <table><thead><tr><th>ID</th><th>Room</th><th>Building</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead>
+        <tbody>${tableRows}</tbody></table>
+        <div class="footer">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div>
+      </body></html>`;
+
+      const win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); }, 500);
+      Toast.success('Export', 'PDF print dialog opened.');
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('search-input').addEventListener('input', render);
+    document.getElementById('filter-class').addEventListener('change', render);
+    document.getElementById('btn-refresh').addEventListener('click', loadHistory);
+    document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+    document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
+
+    loadHistory();
+  </script>
+</body>
+</html>

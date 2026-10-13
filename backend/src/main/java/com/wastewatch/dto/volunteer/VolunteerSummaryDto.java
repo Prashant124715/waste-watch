@@ -1,0 +1,91 @@
+package com.wastewatch.dto.volunteer;
+
+import java.time.LocalDateTime;
+
+public class VolunteerSummaryDto {
+
+    private Long id;
+    private String username;
+    private String fullName;
+    private String email;
+    private String phoneNumber;
+    private String status;
+    private long inspectionsCount;
+    private double averageScoreGiven;
+    private LocalDateTime lastInspectionDate;
+
+    public VolunteerSummaryDto() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public long getInspectionsCount() {
+        return inspectionsCount;
+    }
+
+    public void setInspectionsCount(long inspectionsCount) {
+        this.inspectionsCount = inspectionsCount;
+    }
+
+    public double getAverageScoreGiven() {
+        return averageScoreGiven;
+    }
+
+    public void setAverageScoreGiven(double averageScoreGiven) {
+        this.averageScoreGiven = averageScoreGiven;
+    }
+
+    public LocalDateTime getLastInspectionDate() {
+        return lastInspectionDate;
+    }
+
+    public void setLastInspectionDate(LocalDateTime lastInspectionDate) {
+        this.lastInspectionDate = lastInspectionDate;
+    }
+}

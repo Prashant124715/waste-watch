@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Violations Management</title>
+  <meta name="description" content="Track and resolve non-compliance violations in WasteWatch."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+</head>
+<body>
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Violations</div>
+        <div class="topbar-subtitle">Non-compliance escalation tracker</div>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search room or building…"/>
+        </div>
+        <select class="form-control form-control-sm" id="status-filter" style="max-width:180px;">
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="NOTIFIED">Notified</option>
+          <option value="ESCALATED">Escalated</option>
+          <option value="RESOLVED">Resolved</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Room</th>
+              <th>Building</th>
+              <th>Score</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Fine</th>
+              <th>Reported</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="violations-tbody">
+            <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading violations…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal -->
+  <div class="modal-overlay hidden" id="update-modal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Update Violation Status</h2>
+        <button class="modal-close" onclick="closeModal('update-modal')">✕</button>
+      </div>
+      <form id="update-form">
+        <input type="hidden" id="viol-id"/>
+        <div class="form-group">
+          <label class="form-label" for="viol-status">New Status <span class="required">*</span></label>
+          <select class="form-control" id="viol-status" required>
+            <option value="OPEN">Open</option>
+            <option value="NOTIFIED">Notified</option>
+            <option value="ESCALATED">Escalated</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="viol-notes">Resolution Notes</label>
+          <textarea class="form-control" id="viol-notes" rows="4" placeholder="Describe the corrective action taken…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="viol-fine">Fine Amount (₹)</label>
+          <input type="number" class="form-control" id="viol-fine" step="0.01" min="0" placeholder="0.00"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('update-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="update-btn">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/js/api/client.js"></script>
+  <script src="/js/utils/helpers.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script>
+    if (!Auth.requireAdmin()) throw new Error();
+    injectSidebar('ADMIN');
+
+    let violations = [];
+
+    async function loadViolations(status = '') {
+      const tbody = document.getElementById('violations-tbody');
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>`;
+      try {
+        const params = {};
+        if (status) params.status = status;
+        violations = await api.getViolations(params);
+        renderViolations(violations);
+      } catch(err) {
+        Toast.error('Error', err.message);
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load violations</td></tr>`;
+      }
+    }
+
+    function renderViolations(list) {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filtered = list.filter(v => {
+        if (!search) return true;
+        return (v.roomNumber||'').toLowerCase().includes(search) ||
+               (v.buildingName||'').toLowerCase().includes(search) ||
+               (v.areaName||'').toLowerCase().includes(search);
+      });
+
+      const tbody = document.getElementById('violations-tbody');
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No violations found</div><div class="empty-state-desc">All units are compliant or no results match your filter.</div></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(v => `
+        <tr>
+          <td class="font-mono text-muted">#${v.id}</td>
+          <td class="td-primary">${v.roomNumber||'—'} · F${v.floorNumber||'?'}</td>
+          <td>${v.buildingName||'—'}<br><span style="font-size:0.75rem;color:var(--text-muted)">${v.areaName||''}</span></td>
+          <td><span class="font-mono" style="color:${v.inspectionScore < 40 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.inspectionScore||'—'}/100</span></td>
+          <td><span class="badge badge-${Fmt.severity(v.severity)}">${v.severity||'—'}</span></td>
+          <td><span class="badge badge-${Fmt.violationStatusBadge(v.status)}">${Fmt.violationStatus(v.status)}</span></td>
+          <td class="font-mono">${v.fineAmount > 0 ? '₹' + Number(v.fineAmount).toLocaleString('en-IN') : '—'}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(v.createdAt)}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${v.id})">✏️ Update</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openUpdateModal(id) {
+      const v = violations.find(x => x.id === id);
+      if (!v) return;
+      document.getElementById('viol-id').value = id;
+      document.getElementById('viol-status').value = v.status;
+      document.getElementById('viol-notes').value = v.resolutionNotes || '';
+      document.getElementById('viol-fine').value = v.fineAmount || '';
+      openModal('update-modal');
+    }
+
+    document.getElementById('update-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('viol-id').value;
+      const btn = document.getElementById('update-btn');
+      const body = {
+        status: document.getElementById('viol-status').value,
+        resolutionNotes: document.getElementById('viol-notes').value.trim() || undefined,
+        fineAmount: document.getElementById('viol-fine').value ? parseFloat(document.getElementById('viol-fine').value) : undefined
+      };
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        await api.updateViolationStatus(id, body);
+        closeModal('update-modal');
+        Toast.success('Violation Updated', 'Status updated successfully.');
+        const statusFilter = document.getElementById('status-filter').value;
+        await loadViolations(statusFilter);
+      } catch(err) {
+        Toast.error('Update Failed', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update Status';
+      }
+    });
+
+    document.getElementById('status-filter').addEventListener('change', e => {
+      loadViolations(e.target.value);
+    });
+
+    document.getElementById('search-input').addEventListener('input', () => {
+      renderViolations(violations);
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click', () => {
+      const s = document.getElementById('status-filter').value;
+      loadViolations(s);
+    });
+
+    loadViolations();
+  </script>
+</body>
+</html>
