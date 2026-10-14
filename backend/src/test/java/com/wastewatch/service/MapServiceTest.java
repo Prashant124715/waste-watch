@@ -1,11 +1,11 @@
 package com.wastewatch.service;
 
 import com.wastewatch.dto.map.AreaHotspotDto;
+import com.wastewatch.dto.map.AreaMapSummaryDto;
 import com.wastewatch.dto.map.BuildingMapMarkerDto;
 import com.wastewatch.entity.Area;
 import com.wastewatch.entity.Building;
 import com.wastewatch.entity.Inspection;
-import com.wastewatch.entity.Room;
 import com.wastewatch.entity.enums.BuildingType;
 import com.wastewatch.repository.AreaRepository;
 import com.wastewatch.repository.BuildingRepository;
@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,12 +38,16 @@ class MapServiceTest {
 
     @Mock
     private BuildingRepository buildingRepository;
+
     @Mock
     private InspectionRepository inspectionRepository;
+
     @Mock
     private RoomRepository roomRepository;
+
     @Mock
     private ViolationRepository violationRepository;
+
     @Mock
     private AreaRepository areaRepository;
 
@@ -109,13 +114,20 @@ class MapServiceTest {
 
         Inspection latest = new Inspection();
         latest.setInspectionDate(LocalDateTime.now().minusHours(3));
-        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(101L)).thenReturn(Optional.of(latest));
-        when(roomRepository.findByBuildingId(101L)).thenReturn(Collections.emptyList());
-        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any())).thenReturn(0L);
+
+        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(101L))
+                .thenReturn(Optional.of(latest));
+
+        when(roomRepository.findByBuildingId(101L))
+                .thenReturn(Collections.emptyList());
+
+        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any()))
+                .thenReturn(0L);
 
         List<BuildingMapMarkerDto> markers = mapService.getBuildingMapMarkers();
 
         assertEquals(1, markers.size());
+
         BuildingMapMarkerDto marker = markers.get(0);
 
         assertEquals(101L, marker.getId());
@@ -124,15 +136,20 @@ class MapServiceTest {
         assertEquals("Horizon Heights", marker.getBuildingName());
         assertEquals("Downtown Zone", marker.getArea());
         assertEquals("Downtown Zone", marker.getAreaName());
+
         assertTrue(marker.isHasValidCoordinates());
+
         assertEquals(new BigDecimal("19.0760"), marker.getLatitude());
         assertEquals(new BigDecimal("72.8777"), marker.getLongitude());
+
         assertEquals(85.0, marker.getComplianceScore());
         assertEquals(85.0, marker.getAverageCompliance());
         assertEquals("EXCELLENT", marker.getComplianceStatus());
-        assertEquals(80.0, marker.getInspectionCoverage()); // 8/10 * 100
+
+        assertEquals(80.0, marker.getInspectionCoverage());
         assertEquals(8, marker.getInspectedRooms());
         assertEquals(10, marker.getTotalRooms());
+
         assertNotNull(marker.getLastInspectionDate());
         assertNotNull(marker.getLastInspection());
     }
@@ -140,19 +157,29 @@ class MapServiceTest {
     @Test
     @DisplayName("Missing Coordinates: Gracefully flags hasValidCoordinates=false without throwing exceptions")
     void testBuildingWithMissingCoordinates() {
-        when(buildingRepository.findAll()).thenReturn(List.of(buildingWithoutCoords, buildingWithZeroCoords));
+        when(buildingRepository.findAll())
+                .thenReturn(List.of(buildingWithoutCoords, buildingWithZeroCoords));
+
         when(roomRepository.countByBuildingId(anyLong())).thenReturn(5L);
         when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(anyLong())).thenReturn(0L);
         when(inspectionRepository.countByBuildingId(anyLong())).thenReturn(0L);
         when(inspectionRepository.getAverageScoreByBuildingId(anyLong())).thenReturn(null);
-        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong())).thenReturn(Optional.empty());
-        when(roomRepository.findByBuildingId(anyLong())).thenReturn(Collections.emptyList());
-        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any())).thenReturn(0L);
+
+        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong()))
+                .thenReturn(Optional.empty());
+
+        when(roomRepository.findByBuildingId(anyLong()))
+                .thenReturn(Collections.emptyList());
+
+        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any()))
+                .thenReturn(0L);
 
         List<BuildingMapMarkerDto> markers = mapService.getBuildingMapMarkers();
 
         assertEquals(2, markers.size());
+
         BuildingMapMarkerDto m1 = markers.get(0);
+
         assertEquals(102L, m1.getId());
         assertFalse(m1.isHasValidCoordinates());
         assertNull(m1.getLatitude());
@@ -160,34 +187,56 @@ class MapServiceTest {
         assertEquals("NO_DATA", m1.getComplianceStatus());
 
         BuildingMapMarkerDto m2 = markers.get(1);
+
         assertEquals(103L, m2.getId());
-        assertFalse(m2.isHasValidCoordinates(), "Coordinates (0,0) must be flagged as invalid");
+        assertFalse(
+                m2.isHasValidCoordinates(),
+                "Coordinates (0,0) must be flagged as invalid"
+        );
     }
 
     @Test
     @DisplayName("Multiple Buildings: Processes mixed list with various health statuses and open violations")
     void testMultipleBuildingsMixedList() {
-        when(buildingRepository.findAll()).thenReturn(List.of(buildingWithCoords, buildingWithoutCoords));
+        when(buildingRepository.findAll())
+                .thenReturn(List.of(buildingWithCoords, buildingWithoutCoords));
+
         when(roomRepository.countByBuildingId(anyLong())).thenReturn(4L);
         when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(anyLong())).thenReturn(2L);
+
         when(inspectionRepository.countByBuildingId(101L)).thenReturn(5L);
         when(inspectionRepository.countByBuildingId(102L)).thenReturn(0L);
-        when(inspectionRepository.getAverageScoreByBuildingId(101L)).thenReturn(35.0); // POOR
-        when(inspectionRepository.getAverageScoreByBuildingId(102L)).thenReturn(null);
-        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong())).thenReturn(Optional.empty());
-        when(violationRepository.countByBuildingIdAndStatusNot(eq(101L), any())).thenReturn(2L);
-        when(violationRepository.countByBuildingIdAndStatusNot(eq(102L), any())).thenReturn(0L);
+
+        when(inspectionRepository.getAverageScoreByBuildingId(101L))
+                .thenReturn(35.0);
+
+        when(inspectionRepository.getAverageScoreByBuildingId(102L))
+                .thenReturn(null);
+
+        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong()))
+                .thenReturn(Optional.empty());
+
+        when(roomRepository.findByBuildingId(anyLong()))
+                .thenReturn(Collections.emptyList());
+
+        when(violationRepository.countByBuildingIdAndStatusNot(eq(101L), any()))
+                .thenReturn(2L);
+
+        when(violationRepository.countByBuildingIdAndStatusNot(eq(102L), any()))
+                .thenReturn(0L);
 
         List<BuildingMapMarkerDto> markers = mapService.getBuildingMapMarkers();
 
         assertEquals(2, markers.size());
 
         BuildingMapMarkerDto m1 = markers.get(0);
+
         assertEquals("POOR", m1.getComplianceStatus());
         assertEquals(35.0, m1.getComplianceScore());
-        assertEquals(2, m1.getOpenViolations());
+        assertEquals(2L, m1.getOpenViolations());
 
         BuildingMapMarkerDto m2 = markers.get(1);
+
         assertEquals("NO_DATA", m2.getComplianceStatus());
         assertFalse(m2.isHasValidCoordinates());
     }
@@ -195,33 +244,53 @@ class MapServiceTest {
     @Test
     @DisplayName("Filter Behavior: Successfully filters by Area, ComplianceStatus, and BuildingId")
     void testFilterBehavior() {
-        when(buildingRepository.findAll()).thenReturn(List.of(buildingWithCoords, buildingWithoutCoords));
+        when(buildingRepository.findAll())
+                .thenReturn(List.of(buildingWithCoords, buildingWithoutCoords));
+
         when(roomRepository.countByBuildingId(anyLong())).thenReturn(6L);
-        when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(anyLong())).thenReturn(3L);
+        when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(anyLong()))
+                .thenReturn(3L);
+
         when(inspectionRepository.countByBuildingId(101L)).thenReturn(5L);
         when(inspectionRepository.countByBuildingId(102L)).thenReturn(0L);
-        when(inspectionRepository.getAverageScoreByBuildingId(101L)).thenReturn(88.0); // EXCELLENT
-        when(inspectionRepository.getAverageScoreByBuildingId(102L)).thenReturn(null); // NO_DATA
-        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong())).thenReturn(Optional.empty());
-        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any())).thenReturn(0L);
 
-        // Filter by building ID 101
-        List<BuildingMapMarkerDto> byBuilding = mapService.getBuildingMapMarkers(null, null, 101L, null);
+        when(inspectionRepository.getAverageScoreByBuildingId(101L))
+                .thenReturn(88.0);
+
+        when(inspectionRepository.getAverageScoreByBuildingId(102L))
+                .thenReturn(null);
+
+        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(anyLong()))
+                .thenReturn(Optional.empty());
+
+        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any()))
+                .thenReturn(0L);
+
+        // Filter by building ID.
+        List<BuildingMapMarkerDto> byBuilding =
+                mapService.getBuildingMapMarkers(null, null, 101L, null);
+
         assertEquals(1, byBuilding.size());
         assertEquals(101L, byBuilding.get(0).getId());
 
-        // Filter by compliance status EXCELLENT
-        List<BuildingMapMarkerDto> byStatus = mapService.getBuildingMapMarkers(null, "EXCELLENT", null, null);
+        // Filter by compliance status.
+        List<BuildingMapMarkerDto> byStatus =
+                mapService.getBuildingMapMarkers(null, "EXCELLENT", null, null);
+
         assertEquals(1, byStatus.size());
         assertEquals("EXCELLENT", byStatus.get(0).getComplianceStatus());
 
-        // Filter by inspected status
-        List<BuildingMapMarkerDto> byInspected = mapService.getBuildingMapMarkers(null, null, null, "INSPECTED");
+        // Filter by inspected status.
+        List<BuildingMapMarkerDto> byInspected =
+                mapService.getBuildingMapMarkers(null, null, null, "INSPECTED");
+
         assertEquals(1, byInspected.size());
         assertEquals(101L, byInspected.get(0).getId());
 
-        // Filter by uninspected status
-        List<BuildingMapMarkerDto> byUninspected = mapService.getBuildingMapMarkers(null, null, null, "UNINSPECTED");
+        // Filter by uninspected status.
+        List<BuildingMapMarkerDto> byUninspected =
+                mapService.getBuildingMapMarkers(null, null, null, "UNINSPECTED");
+
         assertEquals(1, byUninspected.size());
         assertEquals(102L, byUninspected.get(0).getId());
     }
@@ -229,27 +298,112 @@ class MapServiceTest {
     @Test
     @DisplayName("Hotspot Analysis: Computes area aggregates, center coordinates, and severity ratings")
     void testGetAreaHotspots() {
-        when(areaRepository.findAll()).thenReturn(List.of(area));
-        when(buildingRepository.findAll()).thenReturn(List.of(buildingWithCoords));
-        when(roomRepository.countByBuildingId(101L)).thenReturn(10L);
-        when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(101L)).thenReturn(5L);
-        when(inspectionRepository.countByBuildingId(101L)).thenReturn(5L);
-        when(inspectionRepository.getAverageScoreByBuildingId(101L)).thenReturn(32.0); // POOR
-        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(101L)).thenReturn(Optional.empty());
-        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any())).thenReturn(3L);
+        when(areaRepository.findAll())
+                .thenReturn(List.of(area));
+
+        when(buildingRepository.findAll())
+                .thenReturn(List.of(buildingWithCoords));
+
+        when(roomRepository.countByBuildingId(101L))
+                .thenReturn(10L);
+
+        when(inspectionRepository.countDistinctInspectedRoomsByBuildingId(101L))
+                .thenReturn(5L);
+
+        when(inspectionRepository.countByBuildingId(101L))
+                .thenReturn(5L);
+
+        when(inspectionRepository.getAverageScoreByBuildingId(101L))
+                .thenReturn(32.0);
+
+        when(inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(101L))
+                .thenReturn(Optional.empty());
+
+        when(violationRepository.countByBuildingIdAndStatusNot(anyLong(), any()))
+                .thenReturn(3L);
 
         List<AreaHotspotDto> hotspots = mapService.getAreaHotspots();
 
         assertNotNull(hotspots);
         assertEquals(1, hotspots.size());
-        AreaHotspotDto h = hotspots.get(0);
-        assertEquals("Downtown Zone", h.getAreaName());
-        assertEquals(1, h.getTotalBuildings());
-        assertEquals(1, h.getMappedBuildings());
-        assertEquals(32.0, h.getAverageScore());
-        assertEquals("POOR", h.getComplianceStatus());
-        assertTrue(h.isHotspot());
-        assertEquals("CRITICAL", h.getHotspotSeverity());
-        assertEquals(3, h.getOpenViolations());
+
+        AreaHotspotDto hotspot = hotspots.get(0);
+
+        assertEquals("Downtown Zone", hotspot.getAreaName());
+        assertEquals(1, hotspot.getTotalBuildings());
+        assertEquals(1, hotspot.getMappedBuildings());
+        assertEquals(32.0, hotspot.getAverageScore());
+        assertEquals("POOR", hotspot.getComplianceStatus());
+        assertTrue(hotspot.isHotspot());
+        assertEquals("CRITICAL", hotspot.getHotspotSeverity());
+        assertEquals(3L, hotspot.getOpenViolations());
+    }
+
+    @Test
+    @DisplayName("getAreaMapSummaries: Returns correctly populated area summary with health score and confidence")
+    void testGetAreaMapSummariesBasic() {
+        Area area1 = new Area();
+        area1.setId(10L);
+        area1.setName("Test Zone");
+        area1.setAreaCode("ZONE-TEST");
+        area1.setCity("Test City");
+
+        when(areaRepository.findAll())
+                .thenReturn(List.of(area1));
+
+        when(buildingRepository.findByAreaId(10L))
+                .thenReturn(Collections.emptyList());
+
+        when(roomRepository.countByAreaId(10L))
+                .thenReturn(0L);
+
+        when(inspectionRepository.countDistinctInspectedRoomsByAreaId(10L))
+                .thenReturn(0L);
+
+        when(inspectionRepository.getAverageScoreByAreaId(10L))
+                .thenReturn(null);
+
+        when(violationRepository.countByAreaId(10L))
+                .thenReturn(0L);
+
+        lenient().when(violationRepository.countByAreaIdAndStatus(eq(10L), any()))
+                .thenReturn(0L);
+
+        List<AreaMapSummaryDto> summaries =
+                mapService.getAreaMapSummaries();
+
+        assertEquals(1, summaries.size());
+
+        AreaMapSummaryDto dto = summaries.get(0);
+
+        assertEquals(10L, dto.getAreaId());
+        assertEquals("Test Zone", dto.getAreaName());
+        assertEquals("ZONE-TEST", dto.getAreaCode());
+        assertEquals(0, dto.getTotalBuildings());
+
+        assertNotNull(dto.getComplianceStatus());
+
+        assertTrue(
+                dto.getAreaHealthScore() >= 0.0
+                        && dto.getAreaHealthScore() <= 100.0
+        );
+
+        assertTrue(
+                List.of("HIGH", "MEDIUM", "LOW")
+                        .contains(dto.getConfidenceRating())
+        );
+    }
+
+    @Test
+    @DisplayName("getAreaMapSummaries: Empty area list returns empty summary list")
+    void testGetAreaMapSummariesEmpty() {
+        when(areaRepository.findAll())
+                .thenReturn(Collections.emptyList());
+
+        List<AreaMapSummaryDto> summaries =
+                mapService.getAreaMapSummaries();
+
+        assertNotNull(summaries);
+        assertTrue(summaries.isEmpty());
     }
 }

@@ -12,9 +12,11 @@ import com.wastewatch.repository.AreaRepository;
 import com.wastewatch.repository.BuildingRepository;
 import com.wastewatch.repository.InspectionRepository;
 import com.wastewatch.repository.RoomRepository;
+import com.wastewatch.dto.map.AreaMapSummaryDto;
 import com.wastewatch.repository.ViolationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -273,6 +275,91 @@ public class MapService {
         }
 
         return hotspots;
+    }
+    
+        @Transactional(readOnly = true)
+    public List<AreaMapSummaryDto> getAreaMapSummaries() {
+        List<Area> areas = areaRepository.findAll();
+        List<AreaMapSummaryDto> summaries = new ArrayList<>();
+
+        for (Area area : areas) {
+            Long areaId = area.getId();
+            AreaMapSummaryDto dto = new AreaMapSummaryDto();
+            dto.setAreaId(areaId);
+            dto.setAreaName(area.getName());
+            dto.setAreaCode(area.getAreaCode());
+            dto.setCity(area.getCity());
+
+            // Building count
+            List<Building> buildings = buildingRepository.findByAreaId(areaId);
+            dto.setTotalBuildings(buildings.size());
+
+            // Room totals
+            Long totalRoomsVal = roomRepository.countByAreaId(areaId);
+            long totalRooms = totalRoomsVal != null ? totalRoomsVal : 0L;
+            dto.setTotalRooms(totalRooms);
+
+            // Inspection coverage
+            Long inspectedRoomsVal = inspectionRepository.countDistinctInspectedRoomsByAreaId(areaId);
+            long inspectedRooms = inspectedRoomsVal != null ? inspectedRoomsVal : 0L;
+            dto.setInspectedRooms(inspectedRooms);
+            double coverage = totalRooms > 0
+                    ? round(((double) inspectedRooms / totalRooms) * 100.0)
+                    : 0.0;
+            dto.setInspectionCoverage(coverage);
+
+            // Average compliance
+            Double avgCompliance = inspectionRepository.getAverageScoreByAreaId(areaId);
+            double compliance = avgCompliance != null ? round(avgCompliance) : 0.0;
+            dto.setAverageCompliance(compliance);
+
+            // Classify compliance status
+            String compStatus;
+            if (compliance >= 80.0) compStatus = "EXCELLENT";
+            else if (compliance >= 60.0) compStatus = "GOOD";
+            else if (compliance >= 40.0) compStatus = "NEEDS_IMPROVEMENT";
+            else compStatus = "POOR";
+            dto.setComplianceStatus(compStatus);
+
+            // Poor room count across area
+            long poorRooms = 0;
+            for (Building b : buildings) {
+                List<Room> rooms = roomRepository.findByBuildingId(b.getId());
+                for (Room r : rooms) {
+                    Optional<Inspection> latest = inspectionRepository.findFirstByRoomIdOrderByInspectionDateDesc(r.getId());
+                    if (latest.isPresent() && latest.get().getTotalScore() != null && latest.get().getTotalScore() < 40) {
+                        poorRooms++;
+                    }
+                }
+            }
+            dto.setPoorRoomCount(poorRooms);
+
+            // Open violations
+            Long openViolations = violationRepository.countByAreaIdAndStatus(areaId, ViolationStatus.OPEN);
+            dto.setOpenViolations(openViolations != null ? openViolations : 0L);
+
+            // Area health score: 0.70 * compliance + 0.20 * coverage + 0.10 * resolutionRate
+            Long totalViolationsVal = violationRepository.countByAreaId(areaId);
+            long totalViolations = totalViolationsVal != null ? totalViolationsVal : 0L;
+            Long resolvedVal = violationRepository.countByAreaIdAndStatus(areaId, ViolationStatus.RESOLVED);
+            long resolved = resolvedVal != null ? resolvedVal : 0L;
+            double resolutionRate = totalViolations > 0
+                    ? round((double) resolved / totalViolations * 100.0)
+                    : 100.0;
+            double healthScore = round((0.70 * compliance) + (0.20 * coverage) + (0.10 * resolutionRate));
+            dto.setAreaHealthScore(healthScore);
+
+            // Confidence rating based on coverage
+            String confidence;
+            if (coverage >= 50.0) confidence = "HIGH";
+            else if (coverage >= 20.0) confidence = "MEDIUM";
+            else confidence = "LOW";
+            dto.setConfidenceRating(confidence);
+
+            summaries.add(dto);
+        }
+
+        return summaries;
     }
 
     private boolean isValidCoordinate(BigDecimal lat, BigDecimal lng) {

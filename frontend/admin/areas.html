@@ -37,6 +37,98 @@
     }
     .panel { display: none; }
     .panel.active { display: block; }
+
+    /* QR Badge Modal Styles */
+    .qr-badge-card {
+      background: #ffffff;
+      color: #111827;
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      border: 2px solid #e5e7eb;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .qr-badge-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed #e5e7eb;
+    }
+    .qr-badge-brand {
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+      color: #059669;
+    }
+    .qr-badge-room {
+      font-size: 1.75rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .qr-badge-location {
+      font-size: 0.85rem;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+    .qr-image-wrap {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: var(--radius-lg);
+      display: inline-block;
+      border: 1px solid #d1d5db;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .qr-badge-img {
+      width: 220px;
+      height: 220px;
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+    }
+    .qr-badge-token {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.8rem;
+      background: #f3f4f6;
+      color: #1f2937;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 10px;
+      word-break: break-all;
+      border: 1px solid #e5e7eb;
+      font-weight: 600;
+    }
+    .qr-badge-footer {
+      font-size: 0.75rem;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-qr-badge, #printable-qr-badge * {
+        visibility: visible;
+      }
+      #printable-qr-badge {
+        position: absolute;
+        left: 50%;
+        top: 15%;
+        transform: translateX(-50%);
+        width: 360px;
+        box-shadow: none;
+        border: 2px solid #000;
+      }
+    }
   </style>
 </head>
 <body>
@@ -264,6 +356,41 @@
           <button type="submit" class="btn btn-primary" id="room-submit-btn">Save Room</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- QR Badge Modal -->
+  <div class="modal-overlay hidden" id="qr-modal">
+    <div class="modal" style="max-width: 460px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="qr-modal-title">Room QR Code Badge</h2>
+        <button class="modal-close" onclick="closeModal('qr-modal')">✕</button>
+      </div>
+      <div style="padding: var(--space-3) 0;">
+        <div class="qr-badge-card" id="printable-qr-badge">
+          <div class="qr-badge-header">
+            <span style="font-size:1.2rem;">♻️</span>
+            <span class="qr-badge-brand">WASTEWATCH AUDIT BADGE</span>
+          </div>
+          <div class="qr-badge-room" id="qr-badge-room">Room 101</div>
+          <div class="qr-badge-location" id="qr-badge-loc">Floor 1 • Building • Area</div>
+          <div class="qr-image-wrap">
+            <img class="qr-badge-img" id="qr-badge-img" alt="Room QR Code" src=""/>
+          </div>
+          <div class="qr-badge-token" id="qr-badge-token">QR-TOKEN-IDENTIFIER</div>
+          <div class="qr-badge-footer">
+            Scan with WasteWatch Volunteer app to identify room and initiate waste segregation audit.
+            <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 4px;">Municipal Waste Compliance Verification</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-regen-qr" onclick="regenerateCurrentRoomQr()">🔄 Regenerate</button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQrImage()">⬇️ Download PNG</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="printQrBadge()">🖨️ Print Badge</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -503,6 +630,7 @@
           <td>${r.occupantName || '—'}</td>
           <td><span class="badge badge-${r.status === 'ACTIVE' ? 'excellent' : 'neutral'}">${r.status}</span></td>
           <td style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="showQrModal(${r.id})" title="View Room QR Badge">📱 QR</button>
             <button class="btn btn-secondary btn-sm" onclick="editRoom(${r.id})">✏️</button>
             <button class="btn btn-danger btn-sm" onclick="deleteRoom(${r.id},'${r.roomNumber}')">🗑️</button>
           </td>
@@ -563,6 +691,96 @@
       } catch(e) { Toast.error('Save Failed', e.message); }
       finally { btn.disabled = false; btn.textContent = 'Save Room'; }
     });
+
+    // ════════════ QR BADGE MANAGEMENT ════════════
+    let currentQrRoom = null;
+
+    async function showQrModal(roomId) {
+      try {
+        const r = await api.getRoom(roomId);
+        currentQrRoom = r;
+
+        document.getElementById('qr-modal-title').textContent = `Room QR Badge — ${r.roomNumber}`;
+        document.getElementById('qr-badge-room').textContent = `Room ${r.roomNumber}`;
+
+        const bldName = r.building?.name || r.buildingName || 'Building';
+        const bldCode = r.building?.buildingCode ? ` (${r.building.buildingCode})` : '';
+        const areaName = r.area?.name || r.areaName || '';
+        const floorStr = `Floor ${r.floor ?? r.floorNumber ?? 0}`;
+        document.getElementById('qr-badge-loc').textContent = `${floorStr} • ${bldName}${bldCode} ${areaName ? '• ' + areaName : ''}`;
+
+        document.getElementById('qr-badge-token').textContent = r.qrCodeToken || 'Generating token…';
+
+        const imgEl = document.getElementById('qr-badge-img');
+        if (r.qrCodeDataUrl) {
+          imgEl.src = r.qrCodeDataUrl;
+        } else {
+          await loadQrImageBlob(r.id, imgEl);
+        }
+
+        openModal('qr-modal');
+      } catch (err) {
+        Toast.error('QR Error', err.message);
+      }
+    }
+
+    async function loadQrImageBlob(roomId, imgElement) {
+      try {
+        const token = Auth.getToken();
+        const res = await fetch(`${api.baseUrl}/rooms/${roomId}/qr-image?size=320`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!res.ok) throw new Error('Failed to load QR image');
+        const blob = await res.blob();
+        imgElement.src = URL.createObjectURL(blob);
+      } catch (e) {
+        imgElement.alt = 'QR Code unavailable';
+      }
+    }
+
+    async function regenerateCurrentRoomQr() {
+      if (!currentQrRoom) return;
+      if (!confirm(`Regenerate QR token for Room "${currentQrRoom.roomNumber}"?\n\nAny existing printed QR badges for this room will immediately become invalid.`)) return;
+
+      const btn = document.getElementById('btn-regen-qr');
+      btn.disabled = true;
+      btn.textContent = 'Regenerating…';
+      try {
+        const updated = await api.regenerateRoomQr(currentQrRoom.id);
+        currentQrRoom = updated;
+        document.getElementById('qr-badge-token').textContent = updated.qrCodeToken;
+        const imgEl = document.getElementById('qr-badge-img');
+        if (updated.qrCodeDataUrl) {
+          imgEl.src = updated.qrCodeDataUrl;
+        } else {
+          await loadQrImageBlob(updated.id, imgEl);
+        }
+        Toast.success('QR Regenerated', `New identifier: ${updated.qrCodeToken}`);
+        await loadRooms();
+      } catch (e) {
+        Toast.error('Regeneration Failed', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Regenerate';
+      }
+    }
+
+    function downloadQrImage() {
+      if (!currentQrRoom) return;
+      const img = document.getElementById('qr-badge-img');
+      if (!img.src) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = `WasteWatch-QR-${(currentQrRoom.roomNumber || 'room').replace(/\s+/g, '-')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      Toast.info('Downloaded', 'QR PNG image downloaded.');
+    }
+
+    function printQrBadge() {
+      window.print();
+    }
 
     // ── Init ──
     Promise.all([loadAreas(), loadBuildings(), loadRooms()]);

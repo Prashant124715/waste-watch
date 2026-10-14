@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.wastewatch.controller.MapControllerTest
--------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.950 s -- in com.wastewatch.controller.MapControllerTest

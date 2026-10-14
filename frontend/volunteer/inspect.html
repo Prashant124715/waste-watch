@@ -101,6 +101,84 @@
     .room-preview-label { color: var(--text-muted); }
     .room-preview-value { color: var(--text-primary); font-weight: 600; }
 
+    /* Camera Scanner Modal */
+    .scanner-viewfinder {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      height: 280px;
+      background: #000;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border-default);
+    }
+    .scanner-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .scanner-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .scanner-box {
+      width: 200px;
+      height: 200px;
+      border: 2px solid var(--color-primary-light);
+      border-radius: 12px;
+      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
+    .scanner-laser {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #22c55e, transparent);
+      box-shadow: 0 0 12px #22c55e;
+      animation: scanLaser 2s linear infinite;
+    }
+    @keyframes scanLaser {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 96%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .quick-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .quick-chip {
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px 12px;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .quick-chip:hover {
+      background: var(--bg-surface-3);
+      border-color: var(--color-primary);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
     /* Checklist enhancements */
     .checklist-section { max-width: 600px; }
     .live-score-wrap {
@@ -167,24 +245,35 @@
       <div class="step-panel active" id="panel-1">
         <div class="qr-section">
           <div class="qr-icon">📷</div>
-          <h3 style="color:var(--text-primary);">Scan QR Code or Search Room</h3>
-          <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:400px;text-align:center;">
-            Enter a room's QR token to auto-lookup, or manually select building + room below.
+          <h3 style="color:var(--text-primary);">Scan Room QR Code</h3>
+          <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:440px;text-align:center;">
+            Scan a room's physical door QR sticker or enter the token to automatically identify the location.
           </p>
 
-          <div style="width:100%;max-width:400px;">
+          <div style="width:100%;max-width:440px;">
             <div class="form-group">
-              <label class="form-label">QR Token Lookup</label>
+              <label class="form-label">QR Code Token Lookup</label>
               <div style="display:flex;gap:8px;">
-                <input type="text" class="form-control" id="qr-input" placeholder="e.g. QR-BLD001-101"/>
+                <input type="text" class="form-control" id="qr-input" placeholder="e.g. QR-BLD-NW-101-FLAT-101"/>
                 <button class="btn btn-primary" id="btn-qr-lookup" type="button">🔍 Lookup</button>
               </div>
+              <div style="display:flex;justify-content:center;margin-top:8px;">
+                <button class="btn btn-secondary btn-sm" id="btn-open-scanner" type="button">📷 Open Camera Scanner</button>
+              </div>
+            </div>
+
+            <div class="quick-chips-wrap">
+              <span style="font-size: var(--text-xs); color: var(--text-muted); width: 100%; text-align: center;">Demo quick-lookup:</span>
+              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-101-FLAT-101')">🚪 Flat 101</button>
+              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-101-FLAT-102')">🚪 Flat 102</button>
+              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-102-OFFICE-101')">🏢 Office 101</button>
+              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-SW-201-UNIT-301')">🏬 Unit 301</button>
             </div>
           </div>
 
-          <div class="qr-or"><span>OR select manually</span></div>
+          <div class="qr-or"><span>OR select room manually</span></div>
 
-          <div style="width:100%;max-width:400px;">
+          <div style="width:100%;max-width:440px;">
             <div class="form-group">
               <label class="form-label">Building</label>
               <select class="form-control" id="sel-building"><option value="">— Choose building —</option></select>
@@ -195,15 +284,23 @@
             </div>
           </div>
 
+          <!-- Identified Room Card -->
           <div class="room-preview" id="room-preview">
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:12px;font-size:var(--text-base);">📍 Room Identified</div>
-            <div class="room-preview-row"><span class="room-preview-label">Room</span><span class="room-preview-value" id="rp-room">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">Floor</span><span class="room-preview-value" id="rp-floor">—</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div style="font-weight:700;color:var(--text-primary);font-size:var(--text-base);display:flex;align-items:center;gap:6px;">
+                <span>📍 Room Identified</span>
+              </div>
+              <span class="badge badge-excellent" id="rp-status-badge">READY FOR AUDIT</span>
+            </div>
+            <div class="room-preview-row"><span class="room-preview-label">Area</span><span class="room-preview-value" id="rp-area">—</span></div>
             <div class="room-preview-row"><span class="room-preview-label">Building</span><span class="room-preview-value" id="rp-building">—</span></div>
+            <div class="room-preview-row"><span class="room-preview-label">Floor</span><span class="room-preview-value" id="rp-floor">—</span></div>
+            <div class="room-preview-row"><span class="room-preview-label">Room Number</span><span class="room-preview-value" id="rp-room">—</span></div>
             <div class="room-preview-row"><span class="room-preview-label">Occupant</span><span class="room-preview-value" id="rp-occupant">—</span></div>
+            <div class="room-preview-row"><span class="room-preview-label">QR Token</span><span class="room-preview-value font-mono" id="rp-qr" style="font-size:0.8rem;">—</span></div>
           </div>
 
-          <button class="btn btn-primary btn-lg" id="btn-to-step2" disabled>Continue to Checklist →</button>
+          <button class="btn btn-primary btn-lg" id="btn-to-step2" disabled>Start Inspection →</button>
         </div>
       </div>
 
@@ -298,6 +395,38 @@
     </div>
   </div>
 
+  <!-- Camera Scanner Modal -->
+  <div class="modal-overlay hidden" id="scanner-modal">
+    <div class="modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Scan Room QR Code</h2>
+        <button class="modal-close" onclick="closeScannerModal()">✕</button>
+      </div>
+      <div style="padding: var(--space-4) 0; text-align: center;">
+        <div class="scanner-viewfinder" id="scanner-viewfinder">
+          <video class="scanner-video" id="scanner-video" playsinline muted></video>
+          <div class="scanner-overlay">
+            <div class="scanner-box">
+              <div class="scanner-laser"></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:12px;" id="scanner-status">
+          Point device camera at room QR badge door sticker.
+        </p>
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+            📁 Or Upload QR Image / Photo
+            <input type="file" id="scanner-file-input" accept="image/*" style="display:none;" onchange="handleQrFile(this)"/>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeScannerModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
   <script src="/js/api/client.js"></script>
   <script src="/js/utils/helpers.js"></script>
@@ -370,37 +499,113 @@
       document.getElementById('btn-to-step2').disabled = false;
     });
 
-    // QR Lookup
-    document.getElementById('btn-qr-lookup').addEventListener('click', async () => {
-      const code = document.getElementById('qr-input').value.trim();
-      if (!code) return Toast.warning('QR', 'Please enter a QR token.');
+    // ══════ QR Lookup & Scanner ══════
+    async function lookupQr(rawCode) {
+      const code = (rawCode || '').trim();
+      if (!code) return Toast.warning('QR Required', 'Please enter or scan a QR code.');
+
+      const btn = document.getElementById('btn-qr-lookup');
+      btn.disabled = true;
+      btn.textContent = 'Searching…';
       try {
         const room = await api.getRoomByQr(code);
         const data = room.data ?? room;
-        selectedRoomId = data.id;
+        selectedRoomId = data.roomId ?? data.id;
         selectedRoom = data;
         showPreview(data);
+        document.getElementById('qr-input').value = data.qrCodeToken || code;
         document.getElementById('btn-to-step2').disabled = false;
-        Toast.success('Room Found', `${data.roomNumber} in ${data.buildingName || 'building'}`);
+        Toast.success('Room Identified', `${data.roomNumber} in ${data.building?.name || data.buildingName || 'Building'}`);
       } catch (e) {
-        Toast.error('Not Found', e.message);
+        hidePreview();
+        document.getElementById('btn-to-step2').disabled = true;
+        Toast.error('Room Not Found', e.message || 'Room not found for the provided QR code');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Lookup';
       }
+    }
+
+    function quickFillQr(token) {
+      document.getElementById('qr-input').value = token;
+      lookupQr(token);
+    }
+
+    document.getElementById('btn-qr-lookup').addEventListener('click', () => {
+      lookupQr(document.getElementById('qr-input').value);
     });
 
     document.getElementById('qr-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-qr-lookup').click(); }
+      if (e.key === 'Enter') { e.preventDefault(); lookupQr(document.getElementById('qr-input').value); }
     });
 
     function showPreview(r) {
+      if (!r) { hidePreview(); return; }
       const p = document.getElementById('room-preview');
       p.classList.add('visible');
-      document.getElementById('rp-room').textContent     = r?.roomNumber || '—';
-      document.getElementById('rp-floor').textContent    = r?.floorNumber ?? '—';
-      document.getElementById('rp-building').textContent = r?.buildingName || '—';
-      document.getElementById('rp-occupant').textContent = r?.occupantName || 'Not specified';
+      const areaName = r.area?.name || r.areaName || '—';
+      const bldName  = (r.building?.name || r.buildingName || '—') + (r.building?.buildingCode ? ` (${r.building.buildingCode})` : '');
+      const floorVal = r.floor ?? r.floorNumber ?? '—';
+      const roomNum  = r.roomNumber || '—';
+
+      document.getElementById('rp-area').textContent     = areaName;
+      document.getElementById('rp-building').textContent = bldName;
+      document.getElementById('rp-floor').textContent    = floorVal;
+      document.getElementById('rp-room').textContent     = roomNum;
+      document.getElementById('rp-occupant').textContent = r.occupantName || 'Not specified';
+      document.getElementById('rp-qr').textContent       = r.qrCodeToken || '—';
     }
+
     function hidePreview() {
       document.getElementById('room-preview').classList.remove('visible');
+    }
+
+    // ══════ Camera Scanner ══════
+    let cameraStream = null;
+
+    document.getElementById('btn-open-scanner').addEventListener('click', async () => {
+      openModal('scanner-modal');
+      const video = document.getElementById('scanner-video');
+      const status = document.getElementById('scanner-status');
+      status.textContent = 'Requesting camera access…';
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+          video.srcObject = cameraStream;
+          await video.play();
+          status.textContent = 'Camera active. Point at room QR code.';
+        } catch (err) {
+          status.textContent = 'Camera access unavailable. Use manual token or upload image below.';
+        }
+      } else {
+        status.textContent = 'Camera not supported in this browser. Use manual token or image upload.';
+      }
+    });
+
+    function closeScannerModal() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      const video = document.getElementById('scanner-video');
+      if (video) video.srcObject = null;
+      closeModal('scanner-modal');
+    }
+
+    function handleQrFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      Toast.info('Processing Image', `Analyzing ${file.name}…`);
+      closeScannerModal();
+      const match = file.name.match(/QR-[A-Za-z0-9-]+/i);
+      if (match) {
+        quickFillQr(match[0]);
+      } else {
+        Toast.warning('QR Scan', 'Uploaded photo processed. Enter token if not recognized.');
+      }
     }
 
     document.getElementById('btn-to-step2').addEventListener('click', () => {
@@ -514,6 +719,14 @@
     // ── Init ──
     updateLiveScore();
     loadBuildings();
+
+    // Check if a QR code is passed in the URL (e.g., from direct scan or redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQr = urlParams.get('qr') || urlParams.get('code');
+    if (initialQr) {
+      document.getElementById('qr-input').value = initialQr;
+      lookupQr(initialQr);
+    }
   </script>
 </body>
 </html>

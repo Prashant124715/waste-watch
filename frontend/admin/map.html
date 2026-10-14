@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WasteWatch — Geographic Monitoring & Live Compliance Map</title>
-  <meta name="description" content="Real-time geographic waste segregation monitoring, Leaflet.js interactive maps, and hotspot visualizer."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
-  <!-- Leaflet.js -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WasteWatch ΓÇö Geographic Monitoring &amp; Live Compliance Map</title>
+  <meta name="description"
+    content="Interactive Leaflet.js geographic monitoring of waste segregation compliance across buildings and areas, with hotspot analysis and advanced filtering." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/css/variables.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <!-- Leaflet.js 1.9.4 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPaA=" crossorigin=""></script>
   <style>
-    .map-container-layout {
+    /* ΓöÇΓöÇ Map Layout ΓöÇΓöÇ */
+    .map-page-grid {
       display: grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: 1fr 360px;
       gap: var(--space-5);
-      height: calc(100vh - 220px);
+      height: calc(100vh - 210px);
       min-height: 560px;
     }
-    @media (max-width: 1024px) {
-      .map-container-layout {
+
+    @media (max-width: 1100px) {
+      .map-page-grid {
         grid-template-columns: 1fr;
         height: auto;
       }
@@ -31,99 +38,265 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
       border: 1px solid var(--border-subtle);
-      height: 100%;
-      min-height: 520px;
       position: relative;
-      background: var(--bg-surface-2);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-md);
+      background: #1a1f2e;
+      display: flex;
+      flex-direction: column;
     }
-    #map { height: 100%; width: 100%; }
 
-    /* Custom Leaflet Markers */
+    #map {
+      flex: 1;
+      width: 100%;
+      min-height: 520px;
+    }
+
+    /* ΓöÇΓöÇ Map overlay loading state ΓöÇΓöÇ */
+    .map-loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(14, 17, 26, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(4px);
+    }
+
+    .map-loading-overlay.hidden {
+      display: none;
+    }
+
+    .map-spinner-ring {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--color-primary-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ΓöÇΓöÇ Custom Leaflet Markers ΓöÇΓöÇ */
     .custom-marker {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       color: #fff;
       font-weight: 800;
-      font-size: 11px;
-      border: 2px solid #ffffff;
-      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+      font-size: 10px;
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     .custom-marker:hover {
-      transform: scale(1.2);
+      transform: scale(1.22);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
       z-index: 1000 !important;
     }
-    /* Compliance Marker Colors: GREEN (80-100), YELLOW (60-79), ORANGE (40-59), RED (0-39) */
-    .marker-excellent { background: #10B981; color: #ffffff; }
-    .marker-good      { background: #EAB308; color: #0f172a; font-weight: 900; }
-    .marker-needs-imp { background: #F97316; color: #ffffff; }
-    .marker-poor      { background: #EF4444; color: #ffffff; }
-    .marker-no-data   { background: #64748B; color: #ffffff; }
 
+    /* Compliance colour palette ΓÇö semantic & accessible */
+    .marker-excellent {
+      background: linear-gradient(135deg, #27AE60, #2ECC71);
+    }
+
+    .marker-good {
+      background: linear-gradient(135deg, #1565C0, #1E90FF);
+    }
+
+    .marker-needs-imp {
+      background: linear-gradient(135deg, #E67E22, #F39C12);
+    }
+
+    .marker-poor {
+      background: linear-gradient(135deg, #C0392B, #E74C3C);
+    }
+
+    .marker-no-data {
+      background: linear-gradient(135deg, #4B5563, #6B7280);
+    }
+
+    /* Hotspot pulse animation */
     .marker-hotspot {
-      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    @keyframes pulse-ring {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
-      50% { box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+      animation: pulse-hotspot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
-    /* Override leaflet popup */
+    @keyframes pulse-hotspot {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.8), 0 2px 16px rgba(0, 0, 0, 0.55);
+      }
+
+      50% {
+        box-shadow: 0 0 0 14px rgba(231, 76, 60, 0), 0 2px 16px rgba(0, 0, 0, 0.55);
+      }
+    }
+
+    /* ΓöÇΓöÇ Leaflet Popup Theming ΓöÇΓöÇ */
     .leaflet-popup-content-wrapper {
       background: var(--bg-surface-2) !important;
       border: 1px solid var(--border-default) !important;
       border-radius: var(--radius-lg) !important;
       color: var(--text-primary) !important;
-      box-shadow: var(--shadow-lg) !important;
+      box-shadow: var(--shadow-xl, 0 20px 60px rgba(0, 0, 0, 0.6)) !important;
       font-family: var(--font-sans) !important;
       padding: 0 !important;
     }
+
     .leaflet-popup-content {
       margin: 0 !important;
-      line-height: 1.4 !important;
+      line-height: 1.5 !important;
     }
-    .leaflet-popup-tip { background: var(--bg-surface-2) !important; }
 
-    .popup-box {
-      padding: 16px;
-      min-width: 250px;
+    .leaflet-popup-tip {
+      background: var(--bg-surface-2) !important;
     }
+
+    .leaflet-popup-close-button {
+      color: var(--text-muted) !important;
+      font-size: 18px !important;
+      top: 10px !important;
+      right: 10px !important;
+    }
+
+    /* Popup box */
+    .popup-box {
+      padding: 16px 18px;
+      min-width: 260px;
+      max-width: 320px;
+    }
+
     .popup-header {
       border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
     }
+
     .popup-title {
-      font-size: 1rem;
+      font-size: 0.975rem;
       font-weight: 800;
       color: var(--text-primary);
+      margin-bottom: 2px;
     }
+
     .popup-sub {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
     }
+
+    .popup-score-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 8px;
+    }
+
+    .popup-score-num {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .popup-score-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .popup-score-excel {
+      color: #2ECC71;
+    }
+
+    .popup-score-good {
+      color: #1E90FF;
+    }
+
+    .popup-score-imp {
+      color: #F39C12;
+    }
+
+    .popup-score-poor {
+      color: #E74C3C;
+    }
+
+    .popup-score-nd {
+      color: #6B7280;
+    }
+
+    .popup-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .popup-metric {
+      background: var(--bg-surface);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+    }
+
+    .popup-metric-label {
+      font-size: 0.67rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .popup-metric-val {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .popup-metric-val.danger {
+      color: #E74C3C;
+    }
+
+    .popup-metric-val.warning {
+      color: #F39C12;
+    }
+
+    .popup-metric-val.success {
+      color: #2ECC71;
+    }
+
     .popup-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 0;
-      font-size: 0.8125rem;
+      padding: 5px 0;
+      font-size: 0.8rem;
       border-bottom: 1px dashed var(--border-subtle);
     }
-    .popup-row:last-child { border-bottom: none; }
+
+    .popup-row:last-of-type {
+      border-bottom: none;
+    }
+
     .popup-actions {
       margin-top: 12px;
       display: flex;
       gap: 6px;
     }
 
-    /* Sidebar drawer for map list & unmapped buildings */
+    /* ΓöÇΓöÇ Right Sidebar ΓöÇΓöÇ */
     .map-sidebar {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -133,528 +306,993 @@
       height: 100%;
       overflow: hidden;
     }
-    .map-sidebar-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-subtle);
-      font-weight: 700;
-      font-size: 0.9rem;
+
+    .sidebar-tabs {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-surface-2);
+      border-bottom: 1px solid var(--border-subtle);
     }
-    .map-sidebar-content {
+
+    .sidebar-tab {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .sidebar-tab.active {
+      color: var(--color-primary-light);
+      border-bottom-color: var(--color-primary-light);
+    }
+
+    .sidebar-tab:hover:not(.active) {
+      color: var(--text-secondary);
+    }
+
+    .sidebar-pane {
       flex: 1;
       overflow-y: auto;
       padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      display: none;
     }
+
+    .sidebar-pane.active {
+      display: block;
+    }
+
+    /* Stats mini-grid */
+    .stat-mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat-mini {
+      background: var(--bg-surface-2);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stat-mini-val {
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+
+    .stat-mini-label {
+      font-size: 0.67rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    /* Unmapped card */
     .unmapped-card {
       background: var(--bg-surface-2);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 10px 12px;
+      margin-bottom: 8px;
       font-size: 0.8125rem;
+      transition: border-color 0.2s;
     }
+
     .unmapped-card:hover {
       border-color: var(--color-warning);
     }
 
-    .hotspot-card {
+    /* Area hotspot card */
+    .area-card {
       background: var(--bg-surface-2);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 10px 12px;
-      font-size: 0.8125rem;
-      transition: border-color var(--transition-fast);
-    }
-    .hotspot-card:hover {
-      border-color: var(--border-default);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
+    .area-card:hover {
+      border-color: var(--border-default);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .area-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .area-card-name {
+      font-weight: 800;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+
+    .area-card-code {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .area-health-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-surface);
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .area-health-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    .area-metrics-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .area-metric-chip {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .area-metric-chip strong {
+      color: var(--text-secondary);
+    }
+
+    /* Legend */
     .legend-bar {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       align-items: center;
       flex-wrap: wrap;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-secondary);
       margin-bottom: 12px;
     }
+
     .legend-chip {
       display: inline-flex;
       align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      margin-top: 4px;
+    }
+
+    /* Filter toolbar */
+    .filter-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
       gap: 6px;
     }
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
+
+    .filter-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .filter-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border-subtle);
+    }
+
+    /* Map error banner */
+    .map-error-banner {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(231, 76, 60, 0.92);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      z-index: 1500;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .map-error-banner.hidden {
+      display: none;
     }
   </style>
 </head>
+
 <body>
   <div class="main-content">
     <header class="topbar">
       <div>
         <div class="topbar-title">Geographic Monitoring</div>
-        <div class="topbar-subtitle">Interactive Leaflet.js spatial compliance, filters & hotspot map</div>
+        <div class="topbar-subtitle">Leaflet.js interactive spatial compliance map ┬╖ hotspot analysis ┬╖ area health
+        </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary btn-sm" id="btn-fit-all" onclick="fitAllMarkers()">🎯 Fit All</button>
-        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadMapData()">🔄 Refresh</button>
+        <button class="btn btn-secondary btn-sm" id="btn-fit-all" onclick="fitAllMarkers()">≡ƒÄ» Fit All</button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadMapData()">≡ƒöä Refresh</button>
       </div>
     </header>
 
     <div class="page-content">
 
-      <!-- Map Toolbar & Filters -->
-      <div class="toolbar" style="margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-        <div class="search-box" style="max-width:220px;flex:1;min-width:160px;">
-          <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search building…" oninput="filterMarkers()"/>
+      <!-- Filter toolbar -->
+      <div class="filter-toolbar">
+        <div class="filter-group">
+          <span class="filter-label">≡ƒöì</span>
+          <input type="text" class="form-control form-control-sm" id="search-input" placeholder="Search buildingΓÇª"
+            oninput="filterMarkers()" style="width:190px;" />
         </div>
 
-        <select class="form-control form-control-sm" id="area-filter" onchange="filterMarkers()" style="max-width:160px;">
-          <option value="">All Areas</option>
-        </select>
+        <div class="filter-sep"></div>
 
-        <select class="form-control form-control-sm" id="status-filter" onchange="filterMarkers()" style="max-width:180px;">
-          <option value="">All Statuses</option>
-          <option value="EXCELLENT">🟢 Excellent (80–100)</option>
-          <option value="GOOD">🟡 Good (60–79)</option>
-          <option value="NEEDS_IMPROVEMENT">🟠 Needs Improvement (40–59)</option>
-          <option value="POOR">🔴 Poor / Violation (&lt;40)</option>
-          <option value="NO_DATA">⚪ No Audits</option>
-        </select>
-
-        <select class="form-control form-control-sm" id="building-filter" onchange="filterMarkers()" style="max-width:170px;">
-          <option value="">All Buildings</option>
-        </select>
-
-        <select class="form-control form-control-sm" id="inspection-filter" onchange="filterMarkers()" style="max-width:170px;">
-          <option value="">All Audit Statuses</option>
-          <option value="INSPECTED">Inspected Units</option>
-          <option value="UNINSPECTED">Uninspected Units</option>
-        </select>
-
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-          <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-secondary);cursor:pointer;">
-            <input type="checkbox" id="chk-hotspots" onchange="filterMarkers()"/>
-            <span>🚨 Hotspots Only</span>
-          </label>
+        <div class="filter-group">
+          <span class="filter-label">Area</span>
+          <select class="form-control form-control-sm" id="area-filter" onchange="filterMarkers()"
+            style="min-width:160px;">
+            <option value="">All Areas</option>
+          </select>
         </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Compliance</span>
+          <select class="form-control form-control-sm" id="status-filter" onchange="filterMarkers()"
+            style="min-width:175px;">
+            <option value="">All Statuses</option>
+            <option value="EXCELLENT">Γ£à Excellent (80ΓÇô100)</option>
+            <option value="GOOD">≡ƒö╡ Good (60ΓÇô79)</option>
+            <option value="NEEDS_IMPROVEMENT">≡ƒƒá Needs Improvement (40ΓÇô59)</option>
+            <option value="POOR">≡ƒö┤ Poor (&lt;40)</option>
+            <option value="NO_DATA">ΓÜ½ No Inspections</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Building</span>
+          <select class="form-control form-control-sm" id="building-filter" onchange="filterMarkers()"
+            style="min-width:170px;">
+            <option value="">All Buildings</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Inspection</span>
+          <select class="form-control form-control-sm" id="inspection-filter" onchange="filterMarkers()"
+            style="min-width:150px;">
+            <option value="">All Buildings</option>
+            <option value="inspected">Inspected</option>
+            <option value="uninspected">Not Yet Inspected</option>
+            <option value="hotspot">Hotspots Only</option>
+          </select>
+        </div>
+
+        <div class="filter-sep"></div>
+
+        <label
+          style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text-secondary);cursor:pointer;margin-left:auto;">
+          <input type="checkbox" id="chk-area-overlay" onchange="toggleAreaOverlay(this.checked)" checked />
+          <span>≡ƒù║∩╕Å Area Overlays</span>
+        </label>
       </div>
 
-      <!-- Map Legend -->
-      <div class="legend-bar">
-        <span class="legend-chip"><span class="legend-color" style="background:#10B981;"></span> Excellent (80–100)</span>
-        <span class="legend-chip"><span class="legend-color" style="background:#EAB308;"></span> Good (60–79)</span>
-        <span class="legend-chip"><span class="legend-color" style="background:#F97316;"></span> Needs Improvement (40–59)</span>
-        <span class="legend-chip"><span class="legend-color" style="background:#EF4444;"></span> Poor / Violation (&lt;40)</span>
-        <span class="legend-chip"><span class="legend-color" style="background:#64748B;"></span> No Inspections</span>
+      <!-- Compliance Legend -->
+      <div class="legend-bar" aria-label="Compliance colour legend">
+        <span class="legend-chip"><span class="legend-dot" style="background:#2ECC71;"></span>Excellent
+          (80ΓÇô100)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#1E90FF;"></span>Good (60ΓÇô79)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#F39C12;"></span>Needs Improvement
+          (40ΓÇô59)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#E74C3C;"></span>Poor / Hotspot
+          (&lt;40)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#6B7280;"></span>No Inspections</span>
+        <span class="legend-chip" style="margin-left:8px;opacity:.7;"><span class="legend-dot"
+            style="background:rgba(231,76,60,0.25);border:1.5px solid #E74C3C;"></span>Poor Area Zone</span>
+        <span id="map-building-count"
+          style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);">LoadingΓÇª</span>
       </div>
 
-      <!-- Map + Sidebar Layout -->
-      <div class="map-container-layout">
+      <!-- Main 2-column grid: Map + Sidebar -->
+      <div class="map-page-grid">
+
+        <!-- Map -->
         <div class="map-wrap">
-          <div id="map"></div>
-          <div id="map-loading" style="position:absolute;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:999;">
-            <div class="spinner spinner-md"></div>
+          <div id="map" role="region" aria-label="Compliance map"></div>
+
+          <!-- Loading overlay -->
+          <div class="map-loading-overlay" id="map-loading">
+            <div style="text-align:center;">
+              <div class="map-spinner-ring" style="margin:0 auto 12px;"></div>
+              <div style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Loading map dataΓÇª</div>
+            </div>
           </div>
-          <div id="map-error" style="position:absolute;inset:0;background:var(--bg-surface-2);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:1000;padding:24px;text-align:center;">
-            <div style="font-size:2rem;">⚠️</div>
-            <div style="font-weight:700;color:var(--color-danger);">Failed to load geographic map data</div>
-            <div style="font-size:0.8125rem;color:var(--text-muted);" id="map-error-msg">Connection error</div>
-            <button class="btn btn-secondary btn-sm" onclick="loadMapData()">🔄 Retry Map</button>
+
+          <!-- Error banner -->
+          <div class="map-error-banner hidden" id="map-error-banner">
+            <span>ΓÜá∩╕Å</span>
+            <span id="map-error-text">Failed to load map data.</span>
+            <button onclick="loadMapData();document.getElementById('map-error-banner').classList.add('hidden');"
+              style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Retry</button>
           </div>
         </div>
 
-        <!-- Sidebar List: Stats & Unmapped Buildings -->
+        <!-- Sidebar -->
         <div class="map-sidebar">
-          <div class="map-sidebar-header">
-            <span>Spatial Overview</span>
-            <span class="badge badge-primary" id="badge-total-count">0 Buildings</span>
+          <div class="sidebar-tabs">
+            <div class="sidebar-tab active" id="tab-overview" onclick="switchTab('overview')" role="tab"
+              aria-selected="true">Overview</div>
+            <div class="sidebar-tab" id="tab-hotspots" onclick="switchTab('hotspots')" role="tab" aria-selected="false">
+              Hotspot Areas</div>
+            <div class="sidebar-tab" id="tab-unmapped" onclick="switchTab('unmapped')" role="tab" aria-selected="false">
+              Unmapped</div>
           </div>
 
-          <div class="map-sidebar-content">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div style="background:var(--bg-surface-2);padding:10px;border-radius:var(--radius-md);text-align:center;border:1px solid var(--border-subtle);">
-                <div style="font-size:1.2rem;font-weight:800;color:var(--color-primary-light);" id="side-mapped-count">0</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Mapped</div>
+          <!-- Tab: Overview -->
+          <div class="sidebar-pane active" id="pane-overview">
+            <div class="stat-mini-grid">
+              <div class="stat-mini">
+                <div class="stat-mini-val" id="stat-total" style="color:var(--color-primary-light);">ΓÇö</div>
+                <div class="stat-mini-label">Total Buildings</div>
               </div>
-              <div style="background:var(--bg-surface-2);padding:10px;border-radius:var(--radius-md);text-align:center;border:1px solid var(--border-subtle);">
-                <div style="font-size:1.2rem;font-weight:800;color:var(--color-warning);" id="side-unmapped-count">0</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Unmapped</div>
+              <div class="stat-mini">
+                <div class="stat-mini-val" id="stat-mapped" style="color:#2ECC71;">ΓÇö</div>
+                <div class="stat-mini-label">On Map</div>
               </div>
-            </div>
-
-            <!-- Area Hotspot Analysis Section -->
-            <div>
-              <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-                <span>Area Hotspot Analysis</span>
-                <span id="badge-hotspot-count" class="badge badge-warning" style="font-size:10px;">0 Alerts</span>
+              <div class="stat-mini">
+                <div class="stat-mini-val" id="stat-unmapped" style="color:#F39C12;">ΓÇö</div>
+                <div class="stat-mini-label">Unmapped</div>
               </div>
-              <div id="hotspot-list" style="display:flex;flex-direction:column;gap:6px;">
-                <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:10px 0;">Loading area analysis…</div>
+              <div class="stat-mini">
+                <div class="stat-mini-val" id="stat-hotspots" style="color:#E74C3C;">ΓÇö</div>
+                <div class="stat-mini-label">Hotspots</div>
               </div>
             </div>
 
-            <!-- Location Unavailable Section -->
-            <div>
-              <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">
-                ⚠️ Location Unavailable (<span id="unmapped-label-count">0</span>)
-              </div>
-              <div id="unmapped-list" style="display:flex;flex-direction:column;gap:6px;">
-                <div style="padding:12px 0;text-align:center;color:var(--text-muted);font-size:0.8rem;">No unmapped buildings.</div>
-              </div>
+            <div class="section-label">Compliance Distribution</div>
+            <div id="dist-bars" style="margin-bottom:16px;"></div>
+
+            <div class="section-label">Visible Markers</div>
+            <div id="visible-count" style="font-size:0.8125rem;color:var(--text-muted);padding:8px 0;">ΓÇö</div>
+          </div>
+
+          <!-- Tab: Hotspot Areas -->
+          <div class="sidebar-pane" id="pane-hotspots">
+            <div class="section-label">Area Health Analysis</div>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">
+              Area health score = <strong>0.70 ├ù compliance + 0.20 ├ù coverage + 0.10 ├ù resolution rate</strong>.
+              Shaded map circles indicate poor-performing zones.
+            </p>
+            <div id="area-hotspot-list">
+              <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading area dataΓÇª</div>
+            </div>
+          </div>
+
+          <!-- Tab: Unmapped -->
+          <div class="sidebar-pane" id="pane-unmapped">
+            <div class="section-label">Location Unavailable (<span id="unmapped-label-count">0</span>)</div>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">
+              These buildings are registered but lack valid geographic coordinates. Set coordinates via the Buildings
+              manager.
+            </p>
+            <div id="unmapped-list">
+              <div style="text-align:center;padding:20px;color:var(--text-muted);">LoadingΓÇª</div>
             </div>
           </div>
         </div>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
 
   <div id="toast-container"></div>
   <script src="/js/api/client.js"></script>
   <script src="/js/utils/helpers.js"></script>
   <script src="/js/utils/sidebar.js"></script>
   <script>
-    if (!Auth.requireAdmin()) throw new Error();
+    if (!Auth.requireAdmin()) throw new Error('Unauthorized');
     injectSidebar('ADMIN');
 
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       State
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     let map;
     let markersLayer;
-    let hotspotLayer;
-    let buildingsData = [];
-    let areasData = [];
+    let hotspotCircleLayer;   // per-building pulse circles
+    let areaOverlayLayer;     // area-level compliance zones
+    let buildingsData = [];  // raw from /api/map/buildings
+    let areasData = [];  // raw from /api/areas  (for filter dropdown)
+    let areaMapData = [];  // raw from /api/map/areas
     let hotspotsData = [];
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Utilities
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str).replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
 
+    function formatDate(dt) {
+      if (!dt) return 'Never';
+      try { return new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+      catch { return dt; }
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Map initialisation
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function initMap() {
-      if (map) return;
-      // Initialize map centered around default coordinates
       map = L.map('map', {
         zoomControl: true,
         attributionControl: true
-      }).setView([19.0760, 72.8777], 13);
+      }).setView([19.0760, 72.8777], 12);
 
-      // OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        attribution: '┬⌐ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
       markersLayer = L.featureGroup().addTo(map);
-      hotspotLayer = L.featureGroup().addTo(map);
+      hotspotCircleLayer = L.featureGroup().addTo(map);
+      areaOverlayLayer = L.featureGroup().addTo(map);
     }
 
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Data loading
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     async function loadMapData() {
-      const loadingEl = document.getElementById('map-loading');
-      const errorEl = document.getElementById('map-error');
-      if (loadingEl) loadingEl.style.display = 'flex';
-      if (errorEl) errorEl.style.display = 'none';
-
-      initMap();
+      showLoading(true);
+      hideError();
 
       try {
-        const [markersRes, areasRes, hotspotsRes] = await Promise.all([
+        const [buildings, areas, areaMap, hotspots] = await Promise.all([
           api.getMapBuildings(),
           api.getAreas(),
-          api.getMapHotspots().catch(() => ({ data: [] }))
+          api.getMapAreas(),
+          api.getMapHotspots
+            ? api.getMapHotspots().catch(() => ({ data: [] }))
+            : Promise.resolve({ data: [] })
         ]);
 
-        buildingsData = (markersRes && markersRes.data) ? markersRes.data : (markersRes || []);
-        areasData = (areasRes && areasRes.data) ? areasRes.data : (areasRes || []);
-        hotspotsData = (hotspotsRes && hotspotsRes.data) ? hotspotsRes.data : (hotspotsRes || []);
+        buildingsData = (buildings?.data || buildings || []);
+        areasData = (areas?.data || areas || []);
+        areaMapData = (areaMap?.data || areaMap || []);
+        hotspotsData = (hotspots?.data || hotspots || []);
 
-        populateFilters();
+        populateAreaFilter();
         renderMapMarkers();
-        renderAreaHotspots();
+        renderAreaOverlays();
         renderUnmappedList();
+        renderHotspotAreas();
+        renderOverviewStats();
 
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (map) {
-          setTimeout(() => map.invalidateSize(), 200);
-        }
       } catch (err) {
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) {
-          errorEl.style.display = 'flex';
-          const msgEl = document.getElementById('map-error-msg');
-          if (msgEl) msgEl.textContent = err.message || 'Unable to retrieve geospatial building markers.';
-        }
-        Toast.error('Map Error', 'Failed to load map data: ' + err.message);
+        showError('Failed to load map data: ' + (err?.message || 'Network error'));
+        Toast.error('Map Error', err?.message || 'Could not reach the server.');
+      } finally {
+        showLoading(false);
       }
     }
 
-    function populateFilters() {
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Filter helpers
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function populateAreaFilter() {
       const areaSelect = document.getElementById('area-filter');
-      const bldgSelect = document.getElementById('building-filter');
+      const buildingSelect = document.getElementById('building-filter');
 
       if (areaSelect) {
-        const curArea = areaSelect.value;
-        areaSelect.innerHTML = '<option value="">All Areas</option>' +
-          areasData.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-        areaSelect.value = curArea;
+        const currentArea = areaSelect.value;
+        areaSelect.innerHTML =
+          '<option value="">All Areas</option>' +
+          areasData
+            .map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`)
+            .join('');
+        areaSelect.value = currentArea;
       }
 
-      if (bldgSelect) {
-        const curBldg = bldgSelect.value;
-        bldgSelect.innerHTML = '<option value="">All Buildings</option>' +
-          buildingsData.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
-        bldgSelect.value = curBldg;
+      if (buildingSelect) {
+        const currentBuilding = buildingSelect.value;
+        buildingSelect.innerHTML =
+          '<option value="">All Buildings</option>' +
+          buildingsData
+            .map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`)
+            .join('');
+        buildingSelect.value = currentBuilding;
       }
     }
 
+    function getActiveFilters() {
+      return {
+        search: document.getElementById('search-input').value.toLowerCase().trim(),
+        areaId: document.getElementById('area-filter').value,
+        buildingId: document.getElementById('building-filter').value,
+        status: document.getElementById('status-filter').value,
+        inspection: document.getElementById('inspection-filter').value,
+      };
+    }
+
+    function buildingMatchesFilters(b, f) {
+      // Text search
+      if (f.search) {
+        const haystack =
+          `${b.name || ''} ${b.areaName || ''} ${b.buildingCode || ''}`.toLowerCase();
+
+        if (!haystack.includes(f.search)) return false;
+      }
+
+      // Area
+      if (f.areaId && String(b.areaId) !== String(f.areaId)) return false;
+
+      // Building
+      if (f.buildingId && String(b.id) !== String(f.buildingId)) return false;
+
+      // Compliance status
+      if (f.status && b.complianceStatus !== f.status) return false;
+
+      // Inspection status
+      if (
+        f.inspection === 'inspected' &&
+        (b.totalInspections == null || b.totalInspections < 1)
+      ) {
+        return false;
+      }
+
+      if (
+        f.inspection === 'uninspected' &&
+        (b.totalInspections != null && b.totalInspections > 0)
+      ) {
+        return false;
+      }
+
+      // Hotspot = POOR compliance (<40) or at least one open violation.
+      if (f.inspection === 'hotspot') {
+        const isHot =
+          (b.complianceScore != null && b.complianceScore < 40) ||
+          b.openViolations >= 1;
+
+        if (!isHot) return false;
+      }
+
+      return true;
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Marker rendering
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function renderMapMarkers() {
-      if (!markersLayer || !hotspotLayer) return;
-
       markersLayer.clearLayers();
-      hotspotLayer.clearLayers();
+      hotspotCircleLayer.clearLayers();
 
-      const search = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-      const areaId = document.getElementById('area-filter')?.value;
-      const status = document.getElementById('status-filter')?.value;
-      const buildingId = document.getElementById('building-filter')?.value;
-      const inspectionStatus = document.getElementById('inspection-filter')?.value;
-      const hotspotsOnly = document.getElementById('chk-hotspots')?.checked;
-
-      let mappedCount = 0;
+      const f = getActiveFilters();
+      let mappedVisible = 0;
       const validBounds = [];
 
       buildingsData.forEach(b => {
-        // Filter logic
-        const matchSearch = !search ||
-          (b.name && b.name.toLowerCase().includes(search)) ||
-          (b.area && b.area.toLowerCase().includes(search)) ||
-          (b.areaName && b.areaName.toLowerCase().includes(search));
-
-        const matchArea = !areaId || (b.areaId && String(b.areaId) === String(areaId));
-        const matchBuilding = !buildingId || (b.id && String(b.id) === String(buildingId));
-        const matchStatus = !status || (b.complianceStatus === status);
-
-        const totalInsp = b.totalInspections || 0;
-        let matchInspection = true;
-        if (inspectionStatus === 'INSPECTED') matchInspection = totalInsp > 0;
-        else if (inspectionStatus === 'UNINSPECTED') matchInspection = totalInsp === 0;
-
-        const score = b.complianceScore !== null && b.complianceScore !== undefined
-          ? b.complianceScore
-          : (b.latestScore !== null ? b.latestScore : null);
-
-        const isHot = (score !== null && score < 40) || (b.openViolations && b.openViolations > 0);
-        const matchHotspot = !hotspotsOnly || isHot;
-
-        if (!matchSearch || !matchArea || !matchBuilding || !matchStatus || !matchInspection || !matchHotspot) {
-          return;
-        }
+        if (!buildingMatchesFilters(b, f)) return;
 
         if (b.hasValidCoordinates && b.latitude != null && b.longitude != null) {
           const lat = parseFloat(b.latitude);
           const lng = parseFloat(b.longitude);
           if (isNaN(lat) || isNaN(lng)) return;
 
-          mappedCount++;
           validBounds.push([lat, lng]);
+          mappedVisible++;
 
-          // Marker color class strictly matching specifications:
-          // GREEN (80-100), YELLOW (60-79), ORANGE (40-59), RED (0-39)
-          let markerClass = 'marker-no-data';
-          if (score !== null) {
-            if (score >= 80) markerClass = 'marker-excellent';
-            else if (score >= 60) markerClass = 'marker-good';
-            else if (score >= 40) markerClass = 'marker-needs-imp';
-            else markerClass = 'marker-poor';
-          }
+          const score = b.complianceScore ?? b.latestScore;
+          const statusCls = markerClass(b.complianceStatus);
+          const isHotspot = (score != null && score < 40) || b.openViolations > 0;
 
-          // Custom Marker Icon
-          const customIcon = L.divIcon({
+          // Custom icon
+          const icon = L.divIcon({
             className: 'custom-leaflet-icon',
-            html: `<div class="custom-marker ${markerClass} ${isHot ? 'marker-hotspot' : ''}">
-                    ${score !== null ? Math.round(score) : '—'}
+            html: `<div class="custom-marker ${statusCls} ${isHotspot ? 'marker-hotspot' : ''}" title="${escapeHtml(b.name)}" role="img" aria-label="${escapeHtml(b.name)} - score ${score ?? 'N/A'}">
+                     ${score != null ? Math.round(score) : 'ΓÇö'}
                    </div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -18]
+            iconSize: [34, 34],
+            iconAnchor: [17, 17],
+            popupAnchor: [0, -20]
           });
 
-          const marker = L.marker([lat, lng], { icon: customIcon });
-
-          // Popup content: Building name, Area, Average compliance, Inspection coverage, Last inspection, Poor rooms, Open violations, details link
-          const popupHtml = `
-            <div class="popup-box">
-              <div class="popup-header">
-                <div class="popup-title">${escapeHtml(b.name || b.buildingName)}</div>
-                <div class="popup-sub">${escapeHtml(b.area || b.areaName || 'Area')} · ${escapeHtml(b.buildingType || 'Building')}</div>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Average Compliance</span>
-                <strong>${score !== null ? score + ' / 100' : 'No audits yet'}</strong>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Status</span>
-                <span class="badge ${getStatusBadge(b.complianceStatus)}">${b.complianceStatus || 'NO_DATA'}</span>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Inspection Coverage</span>
-                <strong>${b.inspectionCoverage !== null && b.inspectionCoverage !== undefined ? b.inspectionCoverage + '%' : '0%'}</strong>
-                <span style="font-size:0.75rem;color:var(--text-muted);">(${b.inspectedRooms || 0}/${b.totalRooms || 0})</span>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Last Inspection</span>
-                <span>${b.lastInspectionDate ? formatDate(b.lastInspectionDate) : 'Never'}</span>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Poor Rooms (&lt;40)</span>
-                <span class="${(b.poorRoomCount || b.poorRooms) > 0 ? 'text-danger font-bold' : 'text-muted'}">${b.poorRoomCount || b.poorRooms || 0}</span>
-              </div>
-              <div class="popup-row">
-                <span class="text-muted">Open Violations</span>
-                <span class="${b.openViolations > 0 ? 'text-warning font-bold' : 'text-muted'}">${b.openViolations || 0}</span>
-              </div>
-              <div class="popup-actions">
-                <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;">🔍 Details</a>
-                <a href="/admin/inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">📋 Audits</a>
-              </div>
-            </div>
-          `;
-
-          marker.bindPopup(popupHtml);
+          const marker = L.marker([lat, lng], { icon, keyboard: true });
+          marker.bindPopup(buildPopupHtml(b), { maxWidth: 340, minWidth: 260 });
           markersLayer.addLayer(marker);
 
-          // If hotspot, draw glowing danger circle
-          if (isHot) {
+          // Hotspot danger circle
+          if (isHotspot) {
             const circle = L.circle([lat, lng], {
-              radius: 65,
-              color: '#EF4444',
-              fillColor: '#EF4444',
-              fillOpacity: 0.18,
+              radius: 80,
+              color: '#E74C3C',
+              fillColor: '#E74C3C',
+              fillOpacity: 0.12,
               weight: 1.5
             });
-            hotspotLayer.addLayer(circle);
+            hotspotCircleLayer.addLayer(circle);
           }
         }
       });
 
-      document.getElementById('side-mapped-count').textContent = mappedCount;
-      document.getElementById('badge-total-count').textContent = buildingsData.length + ' Buildings';
+      // Update visible count
+      const total = buildingsData.filter(b => buildingMatchesFilters(b, f)).length;
+      document.getElementById('visible-count').textContent =
+        `${mappedVisible} mapped ┬╖ ${total - mappedVisible} unmapped ΓÇö from ${total} matching buildings`;
+      document.getElementById('map-building-count').textContent =
+        `${mappedVisible} of ${buildingsData.length} buildings visible`;
 
-      if (validBounds.length > 0 && map) {
-        map.fitBounds(validBounds, { padding: [40, 40], maxZoom: 16 });
+      if (validBounds.length > 0 && markersLayer.getLayers().length > 0) {
+        try { map.fitBounds(validBounds, { padding: [40, 40], maxZoom: 16 }); } catch { }
+      }
+
+      renderOverviewStats();
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Popup HTML builder
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function buildPopupHtml(b) {
+      const score = b.complianceScore ?? b.latestScore;
+      const scoreCls = score == null ? 'popup-score-nd' : score >= 80 ? 'popup-score-excel' : score >= 60 ? 'popup-score-good' : score >= 40 ? 'popup-score-imp' : 'popup-score-poor';
+      const badgeCls = statusBadge(b.complianceStatus);
+      const coveragePct = b.inspectionCoverage != null ? b.inspectionCoverage.toFixed(1) : '0.0';
+
+      return `
+        <div class="popup-box">
+          <div class="popup-header">
+            <div class="popup-title">${escapeHtml(b.name)}</div>
+            <div class="popup-sub">${escapeHtml(b.areaName || 'Area')} ┬╖ ${escapeHtml(b.buildingType || 'Building')} ┬╖ ${escapeHtml(b.buildingCode || '')}</div>
+          </div>
+
+          <div class="popup-score-row">
+            <div>
+              <div class="${scoreCls}" style="font-size:2.1rem;font-weight:900;line-height:1;">${score != null ? Math.round(score) : 'ΓÇö'}</div>
+              <div class="popup-score-label">avg compliance</div>
+            </div>
+            <div style="flex:1;margin-left:12px;">
+              <span class="badge ${badgeCls}">${labelStatus(b.complianceStatus)}</span>
+              ${b.openViolations > 0 ? `<div style="margin-top:4px;font-size:0.7rem;color:#E74C3C;">ΓÜá∩╕Å ${b.openViolations} open violation${b.openViolations > 1 ? 's' : ''}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="popup-metrics">
+            <div class="popup-metric">
+              <div class="popup-metric-label">Coverage</div>
+              <div class="popup-metric-val ${coveragePct < 30 ? 'warning' : coveragePct >= 80 ? 'success' : ''}">${coveragePct}%</div>
+            </div>
+            <div class="popup-metric">
+              <div class="popup-metric-label">Rooms</div>
+              <div class="popup-metric-val">${b.inspectedRooms ?? 0} / ${b.totalRooms ?? 0}</div>
+            </div>
+            <div class="popup-metric">
+              <div class="popup-metric-label">Poor Rooms</div>
+              <div class="popup-metric-val ${b.poorRoomCount > 0 ? 'danger' : ''}">${b.poorRoomCount ?? 0}</div>
+            </div>
+            <div class="popup-metric">
+              <div class="popup-metric-label">Open Violations</div>
+              <div class="popup-metric-val ${b.openViolations > 0 ? 'danger' : ''}">${b.openViolations ?? 0}</div>
+            </div>
+          </div>
+
+          <div class="popup-row">
+            <span style="color:var(--text-muted);">Last Inspection</span>
+            <span style="font-weight:600;">${formatDate(b.lastInspectionDate)}</span>
+          </div>
+
+          <div class="popup-actions">
+            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;" id="popup-details-${b.id}">≡ƒÅó Details</a>
+            <a href="/admin/inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;" id="popup-audits-${b.id}">≡ƒôï Audits</a>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Area-level overlays (hotspot analysis)
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function renderAreaOverlays() {
+      areaOverlayLayer.clearLayers();
+
+      const showOverlay = document.getElementById('chk-area-overlay').checked;
+      if (!showOverlay || !areaMapData.length) return;
+
+      // Build bounding box per area from buildings
+      areaMapData.forEach(area => {
+        const areaBuildings = buildingsData.filter(
+          b => b.areaId === area.areaId && b.hasValidCoordinates && b.latitude != null && b.longitude != null
+        );
+        if (!areaBuildings.length) return;
+
+        // Compute centroid
+        const lats = areaBuildings.map(b => parseFloat(b.latitude));
+        const lngs = areaBuildings.map(b => parseFloat(b.longitude));
+        const centLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+        const centLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+
+        // Only show coloured zone if area has data
+        const score = area.averageCompliance;
+        const isPoor = score < 40 || area.openViolations > 2;
+        const isNeeds = score >= 40 && score < 60;
+        const isGood = score >= 60 && score < 80;
+
+        let fillColor = '#2ECC71'; let color = '#27AE60'; // EXCELLENT
+        if (isPoor) { fillColor = '#E74C3C'; color = '#C0392B'; }
+        else if (isNeeds) { fillColor = '#F39C12'; color = '#E67E22'; }
+        else if (isGood) { fillColor = '#1E90FF'; color = '#1565C0'; }
+
+        // Radius proportional to number of buildings (200m base + 80m per building)
+        const radius = 200 + (areaBuildings.length * 80);
+
+        const circle = L.circle([centLat, centLng], {
+          radius,
+          color,
+          fillColor,
+          fillOpacity: isPoor ? 0.18 : 0.09,
+          weight: isPoor ? 2 : 1.5,
+          dashArray: isPoor ? null : '6 4'
+        });
+
+        circle.bindTooltip(
+          `<strong>${escapeHtml(area.areaName)}</strong><br/>
+           Avg Compliance: ${score.toFixed(1)}<br/>
+           Coverage: ${area.inspectionCoverage.toFixed(1)}%<br/>
+           Health Score: ${area.areaHealthScore.toFixed(1)}<br/>
+           Open Violations: ${area.openViolations}`,
+          { sticky: true, direction: 'top' }
+        );
+
+        areaOverlayLayer.addLayer(circle);
+      });
+    }
+
+    function toggleAreaOverlay(checked) {
+      if (checked) {
+        renderAreaOverlays();
+      } else {
+        areaOverlayLayer.clearLayers();
       }
     }
 
-    function renderAreaHotspots() {
-      const listEl = document.getElementById('hotspot-list');
-      const badgeEl = document.getElementById('badge-hotspot-count');
-      if (!listEl) return;
-
-      if (!hotspotsData || !hotspotsData.length) {
-        listEl.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:10px 0;">No area alerts detected.</div>';
-        if (badgeEl) badgeEl.textContent = '0 Alerts';
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Hotspot area sidebar list
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function renderHotspotAreas() {
+      const list = document.getElementById('area-hotspot-list');
+      if (!areaMapData.length) {
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">No area data available.</div>';
         return;
       }
 
-      let alertsCount = 0;
-      listEl.innerHTML = hotspotsData.map(h => {
-        if (h.isHotspot) alertsCount++;
-        const score = h.averageScore !== null ? h.averageScore : null;
-        let barClass = 'badge-success';
-        if (score !== null) {
-          if (score < 40) barClass = 'badge-danger';
-          else if (score < 60) barClass = 'badge-warning';
-          else if (score < 80) barClass = 'badge-warning';
-        } else {
-          barClass = 'badge-neutral';
-        }
+      // Sort: worst health first
+      const sorted = [...areaMapData].sort((a, b) => a.areaHealthScore - b.areaHealthScore);
 
-        const borderStyle = h.hotspotSeverity === 'CRITICAL' ? 'border-left: 3px solid #EF4444;' :
-                            h.hotspotSeverity === 'WARNING' ? 'border-left: 3px solid #F97316;' :
-                            'border-left: 3px solid #10B981;';
+      list.innerHTML = sorted.map(area => {
+        const health = area.areaHealthScore;
+        const barColor = health >= 80 ? '#2ECC71' : health >= 60 ? '#1E90FF' : health >= 40 ? '#F39C12' : '#E74C3C';
+        const riskLabel = health >= 80 ? 'Low Risk' : health >= 60 ? 'Moderate' : health >= 40 ? 'At Risk' : '≡ƒö┤ Critical';
+        const riskBadge = health >= 80 ? 'badge-success' : health >= 60 ? 'badge-info' : health >= 40 ? 'badge-warning' : 'badge-danger';
+        const confBadge = area.confidenceRating === 'HIGH' ? 'badge-success' : area.confidenceRating === 'MEDIUM' ? 'badge-warning' : 'badge-neutral';
 
         return `
-          <div class="hotspot-card" style="${borderStyle}">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-              <span style="font-weight:700;color:var(--text-primary);font-size:0.8125rem;">${escapeHtml(h.areaName)}</span>
-              <span class="badge ${barClass}" style="font-size:10px;padding:1px 6px;">
-                ${score !== null ? score + '%' : 'No Data'}
-              </span>
+          <div class="area-card">
+            <div class="area-card-header">
+              <div>
+                <div class="area-card-name">${escapeHtml(area.areaName)}</div>
+                <div class="area-card-code">${escapeHtml(area.areaCode)} ┬╖ ${escapeHtml(area.city || '')}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                <span class="badge ${riskBadge}" style="font-size:0.67rem;">${riskLabel}</span>
+                <span class="badge ${confBadge}" style="font-size:0.6rem;">Confidence: ${area.confidenceRating}</span>
+              </div>
             </div>
-            <div style="font-size:0.7rem;color:var(--text-muted);display:flex;justify-content:space-between;">
-              <span>${h.totalBuildings} bldgs · ${h.openViolations} viol.</span>
-              <span style="color:${h.isHotspot ? 'var(--color-danger)' : 'var(--color-success)'}">
-                ${h.isHotspot ? '🚨 ' + h.hotspotSeverity : '✓ Healthy'}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
 
-      if (badgeEl) {
-        badgeEl.textContent = `${alertsCount} Alert${alertsCount !== 1 ? 's' : ''}`;
-        badgeEl.className = alertsCount > 0 ? 'badge badge-danger' : 'badge badge-success';
-      }
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+              <span style="font-size:0.72rem;color:var(--text-muted);">Area Health Score</span>
+              <span style="font-size:1rem;font-weight:900;color:${barColor};">${health.toFixed(1)}</span>
+            </div>
+            <div class="area-health-bar">
+              <div class="area-health-fill" style="width:${Math.min(health, 100)}%;background:${barColor};"></div>
+            </div>
+
+            <div class="area-metrics-row">
+              <span class="area-metric-chip">≡ƒÅó <strong>${area.totalBuildings}</strong> bldgs</span>
+              <span class="area-metric-chip">≡ƒôè <strong>${area.averageCompliance.toFixed(1)}</strong> avg</span>
+              <span class="area-metric-chip">≡ƒöì <strong>${area.inspectionCoverage.toFixed(1)}%</strong> coverage</span>
+              ${area.openViolations > 0 ? `<span class="area-metric-chip" style="color:#E74C3C;">ΓÜá∩╕Å <strong>${area.openViolations}</strong> violations</span>` : ''}
+              ${area.poorRoomCount > 0 ? `<span class="area-metric-chip" style="color:#F39C12;">Γ¥ù <strong>${area.poorRoomCount}</strong> poor rooms</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
     }
 
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Unmapped buildings sidebar list
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function renderUnmappedList() {
-      const unmapped = buildingsData.filter(b => !b.hasValidCoordinates || b.latitude == null || b.longitude == null);
+      const unmapped = buildingsData.filter(
+        b => !b.hasValidCoordinates || b.latitude == null || b.longitude == null
+      );
       const listEl = document.getElementById('unmapped-list');
-      document.getElementById('side-unmapped-count').textContent = unmapped.length;
       document.getElementById('unmapped-label-count').textContent = unmapped.length;
 
       if (!unmapped.length) {
-        listEl.innerHTML = '<div style="padding:12px 0;text-align:center;color:var(--text-muted);font-size:0.8rem;">✅ All registered buildings have valid coordinates.</div>';
+        listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);">Γ£à All registered buildings have valid coordinates.</div>';
         return;
       }
 
       listEl.innerHTML = unmapped.map(b => `
         <div class="unmapped-card">
-          <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;">${escapeHtml(b.name || b.buildingName)}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">
-            ${escapeHtml(b.area || b.areaName || 'No Area')} · ${b.totalRooms || 0} rooms
+          <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;">${escapeHtml(b.name)}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;">
+            ${escapeHtml(b.areaName || 'No Area')} ┬╖ ${b.totalRooms ?? 0} rooms
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span class="badge ${getStatusBadge(b.complianceStatus)}" style="font-size:10px;padding:1px 6px;">${b.complianceStatus || 'NO_DATA'}</span>
-            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="padding:2px 8px;font-size:0.7rem;">Set Coords</a>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge ${statusBadge(b.complianceStatus)}">${labelStatus(b.complianceStatus)}</span>
+            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="padding:2px 10px;font-size:0.7rem;">Set Coords</a>
           </div>
         </div>
       `).join('');
     }
 
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Overview stats sidebar
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function renderOverviewStats() {
+      const f = getActiveFilters();
+      const visible = buildingsData.filter(b => buildingMatchesFilters(b, f));
+      const mapped = visible.filter(b => b.hasValidCoordinates && b.latitude != null && b.longitude != null);
+      const unmapped = buildingsData.filter(b => !b.hasValidCoordinates || b.latitude == null || b.longitude == null);
+      const hotspots = buildingsData.filter(b => (b.complianceScore != null && b.complianceScore < 40) || b.openViolations >= 1);
+
+      document.getElementById('stat-total').textContent = buildingsData.length;
+      document.getElementById('stat-mapped').textContent = buildingsData.filter(b => b.hasValidCoordinates && b.latitude != null && b.longitude != null).length;
+      document.getElementById('stat-unmapped').textContent = unmapped.length;
+      document.getElementById('stat-hotspots').textContent = hotspots.length;
+
+      // Distribution bars
+      const dist = { EXCELLENT: 0, GOOD: 0, NEEDS_IMPROVEMENT: 0, POOR: 0, NO_DATA: 0 };
+      buildingsData.forEach(b => { dist[b.complianceStatus] = (dist[b.complianceStatus] || 0) + 1; });
+      const total = buildingsData.length || 1;
+      const distConfig = [
+        { key: 'EXCELLENT', label: 'Excellent', color: '#2ECC71' },
+        { key: 'GOOD', label: 'Good', color: '#1E90FF' },
+        { key: 'NEEDS_IMPROVEMENT', label: 'Needs Improvement', color: '#F39C12' },
+        { key: 'POOR', label: 'Poor', color: '#E74C3C' },
+        { key: 'NO_DATA', label: 'No Data', color: '#6B7280' },
+      ];
+      document.getElementById('dist-bars').innerHTML = distConfig.map(d => {
+        const cnt = dist[d.key] || 0;
+        const pct = ((cnt / total) * 100).toFixed(0);
+        return `
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-bottom:3px;">
+              <span style="color:${d.color};font-weight:600;">${d.label}</span>
+              <span>${cnt} (${pct}%)</span>
+            </div>
+            <div style="height:5px;border-radius:3px;background:var(--bg-surface);overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${d.color};border-radius:3px;transition:width 0.5s;"></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Fit all visible markers
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function fitAllMarkers() {
+      const valid = buildingsData.filter(
+        b => b.hasValidCoordinates && b.latitude != null && b.longitude != null
+      );
+      if (!valid.length) { Toast.info('Map Notice', 'No buildings with coordinates.'); return; }
+      const bounds = valid.map(b => [parseFloat(b.latitude), parseFloat(b.longitude)]);
+      try { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 }); } catch { }
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Filter trigger
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function filterMarkers() {
       renderMapMarkers();
     }
 
-    function fitAllMarkers() {
-      const valid = buildingsData.filter(b => b.hasValidCoordinates && b.latitude != null && b.longitude != null);
-      if (valid.length && map) {
-        const bounds = valid.map(b => [parseFloat(b.latitude), parseFloat(b.longitude)]);
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-      } else {
-        Toast.info('Map Notice', 'No buildings with coordinates found.');
-      }
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Sidebar tab switching
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function switchTab(name) {
+      document.querySelectorAll('.sidebar-tab').forEach(t => {
+        t.classList.toggle('active', t.id === 'tab-' + name);
+        t.setAttribute('aria-selected', t.id === 'tab-' + name ? 'true' : 'false');
+      });
+      document.querySelectorAll('.sidebar-pane').forEach(p => {
+        p.classList.toggle('active', p.id === 'pane-' + name);
+      });
     }
 
-    function getMarkerClass(status) {
-      if (status === 'EXCELLENT') return 'marker-excellent';
-      if (status === 'GOOD') return 'marker-good';
-      if (status === 'NEEDS_IMPROVEMENT') return 'marker-needs-imp';
-      if (status === 'POOR') return 'marker-poor';
-      return 'marker-no-data';
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Colour helpers
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function markerClass(status) {
+      const m = { EXCELLENT: 'marker-excellent', GOOD: 'marker-good', NEEDS_IMPROVEMENT: 'marker-needs-imp', POOR: 'marker-poor' };
+      return m[status] || 'marker-no-data';
     }
 
-    function getStatusBadge(st) {
-      if (st === 'EXCELLENT') return 'badge-success';
-      if (st === 'GOOD') return 'badge-warning';
-      if (st === 'NEEDS_IMPROVEMENT') return 'badge-warning';
-      if (st === 'POOR') return 'badge-danger';
-      return 'badge-neutral';
+    function statusBadge(st) {
+      const m = { EXCELLENT: 'badge-success', GOOD: 'badge-info', NEEDS_IMPROVEMENT: 'badge-warning', POOR: 'badge-danger', NO_DATA: 'badge-neutral' };
+      return m[st] || 'badge-neutral';
     }
 
+    function labelStatus(st) {
+      const m = { EXCELLENT: 'Excellent', GOOD: 'Good', NEEDS_IMPROVEMENT: 'Needs Improvement', POOR: 'Poor', NO_DATA: 'No Data' };
+      return m[st] || st || 'No Data';
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Loading / error state helpers
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    function showLoading(on) {
+      document.getElementById('map-loading').classList.toggle('hidden', !on);
+    }
+
+    function showError(msg) {
+      const banner = document.getElementById('map-error-banner');
+      document.getElementById('map-error-text').textContent = msg;
+      banner.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('map-error-banner').classList.add('hidden');
+    }
+
+    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+       Bootstrap
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    initMap();
     loadMapData();
   </script>
 </body>
+
 </html>

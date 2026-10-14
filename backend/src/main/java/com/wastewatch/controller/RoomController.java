@@ -1,16 +1,20 @@
 package com.wastewatch.controller;
 
 import com.wastewatch.dto.ApiResponse;
+import com.wastewatch.dto.room.RoomDetailDto;
 import com.wastewatch.dto.room.RoomRequestDto;
 import com.wastewatch.dto.room.RoomResponseDto;
 import com.wastewatch.service.RoomService;
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class RoomController {
@@ -40,9 +44,52 @@ public class RoomController {
         return ResponseEntity.ok(roomService.getRoomsByBuildingId(buildingId));
     }
 
+    /**
+     * Authenticated QR lookup endpoint.
+     * Accessible by authenticated VOLUNTEER and ADMIN.
+     * Returns sanitized room metadata with building, area, and recent inspection info.
+     */
     @GetMapping("/api/rooms/qr/{code}")
-    public ResponseEntity<com.wastewatch.dto.room.RoomDetailDto> getRoomByQrCode(@PathVariable String code) {
+    public ResponseEntity<RoomDetailDto> getRoomByQrCode(@PathVariable String code) {
         return ResponseEntity.ok(roomService.getRoomByQrCode(code));
+    }
+
+    /**
+     * Generate raw PNG image bytes for a room's QR code by room ID.
+     */
+    @GetMapping(value = "/api/rooms/{id}/qr-image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getRoomQrCodeImage(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "300") int size) {
+        byte[] imageBytes = roomService.getRoomQrCodeImage(id, size);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+                .body(imageBytes);
+    }
+
+    /**
+     * Generate raw PNG image bytes for a room's QR code by QR token.
+     */
+    @GetMapping(value = "/api/rooms/qr/{code}/image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getQrCodeImageByToken(
+            @PathVariable String code,
+            @RequestParam(defaultValue = "300") int size) {
+        byte[] imageBytes = roomService.getQrCodeImageByToken(code, size);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+                .body(imageBytes);
+    }
+
+    /**
+     * Admin action to regenerate a room's QR code identifier.
+     */
+    @PostMapping("/api/rooms/{id}/regenerate-qr")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RoomResponseDto> regenerateRoomQrCode(@PathVariable Long id) {
+        RoomResponseDto updated = roomService.regenerateRoomQrCode(id);
+        return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/api/rooms")

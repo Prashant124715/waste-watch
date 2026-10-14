@@ -31,17 +31,23 @@ class ApiClient {
   getHeaders(isJson = true) {
     const h = {};
     if (isJson) h['Content-Type'] = 'application/json';
+
     const token = this.getToken();
-    if (token) h['Authorization'] = `Bearer ${token}`;
+    if (token) {
+      h['Authorization'] = `Bearer ${token}`;
+    }
+
     return h;
   }
 
   async request(method, path, body = null) {
     const url = `${API_BASE}${path}`;
+
     const options = {
       method,
       headers: this.getHeaders()
     };
+
     if (body !== null) {
       options.body = JSON.stringify(body);
     }
@@ -55,6 +61,7 @@ class ApiClient {
     }
 
     let data;
+
     try {
       data = await res.json();
     } catch {
@@ -69,168 +76,501 @@ class ApiClient {
     return data;
   }
 
-  get(path)         { return this.request('GET', path); }
-  post(path, body)  { return this.request('POST', path, body); }
-  put(path, body)   { return this.request('PUT', path, body); }
-  delete(path)      { return this.request('DELETE', path); }
-
-  // ── Auth ──
-  login(username, password) {
-    return this.request('POST', '/auth/login', { usernameOrEmail: username, username, password });
+  get(path) {
+    return this.request('GET', path);
   }
-  getMe() { return this.get('/auth/me'); }
 
-  // ── Dashboard ──
-  getDashboardSummary()           { return this.get('/dashboard/summary'); }
-  getDashboardTrends()            { return this.get('/dashboard/trends'); }
-  getDashboardCompliance()        { return this.get('/dashboard/compliance'); }
-  getDashboardAreas()             { return this.get('/dashboard/areas'); }
-  getDashboardAttentionRequired() { return this.get('/dashboard/attention-required'); }
+  post(path, body) {
+    return this.request('POST', path, body);
+  }
 
-  // ── Areas ──
-  getAreas()             { return this.get('/areas'); }
-  getArea(id)            { return this.get(`/areas/${id}`); }
-  createArea(data)       { return this.post('/areas', data); }
-  updateArea(id, data)   { return this.put(`/areas/${id}`, data); }
-  deleteArea(id)         { return this.delete(`/areas/${id}`); }
+  put(path, body) {
+    return this.request('PUT', path, body);
+  }
 
-  // ── Buildings ──
-  getBuildings(areaId)   { return this.get(areaId ? `/buildings?areaId=${areaId}` : '/buildings'); }
-  getBuilding(id)        { return this.get(`/buildings/${id}`); }
-  createBuilding(data)   { return this.post('/buildings', data); }
-  updateBuilding(id, d)  { return this.put(`/buildings/${id}`, d); }
-  deleteBuilding(id)     { return this.delete(`/buildings/${id}`); }
+  delete(path) {
+    return this.request('DELETE', path);
+  }
 
-  // ── Rooms ──
-  getRooms(buildingId)   { return this.get(buildingId ? `/rooms?buildingId=${buildingId}` : '/rooms'); }
-  getRoom(id)            { return this.get(`/rooms/${id}`); }
-  getRoomByQr(code)      { return this.get(`/rooms/qr/${code}`); }
-  createRoom(data)       { return this.post('/rooms', data); }
-  updateRoom(id, data)   { return this.put(`/rooms/${id}`, data); }
-  deleteRoom(id)         { return this.delete(`/rooms/${id}`); }
+  // ==================================================
+  // Auth
+  // ==================================================
 
-  // ── Inspections ──
+  login(username, password) {
+    return this.request('POST', '/auth/login', {
+      usernameOrEmail: username,
+      username,
+      password
+    });
+  }
+
+  getMe() {
+    return this.get('/auth/me');
+  }
+
+  // ==================================================
+  // Dashboard
+  // ==================================================
+
+  getDashboardSummary() {
+    return this.get('/dashboard/summary');
+  }
+
+  getDashboardTrends() {
+    return this.get('/dashboard/trends');
+  }
+
+  getDashboardCompliance() {
+    return this.get('/dashboard/compliance');
+  }
+
+  getDashboardAreas() {
+    return this.get('/dashboard/areas');
+  }
+
+  getDashboardAttentionRequired() {
+    return this.get('/dashboard/attention-required');
+  }
+
+  // ==================================================
+  // Areas
+  // ==================================================
+
+  getAreas() {
+    return this.get('/areas');
+  }
+
+  getArea(id) {
+    return this.get(`/areas/${id}`);
+  }
+
+  createArea(data) {
+    return this.post('/areas', data);
+  }
+
+  updateArea(id, data) {
+    return this.put(`/areas/${id}`, data);
+  }
+
+  deleteArea(id) {
+    return this.delete(`/areas/${id}`);
+  }
+
+  // ==================================================
+  // Buildings
+  // ==================================================
+
+  getBuildings(areaId) {
+    return this.get(
+      areaId
+        ? `/buildings?areaId=${encodeURIComponent(areaId)}`
+        : '/buildings'
+    );
+  }
+
+  getBuilding(id) {
+    return this.get(`/buildings/${id}`);
+  }
+
+  createBuilding(data) {
+    return this.post('/buildings', data);
+  }
+
+  updateBuilding(id, data) {
+    return this.put(`/buildings/${id}`, data);
+  }
+
+  deleteBuilding(id) {
+    return this.delete(`/buildings/${id}`);
+  }
+
+  // ==================================================
+  // Rooms
+  // ==================================================
+
+  getRooms(buildingId) {
+    return this.get(
+      buildingId
+        ? `/rooms?buildingId=${encodeURIComponent(buildingId)}`
+        : '/rooms'
+    );
+  }
+
+  getRoom(id) {
+    return this.get(`/rooms/${id}`);
+  }
+
+  getRoomByQr(code) {
+    return this.get(`/rooms/qr/${encodeURIComponent(code)}`);
+  }
+
+  createRoom(data) {
+    return this.post('/rooms', data);
+  }
+
+  updateRoom(id, data) {
+    return this.put(`/rooms/${id}`, data);
+  }
+
+  deleteRoom(id) {
+    return this.delete(`/rooms/${id}`);
+  }
+
+  regenerateRoomQr(id) {
+    return this.post(`/rooms/${id}/regenerate-qr`);
+  }
+
+  getRoomQrImageUrl(id, size = 300) {
+    return `${API_BASE}/rooms/${id}/qr-image?size=${encodeURIComponent(size)}`;
+  }
+
+  getQrTokenImageUrl(token, size = 300) {
+    return `${API_BASE}/rooms/qr/${encodeURIComponent(token)}/image?size=${encodeURIComponent(size)}`;
+  }
+
+  // ==================================================
+  // Inspections
+  // ==================================================
+
   getInspections(params = {}) {
     const q = new URLSearchParams();
-    if (params.roomId)      q.set('roomId', params.roomId);
-    if (params.volunteerId) q.set('volunteerId', params.volunteerId);
-    if (params.buildingId)  q.set('buildingId', params.buildingId);
+
+    if (params.roomId) {
+      q.set('roomId', params.roomId);
+    }
+
+    if (params.volunteerId) {
+      q.set('volunteerId', params.volunteerId);
+    }
+
+    if (params.buildingId) {
+      q.set('buildingId', params.buildingId);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/inspections${qs}`);
   }
-  getInspection(id)       { return this.get(`/inspections/${id}`); }
-  createInspection(data)  { return this.post('/inspections', data); }
-  getRoomInspections(roomId) { return this.get(`/rooms/${roomId}/inspections`); }
-  getMyInspections()      { return this.get('/volunteers/me/inspections'); }
-  getRecentInspections()  { return this.get('/inspections/recent'); }
 
-  // ── Violations (Phase 6, 13) ──
+  getInspection(id) {
+    return this.get(`/inspections/${id}`);
+  }
+
+  createInspection(data) {
+    return this.post('/inspections', data);
+  }
+
+  getRoomInspections(roomId) {
+    return this.get(`/rooms/${roomId}/inspections`);
+  }
+
+  getMyInspections() {
+    return this.get('/volunteers/me/inspections');
+  }
+
+  getRecentInspections() {
+    return this.get('/inspections/recent');
+  }
+
+  // ==================================================
+  // Violations
+  // ==================================================
+
   getViolations(params = {}) {
     const q = new URLSearchParams();
-    if (params.status)     q.set('status', params.status);
-    if (params.severity)   q.set('severity', params.severity);
-    if (params.roomId)     q.set('roomId', params.roomId);
-    if (params.buildingId) q.set('buildingId', params.buildingId);
-    if (params.areaId)     q.set('areaId', params.areaId);
-    if (params.from)       q.set('from', params.from);
-    if (params.to)         q.set('to', params.to);
+
+    if (params.status) {
+      q.set('status', params.status);
+    }
+
+    if (params.severity) {
+      q.set('severity', params.severity);
+    }
+
+    if (params.roomId) {
+      q.set('roomId', params.roomId);
+    }
+
+    if (params.buildingId) {
+      q.set('buildingId', params.buildingId);
+    }
+
+    if (params.areaId) {
+      q.set('areaId', params.areaId);
+    }
+
+    if (params.from) {
+      q.set('from', params.from);
+    }
+
+    if (params.to) {
+      q.set('to', params.to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/violations${qs}`);
   }
-  getViolation(id)                { return this.get(`/violations/${id}`); }
-  updateViolationStatus(id, data) { return this.put(`/violations/${id}/status`, data); }
-  resolveViolation(id, data)      { return this.put(`/violations/${id}/resolve`, data); }
 
-  // ── Map ──
+  getViolation(id) {
+    return this.get(`/violations/${id}`);
+  }
+
+  updateViolationStatus(id, data) {
+    return this.put(`/violations/${id}/status`, data);
+  }
+
+  resolveViolation(id, data) {
+    return this.put(`/violations/${id}/resolve`, data);
+  }
+
+  // ==================================================
+  // Map
+  // ==================================================
+
   getMapBuildings(params = {}) {
     const q = new URLSearchParams();
-    if (params.areaId)           q.set('areaId', params.areaId);
-    if (params.complianceStatus) q.set('complianceStatus', params.complianceStatus);
-    if (params.buildingId)       q.set('buildingId', params.buildingId);
-    if (params.inspectionStatus) q.set('inspectionStatus', params.inspectionStatus);
+
+    if (params.areaId) {
+      q.set('areaId', params.areaId);
+    }
+
+    if (params.complianceStatus) {
+      q.set('complianceStatus', params.complianceStatus);
+    }
+
+    if (params.buildingId) {
+      q.set('buildingId', params.buildingId);
+    }
+
+    if (params.inspectionStatus) {
+      q.set('inspectionStatus', params.inspectionStatus);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/map/buildings${qs}`);
   }
-  getMapHotspots() { return this.get('/map/hotspots'); }
 
-  // ── Volunteers & User Governance (Phase 6, 14) ──
-  getVolunteers()                     { return this.get('/volunteers'); }
-  getVolunteerPerformance(id)         { return this.get(`/volunteers/${id}/performance`); }
-  updateVolunteerStatus(id, status)   { return this.put(`/volunteers/${id}/status`, { status }); }
+  getMapHotspots() {
+    return this.get('/map/hotspots');
+  }
 
-  // ── In-App Notifications (Phase 13) ──
-  getNotifications()                  { return this.get('/notifications'); }
-  getUnreadNotifications()            { return this.get('/notifications/unread'); }
-  getUnreadNotificationCount()        { return this.get('/notifications/count'); }
-  markNotificationRead(id)            { return this.request('PATCH', `/notifications/${id}/read`); }
-  markAllNotificationsRead()          { return this.request('PATCH', '/notifications/read-all'); }
+  getMapAreas() {
+    return this.get('/map/areas');
+  }
 
-  // ── Audit Logs (Phase 14) ──
+  // ==================================================
+  // Volunteers & User Governance
+  // ==================================================
+
+  getVolunteers() {
+    return this.get('/volunteers');
+  }
+
+  getVolunteerPerformance(id) {
+    return this.get(`/volunteers/${id}/performance`);
+  }
+
+  updateVolunteerStatus(id, status) {
+    return this.put(`/volunteers/${id}/status`, { status });
+  }
+
+  // ==================================================
+  // In-App Notifications
+  // ==================================================
+
+  getNotifications() {
+    return this.get('/notifications');
+  }
+
+  getUnreadNotifications() {
+    return this.get('/notifications/unread');
+  }
+
+  getUnreadNotificationCount() {
+    return this.get('/notifications/count');
+  }
+
+  markNotificationRead(id) {
+    return this.request('PATCH', `/notifications/${id}/read`);
+  }
+
+  markAllNotificationsRead() {
+    return this.request('PATCH', '/notifications/read-all');
+  }
+
+  // ==================================================
+  // Audit Logs
+  // ==================================================
+
   getAuditLogs(params = {}) {
     const q = new URLSearchParams();
-    if (params.action)     q.set('action', params.action);
-    if (params.entityType) q.set('entityType', params.entityType);
-    if (params.userId)     q.set('userId', params.userId);
-    if (params.from)       q.set('from', params.from);
-    if (params.to)         q.set('to', params.to);
+
+    if (params.action) {
+      q.set('action', params.action);
+    }
+
+    if (params.entityType) {
+      q.set('entityType', params.entityType);
+    }
+
+    if (params.userId) {
+      q.set('userId', params.userId);
+    }
+
+    if (params.from) {
+      q.set('from', params.from);
+    }
+
+    if (params.to) {
+      q.set('to', params.to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/audit-logs${qs}`);
   }
 
-  // ── Reports & Governance (Phase 14) ──
+  // ==================================================
+  // Reports & Governance
+  // ==================================================
+
   getReportOverview(from, to) {
     const q = new URLSearchParams();
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/reports/overview${qs}`);
   }
+
   getReportAreas(from, to) {
     const q = new URLSearchParams();
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/reports/areas${qs}`);
   }
+
   getReportBuildings(from, to) {
     const q = new URLSearchParams();
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/reports/buildings${qs}`);
   }
+
   getReportCoverage() {
     return this.get('/reports/coverage');
   }
+
   getReportViolations(from, to) {
     const q = new URLSearchParams();
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/reports/violations${qs}`);
   }
+
   getReportVolunteers(from, to) {
     const q = new URLSearchParams();
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
     const qs = q.toString() ? `?${q}` : '';
+
     return this.get(`/reports/volunteers${qs}`);
   }
+
   getReportCsvUrl(type, from, to) {
-    const q = new URLSearchParams({ type: type || 'overview' });
-    if (from) q.set('from', from);
-    if (to)   q.set('to', to);
-    return `${this.baseUrl}/reports/export/csv?${q.toString()}`;
+    const q = new URLSearchParams({
+      type: type || 'overview'
+    });
+
+    if (from) {
+      q.set('from', from);
+    }
+
+    if (to) {
+      q.set('to', to);
+    }
+
+    return `${API_BASE}/reports/export/csv?${q.toString()}`;
   }
 
-  // ── Analytics Engine (Phase 10) ──
-  getAnalyticsOverview()               { return this.get('/analytics/overview'); }
-  getAnalyticsAreas()                  { return this.get('/analytics/areas'); }
-  getAnalyticsBuildings()              { return this.get('/analytics/buildings'); }
-  getAnalyticsTrends(period, days)     { return this.get(`/analytics/trends?period=${period || 'daily'}&days=${days || 30}`); }
-  getAnalyticsImprovements(days)       { return this.get(`/analytics/improvements?days=${days || 14}`); }
-  getAnalyticsHotspots()               { return this.get('/analytics/hotspots'); }
-  getAnalyticsVolunteers()             { return this.get('/analytics/volunteers'); }
+  // ==================================================
+  // Analytics Engine
+  // ==================================================
+
+  getAnalyticsOverview() {
+    return this.get('/analytics/overview');
+  }
+
+  getAnalyticsAreas() {
+    return this.get('/analytics/areas');
+  }
+
+  getAnalyticsBuildings() {
+    return this.get('/analytics/buildings');
+  }
+
+  getAnalyticsTrends(period, days) {
+    return this.get(
+      `/analytics/trends?period=${encodeURIComponent(period || 'daily')}&days=${encodeURIComponent(days || 30)}`
+    );
+  }
+
+  getAnalyticsImprovements(days) {
+    return this.get(
+      `/analytics/improvements?days=${encodeURIComponent(days || 14)}`
+    );
+  }
+
+  getAnalyticsHotspots() {
+    return this.get('/analytics/hotspots');
+  }
+
+  getAnalyticsVolunteers() {
+    return this.get('/analytics/volunteers');
+  }
 }
 
 window.api = new ApiClient();
