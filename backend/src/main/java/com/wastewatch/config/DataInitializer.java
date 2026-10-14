@@ -192,29 +192,29 @@ public class DataInitializer implements CommandLineRunner {
         // =====================================================================
         // 4. SEED ROOMS
         // =====================================================================
-        Room room101 = new Room(greenHeights, 1, "Flat 101", "WASTEWATCH-ROOM-GVH-101", "John Doe", "9876543210");
+        Room room101 = new Room(greenHeights, 1, "Flat 101", "QR-GVH-101", "John Doe", "9876543210");
         roomRepository.save(room101);
 
-        Room room102 = new Room(greenHeights, 1, "Flat 102", "WASTEWATCH-ROOM-GVH-102", "Jane Smith", "9876543211");
+        Room room102 = new Room(greenHeights, 1, "Flat 102", "QR-GVH-102", "Jane Smith", "9876543211");
         room102.setPersistentNonCompliance(true); // Flagged for repeat non-compliance
         roomRepository.save(room102);
 
-        Room room201 = new Room(greenHeights, 2, "Flat 201", "WASTEWATCH-ROOM-GVH-201", "Robert Brown", "9876543212");
+        Room room201 = new Room(greenHeights, 2, "Flat 201", "QR-GVH-201", "Robert Brown", "9876543212");
         roomRepository.save(room201);
 
-        Room suite301 = new Room(ecoTech, 3, "Suite 301", "WASTEWATCH-ROOM-ETP-301", "Innovate Labs", "9876543213");
+        Room suite301 = new Room(ecoTech, 3, "Suite 301", "QR-ETP-301", "Innovate Labs", "9876543213");
         roomRepository.save(suite301);
 
-        Room suite302 = new Room(ecoTech, 3, "Suite 302", "WASTEWATCH-ROOM-ETP-302", "CloudNexus Systems", "9876543214");
+        Room suite302 = new Room(ecoTech, 3, "Suite 302", "QR-ETP-302", "CloudNexus Systems", "9876543214");
         roomRepository.save(suite302);
 
-        Room roomSR1 = new Room(sunriseResidency, 1, "Unit 1A", "WASTEWATCH-ROOM-SR-1A", "Anand Verma", "9876543215");
+        Room roomSR1 = new Room(sunriseResidency, 1, "Unit 1A", "QR-SR-1A", "Anand Verma", "9876543215");
         roomRepository.save(roomSR1);
 
-        Room roomSR2 = new Room(sunriseResidency, 2, "Unit 2B", "WASTEWATCH-ROOM-SR-2B", "Kavita Rao", "9876543216");
+        Room roomSR2 = new Room(sunriseResidency, 2, "Unit 2B", "QR-SR-2B", "Kavita Rao", "9876543216");
         roomRepository.save(roomSR2);
 
-        Room roomApex1 = new Room(apexTower, 5, "Floor 5 - HQ", "WASTEWATCH-ROOM-AMT-501", "Metro FinCorp", "9876543217");
+        Room roomApex1 = new Room(apexTower, 5, "Floor 5 - HQ", "QR-AMT-501", "Metro FinCorp", "9876543217");
         roomRepository.save(roomApex1);
 
         log.info("Seeded 8 rooms across residential and commercial buildings");
