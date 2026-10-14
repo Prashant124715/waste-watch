@@ -18,6 +18,7 @@ com\wastewatch\service\ComplianceScoringService$ScoringResult.class
 com\wastewatch\repository\AuditLogRepository.class
 com\wastewatch\controller\InspectionController.class
 com\wastewatch\dto\auth\LoginRequestDto.class
+com\wastewatch\dto\map\AreaHotspotDto.class
 com\wastewatch\dto\analytics\HotspotAnalyticsDto.class
 com\wastewatch\repository\RoomRepository.class
 com\wastewatch\dto\audit\AuditLogResponseDto.class
@@ -89,7 +90,6 @@ com\wastewatch\dto\dashboard\AreaComplianceDto.class
 com\wastewatch\entity\enums\ViolationStatus.class
 com\wastewatch\service\ReportService.class
 com\wastewatch\controller\MapController.class
-com\wastewatch\controller\NotificationController.class
 com\wastewatch\dto\room\RoomDetailDto.class
 com\wastewatch\dto\dashboard\ComplianceDistributionDto.class
 com\wastewatch\service\RoomService.class

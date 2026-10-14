@@ -111,7 +111,7 @@ The scoring engine produces a structured `ComplianceResult` containing the compu
 | **Web / REST** | **Spring Web (MVC REST Controllers)** | Standardized JSON RESTful API endpoints following REST best practices. |
 | **Persistence** | **Spring Data JPA / Hibernate** | Object-Relational Mapping providing clean repository interfaces and database portability. |
 | **Security** | **Spring Security** | Robust Role-Based Access Control (`ROLE_ADMIN`, `ROLE_VOLUNTEER`) and authentication. |
-| **Database** | **H2 (In-Memory / File-Mode)** | Lightweight, zero-external-dependency database for academic execution; easily switched to PostgreSQL/MySQL via JPA dialects. |
+| **Database** | **H2 (File-Based for Development & CEP; In-Memory for Tests)** | Lightweight, zero-external-dependency database; development records persist under `backend/data/`, while tests use an isolated in-memory database. |
 | **Build & Dependencies**| **Apache Maven** | Standardized Java dependency and lifecycle management. |
 | **Mapping (Future)** | **Leaflet.js & OpenStreetMap** | Open-source, lightweight mapping library without proprietary API key requirements. |
 | **Testing** | **JUnit 5, Mockito, Spring Boot Test**| Thorough unit and integration test coverage across service and controller layers. |
@@ -174,9 +174,8 @@ As of the completion of Phases 1 through 14:
 - **Phase 12**: QR code workflow with safe room metadata endpoint and camera/manual scanner fallback.
 - **Phase 13**: Automated violation generation, repeat non-compliance detection (3 consecutive poor audits), and in-app notifications.
 - **Phase 14**: Volunteer governance with privilege escalation defense, multi-dimensional reporting, streaming RFC-4180 CSV export, and immutable security audit logs.
-- **Final Hardening**: Full workflow verification, zero framework debt, hardened security, 90/90 passing automated tests, and verified production JAR build.
+- **Final Hardening**: Full workflow verification, zero framework debt, hardened security, 95/95 passing automated tests, and verified production JAR build.
 - **Development Test Accounts**:
   - Administrator: `admin` / `admin123` (`admin@wastewatch.gov`)
   - Volunteer #1: `volunteer` / `volunteer123` (`volunteer@wastewatch.gov`)
   - Volunteer #2: `volunteer2` / `volunteer123` (`volunteer2@wastewatch.gov`)
-

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.wastewatch.controller.InfrastructureManagementTest
 -------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.974 s -- in com.wastewatch.controller.InfrastructureManagementTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.356 s -- in com.wastewatch.controller.InfrastructureManagementTest

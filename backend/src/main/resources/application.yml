@@ -7,31 +7,10 @@ spring:
   application:
     name: WasteWatch
 
-  # Datasource Configuration (H2 for local development, easily switchable to PostgreSQL)
-  datasource:
-    url: jdbc:h2:mem:wastewatchdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password: 
-
-  # H2 Console Configuration
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: false
-        trace: false
-
-  # JPA & Hibernate Configuration
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
+  # Default active profile: 'dev' for local development with file-based H2 persistence.
+  # Override at runtime with: --spring.profiles.active=test
+  profiles:
+    active: dev
 
 # Security & JWT Configuration
 app:

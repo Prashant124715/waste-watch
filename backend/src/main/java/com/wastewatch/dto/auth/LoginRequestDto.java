@@ -26,6 +26,12 @@ public class LoginRequestDto {
         this.usernameOrEmail = usernameOrEmail;
     }
 
+    public void setUsername(String username) {
+        if (this.usernameOrEmail == null) {
+            this.usernameOrEmail = username;
+        }
+    }
+
     public String getPassword() {
         return password;
     }

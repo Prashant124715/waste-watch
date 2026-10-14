@@ -1,0 +1,45 @@
+# ============================================================================
+# WasteWatch — Git Ignore Rules
+# ============================================================================
+
+# === IDE & Editor ===
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# === Java / Maven Build ===
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# === H2 Database Files (file-based persistence) ===
+# IMPORTANT: Never commit database files or credentials
+backend/data/
+*.mv.db
+*.trace.db
+*.lock.db
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Node.js (frontend dev server) ===
+node_modules/
+npm-debug.log*
+
+# === Logs ===
+*.log
+logs/
+
+# === Environment & Secrets ===
+.env
+.env.local
+.env.*
+*.secrets.*

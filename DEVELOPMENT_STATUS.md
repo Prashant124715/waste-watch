@@ -15,7 +15,7 @@
 | **Core Domain Hierarchy** | **COMPLETED** | City ➔ Area ➔ Building ➔ Floor ➔ Room ➔ Inspection ➔ Violation |
 | **Spring Boot Backend Engine** | **COMPLETED** | Initialized in `backend/` with Maven wrapper (`mvnw.cmd`/`mvnw.ps1`) |
 | **Relational Database Entities** | **COMPLETED** | 8 JPA entities: `AppUser`, `Area`, `Building`, `Room`, `Inspection`, `Violation`, `Notification`, `AuditLog` |
-| **H2 Database & Schema** | **COMPLETED** | In-memory schema initialized with auto-DDL, `/h2-console`, and zero-dependency startup |
+| **H2 Database & Schema** | **COMPLETED** | File-based H2 for local development/CEP at `backend/data/wastewatchdb.mv.db`; isolated in-memory test database; local-only `/h2-console` |
 | **Database Repositories** | **COMPLETED** | 8 Spring Data JPA repositories with custom query methods and JPQL filters |
 | **Database Seeding** | **COMPLETED** | `DataInitializer` seeds Admin, Volunteers, 3 Areas, 3 Buildings, 8 Rooms, 7 Inspections, 3 Violations |
 | **Global Error Handling** | **COMPLETED** | `GlobalExceptionHandler` with standardized JSON `ErrorResponse` (400, 401, 403, 404, 409, 500) |
@@ -33,7 +33,7 @@
 | **Analytics & Decision Engine (Phase 10)**| **COMPLETED** | Area health score formula, confidence ratings, trends, period deltas, hotspots, volunteer productivity |
 | **Interactive Map (Phase 11)** | **COMPLETED** | Leaflet.js OpenStreetMap integration with live geo-markers and building compliance metrics |
 | **Frontend UI (Vanilla JS/HTML/CSS)**| **COMPLETED** | Framework-free Vanilla JS/HTML5/CSS3 SaaS design system across 9 Admin pages & 2 Volunteer pages |
-| **Automated Test Suite** | **COMPLETED** | **90 unit and integration tests passing (100% success)** |
+| **Automated Test Suite** | **COMPLETED** | **95 unit and integration tests passing (100% success)** |
 
 ---
 
@@ -55,11 +55,15 @@ WasteWatch has successfully reached **100% completion across all 14 planned arch
   - Clean transactional boundaries (`@Transactional`) for atomic multi-entity mutations.
   - Multi-criteria validation with standardized, machine-readable HTTP error envelopes.
 
-### H2 Database Prototype Rationale
-WasteWatch utilizes an embedded **H2 in-memory database** (`jdbc:h2:mem:wastewatchdb`) for this demonstration prototype. This architectural decision was deliberate and provides several distinct advantages:
-1. **Zero-Configuration Setup**: Evaluators, academic reviewers, and prospective adopters can launch the entire platform instantly using `./mvnw.cmd spring-boot:run` without provisioning or configuring an external PostgreSQL or MySQL instance.
-2. **Deterministic Seed State**: Every application launch initializes a rich, realistic municipal dataset via `DataInitializer`—spanning 3 geographic wards, 3 buildings, 8 rooms, 7 historical inspections across different days, open/resolved violations, repeat non-compliance instances, and audit logs.
-3. **Seamless Production Portability**: The entire persistence layer is built on ANSI-compliant Spring Data JPA and Hibernate. Migrating to production PostgreSQL requires merely swapping two configuration properties in `application.yml` (`spring.datasource.url` and `spring.datasource.driver-class-name`), with zero changes to entities, repositories, or services.
+### H2 Development and CEP Evaluation Configuration
+WasteWatch uses embedded, file-based H2 in the `dev` profile for local development and CEP evaluation. The JDBC URL is `jdbc:h2:file:./data/wastewatchdb`; when launched from `backend/`, the database file is `backend/data/wastewatchdb.mv.db`. It is not recreated on application restart.
+
+- Hibernate uses `ddl-auto: update` in development; it does not drop and recreate the schema.
+- `DataInitializer` seeds demo data only when the database contains no users. It skips seeding once users exist.
+- Tests use the isolated in-memory `test` profile (`jdbc:h2:mem:wastewatchdb_test`) with `create-drop`; test data is separate from development data.
+- The H2 console is enabled only in the local `dev` profile at `http://localhost:8080/h2-console`, with remote access disabled.
+- Database credentials are externalized as `WASTEWATCH_DB_USERNAME` and `WASTEWATCH_DB_PASSWORD`. New local databases default to user `sa` with an empty password. Existing databases must be opened using the credentials with which they were created.
+- Root `.gitignore` excludes `backend/data/`, H2 database files, and `.env*` files.
 
 ---
 
@@ -74,7 +78,7 @@ WasteWatch utilizes an embedded **H2 in-memory database** (`jdbc:h2:mem:wastewat
 
 ### Phase 2: Backend Foundation (COMPLETED)
 - [x] Initialized Spring Boot 3.2.5 Maven project in `backend/` with Java 17
-- [x] Configured H2 database, JPA dialect, and `/h2-console`
+- [x] Configured file-based H2 for the `dev` profile, isolated in-memory H2 for tests, and `/h2-console` for local development only
 - [x] Implemented `/api/health` health check endpoint
 - [x] Established global exception handling strategy (`GlobalExceptionHandler`, `ErrorResponse`)
 
@@ -135,9 +139,22 @@ WasteWatch utilizes an embedded **H2 in-memory database** (`jdbc:h2:mem:wastewat
 - [x] Dedicated UI Dashboard (`frontend/admin/analytics.html`)
 
 ### Phase 11: Interactive Map & Geographic Visualization (COMPLETED)
-- [x] Implemented Leaflet.js map with OpenStreetMap CartoDB dark tiles in `admin/map.html`
-- [x] Backend geo-marker API `GET /api/map/markers` returning building coordinates, compliance status, and room stats
-- [x] Interactive pins with color-coded compliance status, building popups, and instant filtering
+- [x] Integrated professional Leaflet.js interactive map directly on the Admin Dashboard (`admin/dashboard.html`) and dedicated full-screen console (`admin/map.html`).
+- [x] Backend geo-marker API `GET /api/map/buildings` returning building ID, building name, area, latitude, longitude, compliance score, compliance status, inspection coverage, poor rooms, open violations, last inspection timestamp, and valid coordinate flags.
+- [x] Supports server-side and client-side filtering by: Area, Compliance status, Building, and Inspection status (`INSPECTED` vs `UNINSPECTED`).
+- [x] Strict compliance color semantics:
+  - `GREEN`: 80–100 (`EXCELLENT`)
+  - `YELLOW`: 60–79 (`GOOD` with high-contrast text)
+  - `ORANGE`: 40–59 (`NEEDS_IMPROVEMENT`)
+  - `RED`: 0–39 (`POOR`)
+  - `GRAY`: No inspection data
+- [x] Interactive popups showing: Building name, Area, Average compliance, Inspection coverage, Last inspection, Poor rooms (<40), Open violations, with direct links to Building Details and Audits.
+- [x] Hotspot Analysis:
+  - Animated pulsing rings (`.marker-hotspot`) for at-risk facilities.
+  - Visual glowing danger boundary circles around critical sites.
+  - Area Hotspot Analysis sidebar console (`GET /api/map/hotspots`) with ward-level compliance status, poor room densities, and severity ratings (`CRITICAL`, `WARNING`, `ADVISORY`, `NONE`).
+- [x] Location Unavailable handling: Missing, null, or out-of-range coordinates are isolated in "Location unavailable" drawer with quick "Set Coords" shortcuts without breaking the map canvas.
+- [x] Automated unit and integration test suite: `MapServiceTest` and `MapControllerTest` validating valid coordinates, missing/out-of-bounds coordinates, multiple buildings, filter behavior, and hotspot analysis.
 
 ### Phase 12: QR Code Workflow (COMPLETED)
 - [x] Generated unique, collision-free QR code tokens per room (`WASTEWATCH-ROOM-BUILDING-ROOM`)
@@ -191,20 +208,29 @@ WasteWatch utilizes an embedded **H2 in-memory database** (`jdbc:h2:mem:wastewat
 
 ## Complete Test Suite Verification
 
-- **Total Automated Tests**: **90**
-- **Passing**: **90 (100%)**
+- **Total Automated Tests**: **95**
+- **Passing**: **95 (100%)**
 - **Failures / Errors**: **0**
 - **Build Artifact**: `backend/target/wastewatch-backend-0.1.0-SNAPSHOT.jar` (packaged and verified)
 
 ```
 [INFO] Results:
 [INFO] 
-[INFO] Tests run: 90, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 95, Failures: 0, Errors: 0, Skipped: 0
 [INFO] 
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
 ```
+
+## File-Based H2 Verification — 2026-10-14
+
+- Backend started successfully on port 8080 with the `dev` profile; `/api/health` returned `UP`.
+- The development H2 console returned HTTP 200 at `/h2-console/`.
+- A temporary area record (`CEP-PERSIST-1014A`, ID 4) was created through the API, the backend was stopped and restarted against the same `backend/data/wastewatchdb.mv.db`, and the record was found after restart. It was then removed; a subsequent list confirmed it was absent.
+- `.\mvnw.cmd test` completed successfully: 95 tests, 0 failures, 0 errors, 0 skipped. Test logs confirmed the `test` profile was active.
+- The existing local database was retained; no database file was deleted, recreated, or migrated.
+- During cleanup, the DELETE request returned HTTP 500 with `NoClassDefFoundError: com/wastewatch/dto/ApiResponse`, although the follow-up list confirmed the temporary row had been deleted. The file-persistence check succeeded; this cleanup-response runtime error was not caused or changed by the database configuration work.
 
 ---
 
@@ -219,11 +245,18 @@ WasteWatch utilizes an embedded **H2 in-memory database** (`jdbc:h2:mem:wastewat
 
 ### Launch Instructions
 1. **Start Backend Engine**:
-   ```bash
-   cd waste-watch/backend
-   ./mvnw.cmd spring-boot:run
+   ```powershell
+   cd waste-watch\backend
+   .\mvnw.cmd spring-boot:run
    ```
-   *Runs on `http://localhost:8080`. H2 console available at `http://localhost:8080/h2-console`.*
+   *Runs on `http://localhost:8080` using the `dev` profile. H2 console: `http://localhost:8080/h2-console`. Database file: `backend\data\wastewatchdb.mv.db`. A new database uses user `sa` and an empty password; for an existing password-protected local database, set `WASTEWATCH_DB_PASSWORD` in the shell before launch.*
+
+### Back Up or Restore Local H2 Data
+Stop the backend before copying the H2 file. From the repository root:
+```powershell
+Copy-Item .\backend\data\wastewatchdb.mv.db "$env:USERPROFILE\wastewatchdb-backup.mv.db"
+```
+To restore, stop the backend, preserve the current database file, copy the backup to `backend\data\wastewatchdb.mv.db`, then restart. Keep database backups outside version control; `.gitignore` excludes the database directory and H2 files.
 
 2. **Start Frontend Portal**:
    ```bash

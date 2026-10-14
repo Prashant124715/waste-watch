@@ -76,7 +76,7 @@ class ApiClient {
 
   // ── Auth ──
   login(username, password) {
-    return this.request('POST', '/auth/login', { username, password });
+    return this.request('POST', '/auth/login', { usernameOrEmail: username, username, password });
   }
   getMe() { return this.get('/auth/me'); }
 
@@ -142,7 +142,16 @@ class ApiClient {
   resolveViolation(id, data)      { return this.put(`/violations/${id}/resolve`, data); }
 
   // ── Map ──
-  getMapBuildings() { return this.get('/map/buildings'); }
+  getMapBuildings(params = {}) {
+    const q = new URLSearchParams();
+    if (params.areaId)           q.set('areaId', params.areaId);
+    if (params.complianceStatus) q.set('complianceStatus', params.complianceStatus);
+    if (params.buildingId)       q.set('buildingId', params.buildingId);
+    if (params.inspectionStatus) q.set('inspectionStatus', params.inspectionStatus);
+    const qs = q.toString() ? `?${q}` : '';
+    return this.get(`/map/buildings${qs}`);
+  }
+  getMapHotspots() { return this.get('/map/hotspots'); }
 
   // ── Volunteers & User Governance (Phase 6, 14) ──
   getVolunteers()                     { return this.get('/volunteers'); }

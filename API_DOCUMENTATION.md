@@ -1,7 +1,7 @@
 # WasteWatch — REST API Specification
 
 > **STATUS: FULLY IMPLEMENTED & VERIFIED (PHASES 1–14)**  
-> *All endpoints documented below are fully implemented in the Spring Boot backend, covered by 90 automated unit and integration tests, and integrated with the framework-free frontend client.*
+> *All endpoints documented below are fully implemented in the Spring Boot backend, covered by 95 automated unit and integration tests, and integrated with the framework-free frontend client.*
 
 ---
 
@@ -328,25 +328,96 @@ All report endpoints accept optional `startDate` and `endDate` query parameters 
 
 ## 11. Geographic Map (`/api/map`) (Phase 11)
 
-### `GET /api/map/markers`
-- **Description**: Geographic coordinates and compliance status markers for all buildings with latitude/longitude.
+### `GET /api/map/buildings`
+- **Description**: Spatial monitoring API delivering building coordinates, real-time compliance metrics, inspection coverage, poor room counts, and active violations for interactive Leaflet.js mapping.
 - **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
-- **Response (200 OK)**:
+- **Query Parameters**:
+  - `areaId` (Long, optional): Filter markers by geographic ward/area.
+  - `complianceStatus` (String, optional): Filter by compliance tier (`EXCELLENT`, `GOOD`, `NEEDS_IMPROVEMENT`, `POOR`, `NO_DATA`).
+  - `buildingId` (Long, optional): Focus on a specific building.
+  - `inspectionStatus` (String, optional): `INSPECTED` (coverage > 0%) or `UNINSPECTED` (zero inspections logged).
+- **Compliance Color Semantics**:
+  - `GREEN` (80–100): `EXCELLENT`
+  - `YELLOW` (60–79): `GOOD`
+  - `ORANGE` (40–59): `NEEDS_IMPROVEMENT`
+  - `RED` (0–39): `POOR` (automatic violation flag)
+  - `GRAY`: `NO_DATA` (no audits completed yet)
+- **Coordinate Validation Rules**:
+  - Valid latitude: $-90.0 \le \text{lat} \le 90.0$
+  - Valid longitude: $-180.0 \le \text{lng} \le 180.0$
+  - Null Island $(0.0, 0.0)$ or missing coordinates are gracefully flagged with `hasValidCoordinates = false` and rendered separately under "Location unavailable" without crashing the map canvas.
+- **Response Payload (200 OK)**:
   ```json
-  [
-    {
-      "buildingId": 1,
-      "buildingCode": "BLD-NW-101",
-      "buildingName": "Green Valley Heights",
-      "address": "12 Forest Hill Road, Sector 14",
-      "latitude": 19.07600000,
-      "longitude": 72.87770000,
-      "areaName": "North Ward - Sector 14",
-      "buildingType": "RESIDENTIAL",
-      "totalRooms": 2,
-      "inspectedRooms": 2,
-      "averageScore": 57.5,
-      "status": "NEEDS_IMPROVEMENT"
-    }
-  ]
+  {
+    "success": true,
+    "message": "Success",
+    "data": [
+      {
+        "id": 1,
+        "buildingId": 1,
+        "name": "Green Valley Heights",
+        "buildingName": "Green Valley Heights",
+        "buildingCode": "BLD-NW-101",
+        "address": "12 Forest Hill Road, Sector 14",
+        "latitude": 19.07600000,
+        "longitude": 72.87770000,
+        "areaId": 1,
+        "area": "North Ward - Sector 14",
+        "areaName": "North Ward - Sector 14",
+        "areaCode": "ZONE-NW",
+        "buildingType": "RESIDENTIAL",
+        "totalFloors": 12,
+        "totalRooms": 2,
+        "inspectedRooms": 2,
+        "inspectionCoverage": 100.0,
+        "complianceScore": 57.5,
+        "averageCompliance": 57.5,
+        "latestScore": 57.5,
+        "complianceStatus": "NEEDS_IMPROVEMENT",
+        "healthStatus": "NEEDS_IMPROVEMENT",
+        "openViolations": 1,
+        "totalInspections": 3,
+        "poorRooms": 0,
+        "poorRoomCount": 0,
+        "lastInspection": "2026-10-12T14:30:00",
+        "lastInspectionDate": "2026-10-12T14:30:00",
+        "hasValidCoordinates": true
+      }
+    ]
+  }
+  ```
+
+### `GET /api/map/hotspots`
+- **Description**: Area-level spatial hotspot analysis aggregating ward compliance scores, center coordinates, poor room densities, and violation severities.
+- **Access**: Authenticated (`ADMIN`, `VOLUNTEER`)
+- **Hotspot Severities**:
+  - `CRITICAL`: Average compliance $< 40$ or open violations $\ge 2$
+  - `WARNING`: Average compliance $< 60$ or open violations $\ge 1$ or poor rooms $\ge 2$
+  - `ADVISORY`: Coverage $< 50\%$ or poor rooms $\ge 1$
+  - `NONE`: High-performing healthy ward
+- **Response Payload (200 OK)**:
+  ```json
+  {
+    "success": true,
+    "message": "Success",
+    "data": [
+      {
+        "areaId": 1,
+        "areaName": "North Ward - Sector 14",
+        "areaCode": "ZONE-NW",
+        "totalBuildings": 2,
+        "mappedBuildings": 2,
+        "centerLatitude": 19.076,
+        "centerLongitude": 72.8777,
+        "averageScore": 57.5,
+        "complianceStatus": "NEEDS_IMPROVEMENT",
+        "healthStatus": "NEEDS_IMPROVEMENT",
+        "inspectionCoverage": 100.0,
+        "poorRooms": 0,
+        "openViolations": 1,
+        "isHotspot": true,
+        "hotspotSeverity": "WARNING"
+      }
+    ]
+  }
   ```

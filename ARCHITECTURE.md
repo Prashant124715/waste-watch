@@ -27,7 +27,7 @@ The end-to-end flow is strictly unidirectional:
                            │ JDBC / SQL
 ┌──────────────────────────▼─────────────────────────────┐
 │             Database (H2 Database Engine)              │
-│  - Relational persistence (Migratable to PostgreSQL)   │
+│  - File persistence under backend/data for local dev   │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -86,6 +86,9 @@ The end-to-end flow is strictly unidirectional:
 * Spring Security 6 `SecurityFilterChain` enforcing RBAC (`ROLE_ADMIN`, `ROLE_VOLUNTEER`).
 * Strict volunteer isolation: field inspectors can only view and submit their own audits.
 * Privilege escalation defense: admin cannot arbitrarily alter other administrator accounts through volunteer management endpoints.
+
+### 2.7. Development Database
+The `dev` profile stores H2 data in `backend/data/wastewatchdb.mv.db`, relative to the backend working directory. The `test` profile uses a separate in-memory database and disables the H2 console. Development uses Hibernate `ddl-auto: update` to retain existing records while applying compatible schema updates; the local-only console is served at `/h2-console`.
 
 ---
 

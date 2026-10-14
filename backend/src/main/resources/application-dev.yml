@@ -1,0 +1,39 @@
+# ============================================================================
+# WasteWatch — Development Profile (File-Based H2 Persistence)
+# ============================================================================
+# Records survive application restarts. Database stored in backend/data/.
+#
+# Database file location: backend/data/wastewatchdb.mv.db
+# H2 Console:             http://localhost:8080/h2-console
+# JDBC URL (console):     jdbc:h2:file:./data/wastewatchdb
+# Username:               WASTEWATCH_DB_USERNAME (defaults to sa)
+# Password:               WASTEWATCH_DB_PASSWORD (defaults to empty)
+# ============================================================================
+
+spring:
+  # File-based H2 datasource — data persists across restarts
+  datasource:
+    url: jdbc:h2:file:./data/wastewatchdb;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: ${WASTEWATCH_DB_USERNAME:sa}
+    password: ${WASTEWATCH_DB_PASSWORD:}
+
+  # H2 Console — enabled for local development only
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+        trace: false
+
+  # JPA & Hibernate Configuration
+  # ddl-auto: update — creates new tables/columns without dropping existing data
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true

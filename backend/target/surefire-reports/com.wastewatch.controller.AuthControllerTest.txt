@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.wastewatch.controller.AuthControllerTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.778 s -- in com.wastewatch.controller.AuthControllerTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.297 s -- in com.wastewatch.controller.AuthControllerTest

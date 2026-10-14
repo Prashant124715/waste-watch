@@ -1,0 +1,45 @@
+# ============================================================================
+# WasteWatch — Test Profile (In-Memory H2 — Isolated & Ephemeral)
+# ============================================================================
+# Tests always use a fresh in-memory database, completely isolated from
+# development data. This ensures deterministic, repeatable test execution.
+# ============================================================================
+
+spring:
+  profiles:
+    active: test
+
+  # In-memory H2 datasource — fresh database per test run
+  datasource:
+    url: jdbc:h2:mem:wastewatchdb_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+  # Disable H2 console during tests
+  h2:
+    console:
+      enabled: false
+
+  # JPA & Hibernate Configuration for tests
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+# Security & JWT Configuration (same keys for test consistency)
+app:
+  jwt:
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration-ms: 86400000
+
+logging:
+  level:
+    root: WARN
+    com.wastewatch: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

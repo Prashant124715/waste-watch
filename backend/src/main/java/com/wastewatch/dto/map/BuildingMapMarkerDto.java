@@ -9,12 +9,15 @@ import java.time.LocalDateTime;
 public class BuildingMapMarkerDto {
 
     private Long id;
+    private Long buildingId;
     private String name;
+    private String buildingName;
     private String buildingCode;
     private String address;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private Long areaId;
+    private String area;
     private String areaName;
     private String areaCode;
     private BuildingType buildingType;
@@ -24,12 +27,15 @@ public class BuildingMapMarkerDto {
     private Double inspectionCoverage;
     private Double latestScore;
     private Double complianceScore;
+    private Double averageCompliance;
     private ComplianceClassification healthStatus;
     private String complianceStatus;
     private int openViolations;
     private long totalInspections;
     private long poorRoomCount;
+    private long poorRooms;
     private LocalDateTime lastInspectionDate;
+    private LocalDateTime lastInspection;
     private boolean hasValidCoordinates;
 
     public BuildingMapMarkerDto() {
@@ -41,6 +47,16 @@ public class BuildingMapMarkerDto {
 
     public void setId(Long id) {
         this.id = id;
+        this.buildingId = id;
+    }
+
+    public Long getBuildingId() {
+        return buildingId != null ? buildingId : id;
+    }
+
+    public void setBuildingId(Long buildingId) {
+        this.buildingId = buildingId;
+        this.id = buildingId;
     }
 
     public String getName() {
@@ -49,6 +65,16 @@ public class BuildingMapMarkerDto {
 
     public void setName(String name) {
         this.name = name;
+        this.buildingName = name;
+    }
+
+    public String getBuildingName() {
+        return buildingName != null ? buildingName : name;
+    }
+
+    public void setBuildingName(String buildingName) {
+        this.buildingName = buildingName;
+        this.name = buildingName;
     }
 
     public String getBuildingCode() {
@@ -91,12 +117,24 @@ public class BuildingMapMarkerDto {
         this.areaId = areaId;
     }
 
+    public String getArea() {
+        return area != null ? area : areaName;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+        if (this.areaName == null) {
+            this.areaName = area;
+        }
+    }
+
     public String getAreaName() {
-        return areaName;
+        return areaName != null ? areaName : area;
     }
 
     public void setAreaName(String areaName) {
         this.areaName = areaName;
+        this.area = areaName;
     }
 
     public String getAreaCode() {
@@ -148,21 +186,33 @@ public class BuildingMapMarkerDto {
     }
 
     public Double getLatestScore() {
-        return latestScore;
+        return latestScore != null ? latestScore : complianceScore;
     }
 
     public void setLatestScore(Double latestScore) {
         this.latestScore = latestScore;
         this.complianceScore = latestScore;
+        this.averageCompliance = latestScore;
     }
 
     public Double getComplianceScore() {
-        return complianceScore;
+        return complianceScore != null ? complianceScore : latestScore;
     }
 
     public void setComplianceScore(Double complianceScore) {
         this.complianceScore = complianceScore;
         this.latestScore = complianceScore;
+        this.averageCompliance = complianceScore;
+    }
+
+    public Double getAverageCompliance() {
+        return averageCompliance != null ? averageCompliance : complianceScore;
+    }
+
+    public void setAverageCompliance(Double averageCompliance) {
+        this.averageCompliance = averageCompliance;
+        this.complianceScore = averageCompliance;
+        this.latestScore = averageCompliance;
     }
 
     public ComplianceClassification getHealthStatus() {
@@ -204,14 +254,34 @@ public class BuildingMapMarkerDto {
 
     public void setPoorRoomCount(long poorRoomCount) {
         this.poorRoomCount = poorRoomCount;
+        this.poorRooms = poorRoomCount;
+    }
+
+    public long getPoorRooms() {
+        return poorRooms > 0 ? poorRooms : poorRoomCount;
+    }
+
+    public void setPoorRooms(long poorRooms) {
+        this.poorRooms = poorRooms;
+        this.poorRoomCount = poorRooms;
     }
 
     public LocalDateTime getLastInspectionDate() {
-        return lastInspectionDate;
+        return lastInspectionDate != null ? lastInspectionDate : lastInspection;
     }
 
     public void setLastInspectionDate(LocalDateTime lastInspectionDate) {
         this.lastInspectionDate = lastInspectionDate;
+        this.lastInspection = lastInspectionDate;
+    }
+
+    public LocalDateTime getLastInspection() {
+        return lastInspection != null ? lastInspection : lastInspectionDate;
+    }
+
+    public void setLastInspection(LocalDateTime lastInspection) {
+        this.lastInspection = lastInspection;
+        this.lastInspectionDate = lastInspection;
     }
 
     public boolean isHasValidCoordinates() {

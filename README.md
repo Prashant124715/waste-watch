@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
 [![Vanilla Web](https://img.shields.io/badge/Frontend-Vanilla%20HTML5%20%2F%20CSS3%20%2F%20ES6+-blue.svg)](https://developer.mozilla.org/)
 [![Database](https://img.shields.io/badge/Database-H2%20(PostgreSQL--Ready)-yellow.svg)](https://h2database.com/)
-[![Tests](https://img.shields.io/badge/Tests-90%2F90%20Passing-success.svg)](https://junit.org/)
+[![Tests](https://img.shields.io/badge/Tests-95%2F95%20Passing-success.svg)](https://junit.org/)
 
 > **WasteWatch** is a source-level waste segregation monitoring, auditing, and municipal governance platform. Built as a high-impact CivicTech prototype, it equips city administrators with real-time compliance intelligence while providing field volunteers with a mobile-first, QR-enabled audit tool.
 
@@ -68,6 +68,7 @@ waste-watch/
 │   │   ├── repository/          # Spring Data JPA repositories
 │   │   ├── security/            # Stateless JJWT filter, UserPrincipal, BCrypt
 │   │   └── service/             # Business engine & scoring algorithms
+│   ├── data/                    # Local H2 database (ignored by Git)
 │   └── pom.xml
 └── frontend/                    # Vanilla Web Client (Zero-Framework)
     ├── css/                     # HSL Design tokens, component library, layout
@@ -91,7 +92,21 @@ Open a terminal in `waste-watch/backend`:
 .\mvnw.cmd spring-boot:run
 ```
 *The Spring Boot REST API starts on `http://localhost:8080`.*  
-*H2 In-Memory Console available at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:wastewatchdb`, User: `sa`, Password: `<empty>`).*
+*The development profile uses file-based H2 at `backend/data/wastewatchdb.mv.db`; records survive restarts. The H2 console is available locally at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:file:./data/wastewatchdb`, user `sa`, empty password for a new database). The console is disabled in tests.*
+
+If the existing local database was created with a password, set it before starting the backend so H2 can open it; do not replace the database file:
+```powershell
+$env:WASTEWATCH_DB_PASSWORD = "<your existing local database password>"
+```
+
+### Back Up or Restore the Development Database
+
+Stop the backend first so H2 has closed and flushed the file. From the repository root, copy the database file to a safe location outside the Git repository:
+```powershell
+Copy-Item .\backend\data\wastewatchdb.mv.db "$env:USERPROFILE\wastewatchdb-backup.mv.db"
+```
+
+To restore, stop the backend, preserve a copy of the current file, then copy the backup back to `backend/data/wastewatchdb.mv.db` before restarting. Do not delete or overwrite the existing database unless you have verified the backup. `backend/data/`, H2 files, and `.env*` files are ignored by Git.
 
 ### 2. Launch the Frontend Client
 Open a second terminal in `waste-watch/frontend`:
@@ -121,7 +136,7 @@ cd waste-watch/backend
 .\mvnw.cmd test
 ```
 
-**Results: 90 tests run, 0 failures, 0 errors, 100% pass rate.**
+**Results: 95 tests run, 0 failures, 0 errors, 100% pass rate.**
 
 To build the production JAR:
 ```powershell

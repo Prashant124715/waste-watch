@@ -51,7 +51,7 @@ class MapControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/map/buildings: Admin successfully receives 200 OK with list of building markers")
+    @DisplayName("GET /api/map/buildings: Admin receives 200 OK with complete building marker schema")
     void testGetBuildingMapMarkersAsAdmin() throws Exception {
         mockMvc.perform(get("/api/map/buildings")
                         .header("Authorization", "Bearer " + adminToken))
@@ -59,12 +59,17 @@ class MapControllerTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.data", isA(java.util.List.class)))
                 .andExpect(jsonPath("$.data[0].id", notNullValue()))
+                .andExpect(jsonPath("$.data[0].buildingId", notNullValue()))
                 .andExpect(jsonPath("$.data[0].name", notNullValue()))
+                .andExpect(jsonPath("$.data[0].buildingName", notNullValue()))
+                .andExpect(jsonPath("$.data[0].area", notNullValue()))
+                .andExpect(jsonPath("$.data[0].complianceStatus", notNullValue()))
+                .andExpect(jsonPath("$.data[0].inspectionCoverage", notNullValue()))
                 .andExpect(jsonPath("$.data[0].hasValidCoordinates", notNullValue()));
     }
 
     @Test
-    @DisplayName("GET /api/map/buildings: Volunteer successfully receives 200 OK for field navigation")
+    @DisplayName("GET /api/map/buildings: Volunteer receives 200 OK for field navigation")
     void testGetBuildingMapMarkersAsVolunteer() throws Exception {
         mockMvc.perform(get("/api/map/buildings")
                         .header("Authorization", "Bearer " + volunteerToken))
@@ -78,5 +83,40 @@ class MapControllerTest {
     void testGetBuildingMapMarkersUnauthenticated() throws Exception {
         mockMvc.perform(get("/api/map/buildings"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /api/map/buildings: Filter by areaId returns filtered markers")
+    void testFilterByAreaId() throws Exception {
+        mockMvc.perform(get("/api/map/buildings")
+                        .param("areaId", "1")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data", isA(java.util.List.class)));
+    }
+
+    @Test
+    @DisplayName("GET /api/map/buildings: Filter by complianceStatus returns matching buildings")
+    void testFilterByComplianceStatus() throws Exception {
+        mockMvc.perform(get("/api/map/buildings")
+                        .param("complianceStatus", "EXCELLENT")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data", isA(java.util.List.class)));
+    }
+
+    @Test
+    @DisplayName("GET /api/map/hotspots: Returns 200 OK with list of area-level hotspot analytics")
+    void testGetAreaHotspots() throws Exception {
+        mockMvc.perform(get("/api/map/hotspots")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data", isA(java.util.List.class)))
+                .andExpect(jsonPath("$.data[0].areaId", notNullValue()))
+                .andExpect(jsonPath("$.data[0].areaName", notNullValue()))
+                .andExpect(jsonPath("$.data[0].hotspotSeverity", notNullValue()));
     }
 }

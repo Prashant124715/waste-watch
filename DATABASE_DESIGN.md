@@ -1,14 +1,18 @@
 # WasteWatch — Database Design & Schema Specification
 
 > **STATUS: FULLY IMPLEMENTED IN RUNTIME (PHASES 1–14)**  
-> *The relational schema, JPA entities, repositories, and constraints described below are actively running in `com.wastewatch.entity` and `com.wastewatch.repository`, initialized and auto-seeded upon application startup.*
+> *The relational schema, JPA entities, repositories, and constraints described below are actively running in `com.wastewatch.entity` and `com.wastewatch.repository`. Demo data is seeded only when the database has no users.*
 
 ---
 
 ## 1. Overview & Portability Strategy
 
 WasteWatch uses a clean relational database schema managed through Spring Data JPA and Hibernate.
-- **Development & Demonstration Target**: In-memory H2 Database (`jdbc:h2:mem:wastewatchdb`) for zero-friction setup and deterministic evaluation.
+- **Development & CEP Evaluation Target**: File-based H2 (`jdbc:h2:file:./data/wastewatchdb`), stored at `backend/data/wastewatchdb.mv.db` when started from `backend/`. Existing data survives application restarts.
+- **Test Target**: Separate in-memory H2 database (`jdbc:h2:mem:wastewatchdb_test`) configured under `backend/src/test/resources`; tests do not use development data.
+- **Schema Management**: The development profile uses Hibernate `ddl-auto: update`; tests use `create-drop` only against the isolated in-memory test database.
+- **Credentials**: The local H2 username and password are supplied through `WASTEWATCH_DB_USERNAME` and `WASTEWATCH_DB_PASSWORD` environment variables. Defaults are `sa` and an empty password for a new local database. Do not commit credentials or database files.
+- **Console**: H2 console is enabled only in the local `dev` profile and does not accept remote connections.
 - **Production & SaaS Target**: PostgreSQL 15+ (or MySQL 8+).
 - **Portability Rules**:
   - Strictly use ANSI-standard SQL column types and JPA annotations.
@@ -17,6 +21,10 @@ WasteWatch uses a clean relational database schema managed through Spring Data J
   - Explicit composite unique constraints on `(building_id, room_number)` and `(inspection_id)`.
 
 ---
+
+## 1.1. Local Database Backup and Restore
+
+Stop the backend before copying the development database to ensure H2 has flushed all changes. Copy `backend/data/wastewatchdb.mv.db` to a backup location outside the repository. To restore, stop the backend, preserve the current database file, copy the backup back to `backend/data/wastewatchdb.mv.db`, then restart. The `backend/data/` directory and H2 database files are ignored by Git.
 
 ## 2. Entity-Relationship (ER) Model
 

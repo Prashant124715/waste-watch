@@ -4,6 +4,39 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Development H2 Persistence] — 2026-10-14
+
+### Changed
+- Default local development and CEP evaluation to file-based H2 at `backend/data/wastewatchdb.mv.db`, with Hibernate schema updates that retain existing records.
+- Isolate automated tests on an in-memory H2 database and limit the H2 console to the development profile.
+- Document database backup and restore steps; Git ignores local database files and environment-specific credentials.
+- Verified a test area survives a backend restart against the existing H2 file; all 95 backend tests pass.
+
+## [Phase 11: Geographic Monitoring & Interactive Map] — 2026-10-14
+
+### Added
+- **Interactive Leaflet.js Map on Admin Dashboard (`frontend/admin/dashboard.html`)**:
+  - Embedded high-visibility spatial compliance map between executive KPI metrics and analytical charts.
+  - Custom HTML div-markers displaying real-time compliance score numbers with dynamic scaling and hover states.
+  - Strict compliance color-coding: `GREEN` (80–100), `YELLOW` (60–79 with accessible high-contrast text), `ORANGE` (40–59), `RED` (0–39), and `GRAY` (no audits).
+  - Rich interactive building popups displaying: Building name, Area, Average compliance score, Inspection coverage percentage, Last inspection timestamp, Poor room count, Open violations count, with direct links to Building Details and Inspection Audits.
+  - Multi-criteria filter toolbar: Filter by Area, Compliance status, Building, Inspection status (`INSPECTED` vs `UNINSPECTED`), and Hotspots-only toggle.
+  - Hotspot visualizer: Animated pulsing rings (`.marker-hotspot`) and glowing danger circle radius overlays on the map for at-risk facilities.
+  - Spatial Intelligence Sidebar featuring color-coded Area Hotspot Analysis summary cards and an isolated "Location unavailable" drawer that prevents unmapped buildings from breaking the map.
+  - Inline error handling banner with "Retry Map" button ensuring resilient user experience.
+- **Enhanced Full-Screen Map Console (`frontend/admin/map.html`)**:
+  - Updated with unified compliance color semantics, Building and Inspection status dropdown filters, Area Hotspot Analysis console, and unmapped facility management.
+- **Backend Map APIs (`MapController`, `MapService`)**:
+  - `GET /api/map/buildings`: Returns comprehensive spatial records with building ID, name, area, latitude, longitude, compliance score, compliance status, inspection coverage, poor rooms, open violations, last inspection, and valid coordinate flags. Supports query parameter filtering by `areaId`, `complianceStatus`, `buildingId`, and `inspectionStatus`.
+  - `GET /api/map/hotspots`: Returns ward-level spatial hotspot aggregates with center coordinates, average compliance score, health tier, poor room counts, open violations, and severity ratings (`CRITICAL`, `WARNING`, `ADVISORY`, `NONE`).
+  - Robust coordinate boundary validation ($-90 \le \text{lat} \le 90$, $-180 \le \text{lng} \le 180$, Null Island $(0,0)$ rejection).
+- **Automated Tests**:
+  - Added unit tests in `MapServiceTest` covering valid coordinates, missing coordinates, Null Island (0,0), multiple mixed buildings, filter behavior, and area hotspot calculations.
+  - Added integration tests in `MapControllerTest` testing admin and volunteer access, unauthenticated rejection (401), query filtering, complete response schema validation, and `/api/map/hotspots`.
+  - Full test suite passes: **95/95 tests passing (100% success)**.
+
+---
+
 ## [Final Hardening & CEP Release] — 2026-10-13
 
 ### Hardened & Polished
