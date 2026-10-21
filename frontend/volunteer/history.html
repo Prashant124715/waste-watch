@@ -143,7 +143,7 @@
       tbody.innerHTML = filtered.map(i => `
         <tr>
           <td class="font-mono text-muted">#${i.id}</td>
-          <td class="td-primary">${i.roomNumber||'—'} · F${i.floorNumber||'?'}</td>
+          <td class="td-primary">${i.roomNumber ? `${i.roomNumber} · F${i.floorNumber||'?'}` : '<span class="badge badge-info" style="font-size:0.75rem;">Building Level</span>'}</td>
           <td>${i.buildingName||'—'}</td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -165,7 +165,7 @@
       if (!inspections.length) return Toast.warning('Export', 'No data to export.');
       const headers = ['ID','Room','Floor','Building','Area','Score','Classification','Violation','Status','Date'];
       const rows = inspections.map(i => [
-        i.id, i.roomNumber, i.floorNumber, i.buildingName, i.areaName,
+        i.id, i.roomNumber || 'Building Level', i.floorNumber ?? '—', i.buildingName, i.areaName,
         i.totalScore, i.classification, i.violationCreated ? 'Yes' : 'No',
         i.status, i.inspectionDate
       ]);

@@ -23,11 +23,21 @@ public class BuildingController {
 
     @GetMapping("/api/buildings")
     public ResponseEntity<List<BuildingResponseDto>> getAllBuildings(
-            @RequestParam(required = false) Long areaId) {
+            @RequestParam(required = false) Long areaId,
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(buildingService.searchBuildings(search));
+        }
         if (areaId != null) {
             return ResponseEntity.ok(buildingService.getBuildingsByAreaId(areaId));
         }
         return ResponseEntity.ok(buildingService.getAllBuildings());
+    }
+
+    @GetMapping("/api/buildings/search")
+    public ResponseEntity<List<BuildingResponseDto>> searchBuildings(
+            @RequestParam(required = false, defaultValue = "") String query) {
+        return ResponseEntity.ok(buildingService.searchBuildings(query));
     }
 
     @GetMapping("/api/buildings/{id}")

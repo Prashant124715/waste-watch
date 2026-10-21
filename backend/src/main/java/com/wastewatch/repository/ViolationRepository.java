@@ -22,6 +22,7 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
     long countByStatus(ViolationStatus status);
     long countByStatusIn(List<ViolationStatus> statuses);
     List<Violation> findByRoomBuildingId(Long buildingId);
+    List<Violation> findByBuildingId(Long buildingId);
 
     // Phase 13: Advanced filter queries
     List<Violation> findBySeverityOrderByCreatedAtDesc(ViolationSeverity severity);
@@ -29,9 +30,9 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
     @Query("SELECT v FROM Violation v WHERE " +
            "(:status IS NULL OR v.status = :status) AND " +
            "(:severity IS NULL OR v.severity = :severity) AND " +
-           "(:buildingId IS NULL OR v.room.building.id = :buildingId) AND " +
-           "(:areaId IS NULL OR v.room.building.area.id = :areaId) AND " +
-           "(:roomId IS NULL OR v.room.id = :roomId) AND " +
+           "(:buildingId IS NULL OR v.building.id = :buildingId OR (v.room IS NOT NULL AND v.room.building.id = :buildingId)) AND " +
+           "(:areaId IS NULL OR (v.building IS NOT NULL AND v.building.area.id = :areaId) OR (v.room IS NOT NULL AND v.room.building.area.id = :areaId)) AND " +
+           "(:roomId IS NULL OR (v.room IS NOT NULL AND v.room.id = :roomId)) AND " +
            "(:from IS NULL OR v.createdAt >= :from) AND " +
            "(:to IS NULL OR v.createdAt <= :to) " +
            "ORDER BY v.createdAt DESC")
@@ -46,16 +47,16 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
     );
 
     // Analytics Aggregations
-    @Query("SELECT COUNT(v) FROM Violation v WHERE v.room.building.area.id = :areaId")
+    @Query("SELECT COUNT(v) FROM Violation v WHERE (v.building IS NOT NULL AND v.building.area.id = :areaId) OR (v.room IS NOT NULL AND v.room.building.area.id = :areaId)")
     Long countByAreaId(@Param("areaId") Long areaId);
 
-    @Query("SELECT COUNT(v) FROM Violation v WHERE v.room.building.area.id = :areaId AND v.status = :status")
+    @Query("SELECT COUNT(v) FROM Violation v WHERE ((v.building IS NOT NULL AND v.building.area.id = :areaId) OR (v.room IS NOT NULL AND v.room.building.area.id = :areaId)) AND v.status = :status")
     Long countByAreaIdAndStatus(@Param("areaId") Long areaId, @Param("status") ViolationStatus status);
 
-    @Query("SELECT COUNT(v) FROM Violation v WHERE v.room.building.id = :buildingId AND v.status != :status")
+    @Query("SELECT COUNT(v) FROM Violation v WHERE (v.building.id = :buildingId OR (v.room IS NOT NULL AND v.room.building.id = :buildingId)) AND v.status != :status")
     Long countByBuildingIdAndStatusNot(@Param("buildingId") Long buildingId, @Param("status") ViolationStatus status);
 
-    @Query("SELECT COUNT(v) FROM Violation v WHERE v.room.building.id = :buildingId AND v.status = :status")
+    @Query("SELECT COUNT(v) FROM Violation v WHERE (v.building.id = :buildingId OR (v.room IS NOT NULL AND v.room.building.id = :buildingId)) AND v.status = :status")
     Long countByBuildingIdAndStatus(@Param("buildingId") Long buildingId, @Param("status") ViolationStatus status);
 
     long countByRoomId(Long roomId);

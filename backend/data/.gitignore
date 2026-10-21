@@ -1,0 +1,5 @@
+# H2 file-based database files — never commit to Git
+# The data/ directory is created at runtime by the H2 engine.
+*.mv.db
+*.trace.db
+*.lock.db

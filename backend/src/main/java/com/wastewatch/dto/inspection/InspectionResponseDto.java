@@ -1,5 +1,6 @@
 package com.wastewatch.dto.inspection;
 
+import com.wastewatch.entity.Building;
 import com.wastewatch.entity.Inspection;
 import com.wastewatch.entity.enums.ComplianceClassification;
 import com.wastewatch.entity.enums.InspectionStatus;
@@ -16,6 +17,7 @@ public class InspectionResponseDto {
     private String buildingName;
     private Long areaId;
     private String areaName;
+    private Boolean buildingLevelInspection;
     private Long volunteerId;
     private String volunteerName;
     private LocalDateTime inspectionDate;
@@ -60,6 +62,20 @@ public class InspectionResponseDto {
                 }
             }
         }
+
+        // For building-level inspections (room is null, building is set directly)
+        Building effectiveBuilding = inspection.getEffectiveBuilding();
+        if (dto.getBuildingId() == null && effectiveBuilding != null) {
+            dto.setBuildingId(effectiveBuilding.getId());
+            dto.setBuildingName(effectiveBuilding.getName());
+            if (effectiveBuilding.getArea() != null) {
+                dto.setAreaId(effectiveBuilding.getArea().getId());
+                dto.setAreaName(effectiveBuilding.getArea().getName());
+            }
+        }
+
+        // Flag whether this is a building-level inspection
+        dto.setBuildingLevelInspection(inspection.isBuildingLevel());
 
         if (inspection.getVolunteer() != null) {
             dto.setVolunteerId(inspection.getVolunteer().getId());
@@ -304,5 +320,13 @@ public class InspectionResponseDto {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getBuildingLevelInspection() {
+        return buildingLevelInspection;
+    }
+
+    public void setBuildingLevelInspection(Boolean buildingLevelInspection) {
+        this.buildingLevelInspection = buildingLevelInspection;
     }
 }

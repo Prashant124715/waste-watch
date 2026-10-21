@@ -6,6 +6,7 @@ import com.wastewatch.entity.*;
 import com.wastewatch.entity.enums.InspectionStatus;
 import com.wastewatch.entity.enums.ViolationStatus;
 import com.wastewatch.exception.DuplicateResourceException;
+import com.wastewatch.exception.InvalidRequestException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.*;
 import com.wastewatch.security.UserPrincipal;
@@ -24,6 +25,7 @@ public class InspectionService {
     private final InspectionRepository inspectionRepository;
     private final ViolationRepository violationRepository;
     private final RoomRepository roomRepository;
+    private final BuildingRepository buildingRepository;
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final ComplianceScoringService scoringService;
@@ -32,6 +34,7 @@ public class InspectionService {
     public InspectionService(InspectionRepository inspectionRepository,
                              ViolationRepository violationRepository,
                              RoomRepository roomRepository,
+                             BuildingRepository buildingRepository,
                              UserRepository userRepository,
                              AuditLogRepository auditLogRepository,
                              ComplianceScoringService scoringService,
@@ -39,6 +42,7 @@ public class InspectionService {
         this.inspectionRepository = inspectionRepository;
         this.violationRepository = violationRepository;
         this.roomRepository = roomRepository;
+        this.buildingRepository = buildingRepository;
         this.userRepository = userRepository;
         this.auditLogRepository = auditLogRepository;
         this.scoringService = scoringService;
@@ -47,19 +51,46 @@ public class InspectionService {
 
     @Transactional
     public InspectionResponseDto createInspection(InspectionRequestDto dto, UserPrincipal currentUser) {
-        Room room = roomRepository.findById(dto.getRoomId())
-                .orElseThrow(() -> new ResourceNotFoundException("Room", "id", dto.getRoomId()));
+        if (dto.getBuildingId() == null && dto.getRoomId() == null) {
+            throw new InvalidRequestException("Either buildingId or roomId must be provided.");
+        }
 
         AppUser volunteer = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", currentUser.getId()));
 
-        // Rule: Duplicate prevention - check if the same volunteer inspected this room within 30 seconds
-        Optional<Inspection> lastInspection = inspectionRepository.findFirstByRoomIdAndVolunteerIdOrderByCreatedAtDesc(room.getId(), volunteer.getId());
-        if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
-            LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
-            if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
-                throw new DuplicateResourceException("Duplicate submission detected: An inspection for room '" + 
-                        room.getRoomNumber() + "' was already submitted within the last 30 seconds.");
+        Building building = null;
+        Room room = null;
+
+        if (dto.getBuildingId() != null) {
+            building = buildingRepository.findById(dto.getBuildingId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Building", "id", dto.getBuildingId()));
+
+            // Rule: Duplicate prevention - check if the same volunteer inspected this building within 30 seconds
+            Optional<Inspection> lastInspection = inspectionRepository.findFirstByBuildingIdAndVolunteerIdOrderByCreatedAtDesc(building.getId(), volunteer.getId());
+            if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
+                LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
+                if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
+                    throw new DuplicateResourceException("Duplicate submission detected: An inspection for building '" + 
+                            building.getName() + "' was already submitted within the last 30 seconds.");
+                }
+            }
+        }
+
+        if (dto.getRoomId() != null) {
+            room = roomRepository.findById(dto.getRoomId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Room", "id", dto.getRoomId()));
+            if (building == null) {
+                building = room.getBuilding();
+            }
+
+            // Rule: Duplicate prevention - check if the same volunteer inspected this room within 30 seconds
+            Optional<Inspection> lastInspection = inspectionRepository.findFirstByRoomIdAndVolunteerIdOrderByCreatedAtDesc(room.getId(), volunteer.getId());
+            if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
+                LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
+                if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
+                    throw new DuplicateResourceException("Duplicate submission detected: An inspection for room '" + 
+                            room.getRoomNumber() + "' was already submitted within the last 30 seconds.");
+                }
             }
         }
 
@@ -67,6 +98,7 @@ public class InspectionService {
 
         Inspection inspection = new Inspection();
         inspection.setRoom(room);
+        inspection.setBuilding(building);
         inspection.setVolunteer(volunteer);
         inspection.setInspectionDate(LocalDateTime.now());
         inspection.setWetWasteSeparated(dto.getWetWasteSeparated());
@@ -88,25 +120,28 @@ public class InspectionService {
 
         Inspection savedInspection = inspectionRepository.save(inspection);
 
-        // Phase 13: Delegate violation creation, persistent non-compliance detection,
-        //           and notifications to ViolationService
+        // Delegate violation creation to ViolationService
         Violation savedViolation = null;
         if (scoringResult.isViolationRequired()) {
-            savedViolation = violationService.processInspectionForViolation(savedInspection, room);
+            savedViolation = violationService.processInspectionForViolation(savedInspection, room, building);
         }
 
         boolean violationCreated = savedViolation != null;
         Long violationId = violationCreated ? savedViolation.getId() : null;
 
         // Record Audit Log
+        String locationDesc = room != null
+                ? String.format("Room %s (%s)", room.getRoomNumber(), building != null ? building.getName() : "Unknown")
+                : String.format("Building %s", building != null ? building.getName() : "Unknown");
+
         AuditLog auditLog = new AuditLog(
                 volunteer,
                 "CREATE_INSPECTION",
                 "Inspection",
                 savedInspection.getId().toString(),
                 null,
-                String.format("Audit created for Room %s (%s) with score %d/100. Violation created: %s",
-                        room.getRoomNumber(), room.getBuilding().getName(), scoringResult.getTotalScore(), violationCreated)
+                String.format("Audit created for %s with score %d/100. Violation created: %s",
+                        locationDesc, scoringResult.getTotalScore(), violationCreated)
         );
         auditLogRepository.save(auditLog);
 
@@ -155,7 +190,7 @@ public class InspectionService {
         } else if (volunteerId != null) {
             inspections = inspectionRepository.findByVolunteerIdOrderByInspectionDateDesc(volunteerId);
         } else if (buildingId != null) {
-            inspections = inspectionRepository.findByRoomBuildingIdOrderByInspectionDateDesc(buildingId);
+            inspections = inspectionRepository.findAllByEffectiveBuildingIdOrderByInspectionDateDesc(buildingId);
             if (!isAdmin) {
                 Long authVolId = currentUser.getId();
                 inspections = inspections.stream()

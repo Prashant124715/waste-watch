@@ -39,6 +39,17 @@ public class BuildingService {
     }
 
     @Transactional(readOnly = true)
+    public List<BuildingResponseDto> searchBuildings(String query) {
+        if (query == null || query.trim().isBlank()) {
+            return getAllBuildings();
+        }
+        String q = query.trim();
+        return buildingRepository.findByNameContainingIgnoreCaseOrBuildingCodeContainingIgnoreCase(q, q).stream()
+                .map(BuildingResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public BuildingResponseDto getBuildingById(Long id) {
         Building building = buildingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Building", "id", id));

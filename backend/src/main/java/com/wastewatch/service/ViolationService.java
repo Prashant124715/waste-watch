@@ -193,13 +193,14 @@ public class ViolationService {
      * 1. Creates a violation if the score is POOR (< 40) and no violation exists for this inspection.
      * 2. Detects persistent non-compliance (3+ consecutive POOR inspections).
      * 3. Sends appropriate admin notifications.
-     *
-     * @param inspection The newly saved inspection.
-     * @param room       The room that was inspected.
-     * @return The created Violation, or null if no violation was required.
      */
     @Transactional
     public Violation processInspectionForViolation(Inspection inspection, Room room) {
+        return processInspectionForViolation(inspection, room, room != null ? room.getBuilding() : inspection.getEffectiveBuilding());
+    }
+
+    @Transactional
+    public Violation processInspectionForViolation(Inspection inspection, Room room, com.wastewatch.entity.Building building) {
         if (inspection.getClassification() != ComplianceClassification.POOR) {
             return null;
         }
@@ -214,9 +215,12 @@ public class ViolationService {
 
         String description = buildViolationDescription(score, inspection.getClassification(), inspection.getRemarks());
 
+        com.wastewatch.entity.Building effectiveBuilding = building != null ? building : (room != null ? room.getBuilding() : inspection.getEffectiveBuilding());
+
         Violation violation = new Violation();
         violation.setInspection(inspection);
         violation.setRoom(room);
+        violation.setBuilding(effectiveBuilding);
         violation.setSeverity(severity);
         violation.setStatus(ViolationStatus.OPEN);
         violation.setDescription(description);
@@ -228,25 +232,31 @@ public class ViolationService {
 
         Violation saved = violationRepository.save(violation);
 
+        String buildingName = effectiveBuilding != null ? effectiveBuilding.getName() : "Unknown Building";
+        String areaName = (effectiveBuilding != null && effectiveBuilding.getArea() != null) ? effectiveBuilding.getArea().getName() : "Unknown Area";
+
         // Send violation notification to all admins
-        String violTitle = String.format("New %s Violation — %s, Room %s",
-                severity, room.getBuilding().getName(), room.getRoomNumber());
-        String violMsg = String.format(
-                "%s %s violation raised for Room %s in %s (%s). Score: %d/100. %s",
-                severity == ViolationSeverity.CRITICAL ? "⛔" : "⚠️",
-                severity,
-                room.getRoomNumber(),
-                room.getBuilding().getName(),
-                room.getBuilding().getArea() != null ? room.getBuilding().getArea().getName() : "Unknown Area",
-                score,
-                description);
+        String violTitle = room != null
+                ? String.format("New %s Violation — %s, Room %s", severity, buildingName, room.getRoomNumber())
+                : String.format("New %s Violation — %s", severity, buildingName);
+
+        String violMsg = room != null
+                ? String.format("%s %s violation raised for Room %s in %s (%s). Score: %d/100. %s",
+                    severity == ViolationSeverity.CRITICAL ? "⛔" : "⚠️",
+                    severity, room.getRoomNumber(), buildingName, areaName, score, description)
+                : String.format("%s %s violation raised for %s (%s). Score: %d/100. %s",
+                    severity == ViolationSeverity.CRITICAL ? "⛔" : "⚠️",
+                    severity, buildingName, areaName, score, description);
+
         NotificationType notifType = (severity == ViolationSeverity.CRITICAL || severity == ViolationSeverity.HIGH)
                 ? NotificationType.VIOLATION_SEVERITY_HIGH
                 : NotificationType.VIOLATION_RAISED;
         notificationService.notifyAllAdmins(violTitle, violMsg, notifType);
 
-        // Check persistent non-compliance
-        checkAndFlagPersistentNonCompliance(room);
+        // Check persistent non-compliance for room
+        if (room != null) {
+            checkAndFlagPersistentNonCompliance(room);
+        }
 
         return saved;
     }

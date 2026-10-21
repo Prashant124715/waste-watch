@@ -14,5 +14,7 @@ public interface BuildingRepository extends JpaRepository<Building, Long> {
     boolean existsByBuildingCode(String buildingCode);
     boolean existsByBuildingCodeAndIdNot(String buildingCode, Long id);
 
+    List<Building> findByNameContainingIgnoreCaseOrBuildingCodeContainingIgnoreCase(String name, String buildingCode);
+
     long countByAreaId(Long areaId);
 }

@@ -4,6 +4,29 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Building-Level Inspection Simplification] — 2026-10-21
+
+### Added & Simplified
+- **Streamlined Volunteer Inspection Workflow (`frontend/volunteer/inspect.html`)**:
+  - Volunteers can now directly select or search for a building to audit, removing the complex Area → Building → Floor → Room mandatory selection path.
+  - Instant building search by name or building code, with quick-select chips for high-frequency facilities.
+  - Real-time segregation compliance score ring with instant feedback (Wet Waste, Dry Waste, Sanitary Waste, Standard Bins, Labeling, Contamination prevention).
+  - Optional expandable room selector preserved for targeted room audits while defaulting to Building-level inspections.
+- **Backend Architecture & Entity Evolution**:
+  - `Inspection` entity: added nullable direct `building` reference, made `room` nullable to support building-level inspections while preserving 100% backward compatibility for room audits.
+  - `Violation` entity: added nullable direct `building` reference, made `room` nullable for building-level violation notices.
+  - `InspectionRequestDto`: accepts `buildingId` for direct building audits or `roomId` for legacy room audits.
+  - `InspectionResponseDto`: populates building and area attributes seamlessly from direct building associations and adds `buildingLevelInspection` flag.
+  - `InspectionService`: unified duplicate submission protection (30-second cooldown per building or room), audit logging, and violation generation.
+  - `ViolationService`: supports building-level violation processing, fine calculation, and notification dispatch without requiring a room entity.
+  - `InspectionRepository` & `ViolationRepository`: updated filtering and analytics aggregations to count and score both building-level inspections and room-level records uniformly.
+  - `BuildingController` & `BuildingService`: added `/api/buildings/search` and `?search=` parameter for fast building lookup.
+- **Frontend History & Client (`frontend/volunteer/history.html`, `frontend/js/api/client.js`)**:
+  - History table renders a distinct "Building Level" badge for inspections performed at the building tier.
+  - Added `api.searchBuildings(query)` to client library.
+- **Automated Tests**:
+  - Full automated test suite passing: **132/132 tests passing (100% success)**.
+
 ## [Development H2 Persistence] — 2026-10-14
 
 ### Changed

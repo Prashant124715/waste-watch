@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WasteWatch — New Inspection</title>
-  <meta name="description" content="Field inspection form for WasteWatch volunteers — scan QR and audit waste segregation compliance."/>
+  <title>WasteWatch — Building Inspection</title>
+  <meta name="description" content="Field inspection form for WasteWatch volunteers — audit building waste segregation compliance."/>
   <link rel="stylesheet" href="/css/variables.css"/>
   <link rel="stylesheet" href="/css/base.css"/>
   <link rel="stylesheet" href="/css/layout.css"/>
@@ -58,104 +58,47 @@
     .step-panel { display: none; animation: fadeIn 0.35s ease; }
     .step-panel.active { display: block; }
 
-    /* QR lookup */
-    .qr-section {
+    /* Building selection section */
+    .building-select-section {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: var(--space-10) 0;
+      padding: var(--space-8) 0;
       gap: var(--space-5);
     }
-    .qr-icon {
-      width: 100px; height: 100px;
+    .building-hero-icon {
+      width: 88px; height: 88px;
       border-radius: var(--radius-xl);
       background: linear-gradient(135deg, hsla(154,72%,37%,0.15), hsla(196,90%,56%,0.1));
       display: flex; align-items: center; justify-content: center;
-      font-size: 3rem;
-      border: 2px dashed var(--border-primary);
-      animation: pulse 2.5s ease-in-out infinite;
+      font-size: 2.8rem;
+      border: 2px solid var(--border-primary);
     }
-    .qr-or {
-      display: flex; align-items: center; gap: 12px;
-      color: var(--text-muted); font-size: var(--text-sm); width: 100%; max-width: 400px;
-    }
-    .qr-or::before, .qr-or::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
-    @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:.6;} }
 
-    .room-preview {
+    .building-preview-card {
       background: var(--bg-surface-2);
       border: 1px solid var(--border-primary);
       border-radius: var(--radius-lg);
       padding: var(--space-5);
       width: 100%;
-      max-width: 460px;
+      max-width: 480px;
       display: none;
+      box-shadow: var(--shadow-sm);
     }
-    .room-preview.visible { display: block; }
-    .room-preview-row {
+    .building-preview-card.visible { display: block; }
+    .preview-row {
       display: flex; justify-content: space-between;
-      padding: 6px 0; font-size: var(--text-sm);
+      padding: 8px 0; font-size: var(--text-sm);
       border-bottom: 1px solid var(--border-subtle);
     }
-    .room-preview-row:last-child { border-bottom: none; }
-    .room-preview-label { color: var(--text-muted); }
-    .room-preview-value { color: var(--text-primary); font-weight: 600; }
+    .preview-row:last-child { border-bottom: none; }
+    .preview-label { color: var(--text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+    .preview-value { color: var(--text-primary); font-weight: 600; text-align: right; }
 
-    /* Camera Scanner Modal */
-    .scanner-viewfinder {
-      position: relative;
-      width: 100%;
-      max-width: 380px;
-      height: 280px;
-      background: #000;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid var(--border-default);
-    }
-    .scanner-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .scanner-overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .scanner-box {
-      width: 200px;
-      height: 200px;
-      border: 2px solid var(--color-primary-light);
-      border-radius: 12px;
-      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
-      position: relative;
-    }
-    .scanner-laser {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #22c55e, transparent);
-      box-shadow: 0 0 12px #22c55e;
-      animation: scanLaser 2s linear infinite;
-    }
-    @keyframes scanLaser {
-      0% { top: 0%; opacity: 0.8; }
-      50% { top: 96%; opacity: 1; }
-      100% { top: 0%; opacity: 0.8; }
-    }
     .quick-chips-wrap {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
       justify-content: center;
       margin-top: 10px;
     }
@@ -163,14 +106,15 @@
       background: var(--bg-surface-2);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-full);
-      padding: 4px 12px;
+      padding: 6px 14px;
       font-size: var(--text-xs);
+      font-weight: 600;
       color: var(--text-secondary);
       cursor: pointer;
       transition: all var(--transition-fast);
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
     .quick-chip:hover {
       background: var(--bg-surface-3);
@@ -178,9 +122,14 @@
       color: var(--text-primary);
       transform: translateY(-1px);
     }
+    .quick-chip.selected {
+      background: var(--color-primary-bg, hsla(154,72%,37%,0.15));
+      border-color: var(--color-primary);
+      color: var(--color-primary-light);
+    }
 
-    /* Checklist enhancements */
-    .checklist-section { max-width: 600px; }
+    /* Checklist layout */
+    .checklist-section { max-width: 620px; }
     .live-score-wrap {
       display: flex;
       flex-direction: column;
@@ -196,10 +145,13 @@
 
     /* Result card */
     .result-card {
-      max-width: 500px;
+      max-width: 520px;
       margin: 0 auto;
       text-align: center;
       padding: var(--space-8);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
     }
     .result-emoji { font-size: 4rem; margin-bottom: var(--space-4); }
     .result-score {
@@ -220,87 +172,99 @@
       .inspect-grid { grid-template-columns: 1fr; }
       .live-score-wrap { position: static; }
     }
+
+    /* Optional Room Accordion */
+    .room-opt-box {
+      margin-top: var(--space-4);
+      padding: var(--space-4);
+      background: var(--bg-surface-3);
+      border: 1px dashed var(--border-default);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+    }
   </style>
 </head>
 <body>
   <div class="main-content">
     <header class="topbar">
       <div>
-        <div class="topbar-title">New Inspection</div>
-        <div class="topbar-subtitle">Conduct a waste-segregation compliance audit</div>
+        <div class="topbar-title">Building Waste Inspection</div>
+        <div class="topbar-subtitle">Conduct building-level waste segregation compliance audit</div>
       </div>
+      <a href="/volunteer/history.html" class="btn btn-secondary btn-sm">📋 My History</a>
     </header>
     <div class="page-content">
 
       <!-- Stepper -->
       <div class="stepper" id="stepper">
-        <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-label">Select Room</div></div>
+        <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-label">Select Building</div></div>
         <div class="step-line"></div>
         <div class="step active-next" data-step="2"><div class="step-num">2</div><div class="step-label">Checklist</div></div>
         <div class="step-line"></div>
         <div class="step" data-step="3"><div class="step-num">3</div><div class="step-label">Result</div></div>
       </div>
 
-      <!-- Step 1 — Room Selection -->
+      <!-- Step 1 — Building Selection -->
       <div class="step-panel active" id="panel-1">
-        <div class="qr-section">
-          <div class="qr-icon">📷</div>
-          <h3 style="color:var(--text-primary);">Scan Room QR Code</h3>
-          <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:440px;text-align:center;">
-            Scan a room's physical door QR sticker or enter the token to automatically identify the location.
+        <div class="building-select-section">
+          <div class="building-hero-icon">🏢</div>
+          <h3 style="color:var(--text-primary);margin:0;">Select Building for Audit</h3>
+          <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:480px;text-align:center;margin:0;">
+            Choose a building to audit waste segregation bins, dry/wet compliance, and sanitary waste handling.
           </p>
 
-          <div style="width:100%;max-width:440px;">
+          <div style="width:100%;max-width:480px;">
             <div class="form-group">
-              <label class="form-label">QR Code Token Lookup</label>
-              <div style="display:flex;gap:8px;">
-                <input type="text" class="form-control" id="qr-input" placeholder="e.g. QR-BLD-NW-101-FLAT-101"/>
-                <button class="btn btn-primary" id="btn-qr-lookup" type="button">🔍 Lookup</button>
+              <label class="form-label">Search or Select Building</label>
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <input type="text" class="form-control" id="building-search" placeholder="Search building by name or code (e.g. BLD-NW-101)…"/>
+                <button class="btn btn-secondary" id="btn-search-bld" type="button">🔍</button>
               </div>
-              <div style="display:flex;justify-content:center;margin-top:8px;">
-                <button class="btn btn-secondary btn-sm" id="btn-open-scanner" type="button">📷 Open Camera Scanner</button>
-              </div>
+              <select class="form-control" id="sel-building">
+                <option value="">— Choose building from list —</option>
+              </select>
             </div>
 
-            <div class="quick-chips-wrap">
-              <span style="font-size: var(--text-xs); color: var(--text-muted); width: 100%; text-align: center;">Demo quick-lookup:</span>
-              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-101-FLAT-101')">🚪 Flat 101</button>
-              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-101-FLAT-102')">🚪 Flat 102</button>
-              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-NW-102-OFFICE-101')">🏢 Office 101</button>
-              <button type="button" class="quick-chip" onclick="quickFillQr('QR-BLD-SW-201-UNIT-301')">🏬 Unit 301</button>
+            <div class="quick-chips-wrap" id="building-chips">
+              <!-- Dynamically populated chips -->
+            </div>
+
+            <!-- Optional Specific Room (Preserved for legacy / room-specific audit) -->
+            <div class="room-opt-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="toggle-room-opt">
+                <span style="font-weight:600;color:var(--text-secondary);">🚪 Specific Room (Optional)</span>
+                <span id="room-opt-arrow" style="font-size:0.8rem;color:var(--text-muted);">▼</span>
+              </div>
+              <div id="room-opt-content" style="display:none;margin-top:10px;">
+                <p style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:8px;">
+                  Leave unselected for standard <strong>Building-Level</strong> inspection, or select a room if auditing a specific flat/unit.
+                </p>
+                <select class="form-control form-control-sm" id="sel-room" disabled>
+                  <option value="">— Entire Building (Default) —</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div class="qr-or"><span>OR select room manually</span></div>
-
-          <div style="width:100%;max-width:440px;">
-            <div class="form-group">
-              <label class="form-label">Building</label>
-              <select class="form-control" id="sel-building"><option value="">— Choose building —</option></select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Room</label>
-              <select class="form-control" id="sel-room" disabled><option value="">— Choose room —</option></select>
-            </div>
-          </div>
-
-          <!-- Identified Room Card -->
-          <div class="room-preview" id="room-preview">
+          <!-- Identified Building Card -->
+          <div class="building-preview-card" id="building-preview">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div style="font-weight:700;color:var(--text-primary);font-size:var(--text-base);display:flex;align-items:center;gap:6px;">
-                <span>📍 Room Identified</span>
+                <span>🏢 Building Selected</span>
               </div>
-              <span class="badge badge-excellent" id="rp-status-badge">READY FOR AUDIT</span>
+              <span class="badge badge-excellent" id="bp-status-badge">READY FOR AUDIT</span>
             </div>
-            <div class="room-preview-row"><span class="room-preview-label">Area</span><span class="room-preview-value" id="rp-area">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">Building</span><span class="room-preview-value" id="rp-building">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">Floor</span><span class="room-preview-value" id="rp-floor">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">Room Number</span><span class="room-preview-value" id="rp-room">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">Occupant</span><span class="room-preview-value" id="rp-occupant">—</span></div>
-            <div class="room-preview-row"><span class="room-preview-label">QR Token</span><span class="room-preview-value font-mono" id="rp-qr" style="font-size:0.8rem;">—</span></div>
+            <div class="preview-row"><span class="preview-label">Building Name</span><span class="preview-value" id="bp-name">—</span></div>
+            <div class="preview-row"><span class="preview-label">Building Code</span><span class="preview-value font-mono" id="bp-code">—</span></div>
+            <div class="preview-row"><span class="preview-label">Area</span><span class="preview-value" id="bp-area">—</span></div>
+            <div class="preview-row"><span class="preview-label">Address</span><span class="preview-value" id="bp-address">—</span></div>
+            <div class="preview-row"><span class="preview-label">Floors</span><span class="preview-value" id="bp-floors">—</span></div>
+            <div class="preview-row" id="row-specific-room" style="display:none;"><span class="preview-label">Specific Room</span><span class="preview-value font-mono" id="bp-room">—</span></div>
           </div>
 
-          <button class="btn btn-primary btn-lg" id="btn-to-step2" disabled>Start Inspection →</button>
+          <button class="btn btn-primary btn-lg" id="btn-to-step2" disabled style="min-width:240px;">
+            Continue to Checklist →
+          </button>
         </div>
       </div>
 
@@ -308,13 +272,21 @@
       <div class="step-panel" id="panel-2">
         <div class="inspect-grid">
           <div class="checklist-section">
-            <h3 style="margin-bottom:var(--space-5);color:var(--text-primary);">Segregation Compliance Checklist</h3>
+            <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:var(--space-5);display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;">Auditing Location:</span>
+                <div style="font-weight:700;color:var(--text-primary);" id="cl-target-name">—</div>
+              </div>
+              <span class="badge badge-info" id="cl-badge-type">Building-Level</span>
+            </div>
+
+            <h3 style="margin-bottom:var(--space-4);color:var(--text-primary);">Segregation Compliance Checklist</h3>
 
             <label class="checklist-item" data-key="wetWasteSeparated">
               <input type="checkbox" id="chk-wet"/>
               <div class="checklist-label-group">
                 <div class="checklist-label">Wet Waste Separated</div>
-                <div class="checklist-desc">Food scraps, organic waste in green/wet bin</div>
+                <div class="checklist-desc">Food scraps, kitchen organic waste in dedicated green bin</div>
               </div>
               <span class="checklist-weight">25 pts</span>
             </label>
@@ -323,7 +295,7 @@
               <input type="checkbox" id="chk-dry"/>
               <div class="checklist-label-group">
                 <div class="checklist-label">Dry Waste Separated</div>
-                <div class="checklist-desc">Paper, plastic, glass in dry recyclable bin</div>
+                <div class="checklist-desc">Paper, plastic, cardboard, glass in recyclable blue bin</div>
               </div>
               <span class="checklist-weight">25 pts</span>
             </label>
@@ -332,7 +304,7 @@
               <input type="checkbox" id="chk-sanitary"/>
               <div class="checklist-label-group">
                 <div class="checklist-label">Sanitary Waste Separated</div>
-                <div class="checklist-desc">Diapers, napkins in separate red/sanitary bin</div>
+                <div class="checklist-desc">Diapers, napkins, medical waste in separate red bin</div>
               </div>
               <span class="checklist-weight">20 pts</span>
             </label>
@@ -340,8 +312,8 @@
             <label class="checklist-item" data-key="correctBinsUsed">
               <input type="checkbox" id="chk-bins"/>
               <div class="checklist-label-group">
-                <div class="checklist-label">Correct Bins Used</div>
-                <div class="checklist-desc">Municipality-approved bins in use</div>
+                <div class="checklist-label">Correct Standard Bins Used</div>
+                <div class="checklist-desc">Color-coded municipal compliant bins present</div>
               </div>
               <span class="checklist-weight">15 pts</span>
             </label>
@@ -350,7 +322,7 @@
               <input type="checkbox" id="chk-label"/>
               <div class="checklist-label-group">
                 <div class="checklist-label">Bins Clearly Labelled</div>
-                <div class="checklist-desc">Visible labels/stickers on each bin</div>
+                <div class="checklist-desc">Visible labels/stickers identifying waste types</div>
               </div>
               <span class="checklist-weight">10 pts</span>
             </label>
@@ -359,18 +331,23 @@
               <input type="checkbox" id="chk-nomix"/>
               <div class="checklist-label-group">
                 <div class="checklist-label">No Mixed Contamination</div>
-                <div class="checklist-desc">No cross-contamination between waste streams</div>
+                <div class="checklist-desc">No cross-contamination or overflow between waste bins</div>
               </div>
               <span class="checklist-weight">5 pts</span>
             </label>
 
             <div class="form-group" style="margin-top:var(--space-5);">
-              <label class="form-label">Remarks / Notes</label>
-              <textarea class="form-control" id="remarks" rows="3" placeholder="Optional observations…"></textarea>
+              <label class="form-label">Evidence Photo URL (Optional)</label>
+              <input type="text" class="form-control" id="evidence-url" placeholder="https://example.com/evidence-photo.jpg"/>
             </div>
 
-            <div style="display:flex;gap:12px;margin-top:var(--space-4);">
-              <button class="btn btn-secondary" id="btn-back-step1">← Back</button>
+            <div class="form-group">
+              <label class="form-label">Inspection Remarks / Observations</label>
+              <textarea class="form-control" id="remarks" rows="3" placeholder="Optional notes on bin placement, contamination, or building housekeeping…"></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:var(--space-5);">
+              <button class="btn btn-secondary" id="btn-back-step1">← Change Building</button>
               <button class="btn btn-primary btn-lg" id="btn-submit" style="flex:1;">
                 Submit Inspection ✓
               </button>
@@ -379,8 +356,9 @@
 
           <!-- Live score sidebar -->
           <div class="live-score-wrap" id="live-score">
-            <div style="font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">Live Score</div>
+            <div style="font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">Audit Score</div>
             <div id="live-ring"></div>
+            <div id="live-classification" style="font-size:var(--text-xs);font-weight:700;">POOR</div>
           </div>
         </div>
       </div>
@@ -388,42 +366,10 @@
       <!-- Step 3 — Result -->
       <div class="step-panel" id="panel-3">
         <div class="result-card" id="result-card">
-          <!-- Filled by JS -->
+          <!-- Populated by JS -->
         </div>
       </div>
 
-    </div>
-  </div>
-
-  <!-- Camera Scanner Modal -->
-  <div class="modal-overlay hidden" id="scanner-modal">
-    <div class="modal" style="max-width: 440px;">
-      <div class="modal-header">
-        <h2 class="modal-title">Scan Room QR Code</h2>
-        <button class="modal-close" onclick="closeScannerModal()">✕</button>
-      </div>
-      <div style="padding: var(--space-4) 0; text-align: center;">
-        <div class="scanner-viewfinder" id="scanner-viewfinder">
-          <video class="scanner-video" id="scanner-video" playsinline muted></video>
-          <div class="scanner-overlay">
-            <div class="scanner-box">
-              <div class="scanner-laser"></div>
-            </div>
-          </div>
-        </div>
-        <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:12px;" id="scanner-status">
-          Point device camera at room QR badge door sticker.
-        </p>
-        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
-          <label class="btn btn-secondary btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
-            📁 Or Upload QR Image / Photo
-            <input type="file" id="scanner-file-input" accept="image/*" style="display:none;" onchange="handleQrFile(this)"/>
-          </label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeScannerModal()">Close</button>
-      </div>
     </div>
   </div>
 
@@ -435,6 +381,9 @@
     if (!Auth.requireLogin()) throw new Error();
     injectSidebar('VOLUNTEER');
 
+    let allBuildings = [];
+    let selectedBuildingId = null;
+    let selectedBuilding = null;
     let selectedRoomId = null;
     let selectedRoom = null;
 
@@ -455,167 +404,172 @@
       });
     }
 
-    // ══════ Step 1: Room selection ══════
+    // ══════ Step 1: Building Selection ══════
     async function loadBuildings() {
       try {
-        const buildings = await api.getBuildings();
-        const sel = document.getElementById('sel-building');
-        sel.innerHTML = '<option value="">— Choose building —</option>' +
-          buildings.map(b => `<option value="${b.id}">${b.name} (${b.buildingCode})</option>`).join('');
-      } catch (e) { Toast.error('Error', e.message); }
+        allBuildings = await api.getBuildings();
+        renderBuildingSelect(allBuildings);
+        renderBuildingChips(allBuildings);
+      } catch (e) {
+        Toast.error('Error', e.message);
+      }
     }
 
-    document.getElementById('sel-building').addEventListener('change', async (e) => {
-      const bldId = e.target.value;
+    function renderBuildingSelect(buildings) {
+      const sel = document.getElementById('sel-building');
+      sel.innerHTML = '<option value="">— Choose building from list —</option>' +
+        buildings.map(b => `<option value="${b.id}">${b.name} (${b.buildingCode || 'No Code'}) — ${b.area?.name || b.areaName || 'Campus'}</option>`).join('');
+      if (selectedBuildingId) {
+        sel.value = selectedBuildingId;
+      }
+    }
+
+    function renderBuildingChips(buildings) {
+      const container = document.getElementById('building-chips');
+      const topList = buildings.slice(0, 5);
+      container.innerHTML = '<span style="font-size: var(--text-xs); color: var(--text-muted); width: 100%; text-align: center;">Quick Select:</span>' +
+        topList.map(b => `<button type="button" class="quick-chip ${selectedBuildingId == b.id ? 'selected' : ''}" onclick="selectBuildingById(${b.id})">🏢 ${b.name}</button>`).join('');
+    }
+
+    function selectBuildingById(bId) {
+      const b = allBuildings.find(x => x.id == bId);
+      if (!b) return;
+      selectedBuildingId = b.id;
+      selectedBuilding = b;
+      document.getElementById('sel-building').value = b.id;
+      showBuildingPreview(b);
+      document.getElementById('btn-to-step2').disabled = false;
+      renderBuildingChips(allBuildings);
+      loadRoomsForBuilding(b.id);
+    }
+
+    document.getElementById('sel-building').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (!val) {
+        clearBuildingSelection();
+        return;
+      }
+      selectBuildingById(parseInt(val));
+    });
+
+    async function handleSearch() {
+      const q = document.getElementById('building-search').value.trim();
+      try {
+        const results = await api.searchBuildings(q);
+        renderBuildingSelect(results);
+        if (results.length === 1) {
+          selectBuildingById(results[0].id);
+        } else if (results.length === 0) {
+          Toast.warning('Not Found', 'No buildings matching query');
+        }
+      } catch (e) {
+        Toast.error('Search Failed', e.message);
+      }
+    }
+
+    document.getElementById('btn-search-bld').addEventListener('click', handleSearch);
+    document.getElementById('building-search').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearch();
+      }
+    });
+
+    function showBuildingPreview(b) {
+      const p = document.getElementById('building-preview');
+      p.classList.add('visible');
+      document.getElementById('bp-name').textContent = b.name || '—';
+      document.getElementById('bp-code').textContent = b.buildingCode || '—';
+      document.getElementById('bp-area').textContent = b.area?.name || b.areaName || 'Main Campus';
+      document.getElementById('bp-address').textContent = b.address || '—';
+      document.getElementById('bp-floors').textContent = b.totalFloors ? `${b.totalFloors} floors` : '—';
+
+      const roomRow = document.getElementById('row-specific-room');
+      if (selectedRoom) {
+        roomRow.style.display = 'flex';
+        document.getElementById('bp-room').textContent = `${selectedRoom.roomNumber} (Floor ${selectedRoom.floorNumber || '?'})`;
+      } else {
+        roomRow.style.display = 'none';
+      }
+    }
+
+    function clearBuildingSelection() {
+      selectedBuildingId = null;
+      selectedBuilding = null;
+      selectedRoomId = null;
+      selectedRoom = null;
+      document.getElementById('building-preview').classList.remove('visible');
+      document.getElementById('btn-to-step2').disabled = true;
+      document.getElementById('sel-room').innerHTML = '<option value="">— Entire Building (Default) —</option>';
+      document.getElementById('sel-room').disabled = true;
+      renderBuildingChips(allBuildings);
+    }
+
+    // ── Optional Room Toggle & Loading ──
+    document.getElementById('toggle-room-opt').addEventListener('click', () => {
+      const box = document.getElementById('room-opt-content');
+      const arrow = document.getElementById('room-opt-arrow');
+      if (box.style.display === 'none') {
+        box.style.display = 'block';
+        arrow.textContent = '▲';
+      } else {
+        box.style.display = 'none';
+        arrow.textContent = '▼';
+      }
+    });
+
+    async function loadRoomsForBuilding(buildingId) {
       const roomSel = document.getElementById('sel-room');
-      roomSel.innerHTML = '<option value="">— Choose room —</option>';
+      roomSel.innerHTML = '<option value="">— Entire Building (Default) —</option>';
       roomSel.disabled = true;
       selectedRoomId = null;
-      document.getElementById('btn-to-step2').disabled = true;
-      hidePreview();
-
-      if (!bldId) return;
+      selectedRoom = null;
       try {
-        const rooms = await api.getRooms(bldId);
-        roomSel.innerHTML = '<option value="">— Choose room —</option>' +
-          rooms.map(r => `<option value="${r.id}" data-room='${JSON.stringify(r)}'>${r.roomNumber} · Floor ${r.floorNumber} ${r.occupantName ? '(' + r.occupantName + ')' : ''}</option>`).join('');
-        roomSel.disabled = false;
-      } catch (e) { Toast.error('Error', e.message); }
-    });
+        const rooms = await api.getRooms(buildingId);
+        if (rooms && rooms.length > 0) {
+          roomSel.innerHTML = '<option value="">— Entire Building (Default) —</option>' +
+            rooms.map(r => `<option value="${r.id}" data-room='${JSON.stringify(r)}'>Room ${r.roomNumber} · Floor ${r.floorNumber} ${r.occupantName ? '(' + r.occupantName + ')' : ''}</option>`).join('');
+          roomSel.disabled = false;
+        }
+      } catch (e) {
+        console.warn('Rooms could not be loaded for building', e);
+      }
+    }
 
     document.getElementById('sel-room').addEventListener('change', (e) => {
       const opt = e.target.selectedOptions[0];
       if (!opt || !opt.value) {
         selectedRoomId = null;
-        hidePreview();
-        document.getElementById('btn-to-step2').disabled = true;
-        return;
-      }
-      selectedRoomId = parseInt(opt.value);
-      try {
-        selectedRoom = JSON.parse(opt.dataset.room);
-        showPreview(selectedRoom);
-      } catch { showPreview(null); }
-      document.getElementById('btn-to-step2').disabled = false;
-    });
-
-    // ══════ QR Lookup & Scanner ══════
-    async function lookupQr(rawCode) {
-      const code = (rawCode || '').trim();
-      if (!code) return Toast.warning('QR Required', 'Please enter or scan a QR code.');
-
-      const btn = document.getElementById('btn-qr-lookup');
-      btn.disabled = true;
-      btn.textContent = 'Searching…';
-      try {
-        const room = await api.getRoomByQr(code);
-        const data = room.data ?? room;
-        selectedRoomId = data.roomId ?? data.id;
-        selectedRoom = data;
-        showPreview(data);
-        document.getElementById('qr-input').value = data.qrCodeToken || code;
-        document.getElementById('btn-to-step2').disabled = false;
-        Toast.success('Room Identified', `${data.roomNumber} in ${data.building?.name || data.buildingName || 'Building'}`);
-      } catch (e) {
-        hidePreview();
-        document.getElementById('btn-to-step2').disabled = true;
-        Toast.error('Room Not Found', e.message || 'Room not found for the provided QR code');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '🔍 Lookup';
-      }
-    }
-
-    function quickFillQr(token) {
-      document.getElementById('qr-input').value = token;
-      lookupQr(token);
-    }
-
-    document.getElementById('btn-qr-lookup').addEventListener('click', () => {
-      lookupQr(document.getElementById('qr-input').value);
-    });
-
-    document.getElementById('qr-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); lookupQr(document.getElementById('qr-input').value); }
-    });
-
-    function showPreview(r) {
-      if (!r) { hidePreview(); return; }
-      const p = document.getElementById('room-preview');
-      p.classList.add('visible');
-      const areaName = r.area?.name || r.areaName || '—';
-      const bldName  = (r.building?.name || r.buildingName || '—') + (r.building?.buildingCode ? ` (${r.building.buildingCode})` : '');
-      const floorVal = r.floor ?? r.floorNumber ?? '—';
-      const roomNum  = r.roomNumber || '—';
-
-      document.getElementById('rp-area').textContent     = areaName;
-      document.getElementById('rp-building').textContent = bldName;
-      document.getElementById('rp-floor').textContent    = floorVal;
-      document.getElementById('rp-room').textContent     = roomNum;
-      document.getElementById('rp-occupant').textContent = r.occupantName || 'Not specified';
-      document.getElementById('rp-qr').textContent       = r.qrCodeToken || '—';
-    }
-
-    function hidePreview() {
-      document.getElementById('room-preview').classList.remove('visible');
-    }
-
-    // ══════ Camera Scanner ══════
-    let cameraStream = null;
-
-    document.getElementById('btn-open-scanner').addEventListener('click', async () => {
-      openModal('scanner-modal');
-      const video = document.getElementById('scanner-video');
-      const status = document.getElementById('scanner-status');
-      status.textContent = 'Requesting camera access…';
-
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        selectedRoom = null;
+      } else {
+        selectedRoomId = parseInt(opt.value);
         try {
-          cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-          });
-          video.srcObject = cameraStream;
-          await video.play();
-          status.textContent = 'Camera active. Point at room QR code.';
-        } catch (err) {
-          status.textContent = 'Camera access unavailable. Use manual token or upload image below.';
-        }
-      } else {
-        status.textContent = 'Camera not supported in this browser. Use manual token or image upload.';
+          selectedRoom = JSON.parse(opt.dataset.room);
+        } catch { selectedRoom = null; }
+      }
+      if (selectedBuilding) {
+        showBuildingPreview(selectedBuilding);
       }
     });
-
-    function closeScannerModal() {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-      }
-      const video = document.getElementById('scanner-video');
-      if (video) video.srcObject = null;
-      closeModal('scanner-modal');
-    }
-
-    function handleQrFile(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      Toast.info('Processing Image', `Analyzing ${file.name}…`);
-      closeScannerModal();
-      const match = file.name.match(/QR-[A-Za-z0-9-]+/i);
-      if (match) {
-        quickFillQr(match[0]);
-      } else {
-        Toast.warning('QR Scan', 'Uploaded photo processed. Enter token if not recognized.');
-      }
-    }
 
     document.getElementById('btn-to-step2').addEventListener('click', () => {
-      if (!selectedRoomId) return;
+      if (!selectedBuildingId) return;
+      document.getElementById('cl-target-name').textContent = selectedBuilding.name +
+        (selectedRoom ? ` · Room ${selectedRoom.roomNumber}` : '');
+      document.getElementById('cl-badge-type').textContent = selectedRoom ? 'Room-Level' : 'Building-Level';
       goToStep(2);
       updateLiveScore();
     });
 
-    // ══════ Step 2: Checklist ══════
-    const weights = { 'chk-wet': 25, 'chk-dry': 25, 'chk-sanitary': 20, 'chk-bins': 15, 'chk-label': 10, 'chk-nomix': 5 };
+    // ══════ Step 2: Checklist & Scoring ══════
+    const weights = {
+      'chk-wet': 25,
+      'chk-dry': 25,
+      'chk-sanitary': 20,
+      'chk-bins': 15,
+      'chk-label': 10,
+      'chk-nomix': 5
+    };
 
     function computeScore() {
       let total = 0;
@@ -625,12 +579,22 @@
       return total;
     }
 
+    function getClassification(score) {
+      if (score >= 85) return { label: 'EXCELLENT', color: '#2ECC71' };
+      if (score >= 65) return { label: 'GOOD', color: '#00BFFF' };
+      if (score >= 40) return { label: 'NEEDS_IMPROVEMENT', color: '#F39C12' };
+      return { label: 'POOR', color: '#E74C3C' };
+    }
+
     function updateLiveScore() {
       const score = computeScore();
       renderScoreRing(document.getElementById('live-ring'), score);
+      const cls = getClassification(score);
+      const lbl = document.getElementById('live-classification');
+      lbl.textContent = cls.label.replace('_', ' ');
+      lbl.style.color = cls.color;
     }
 
-    // Toggle visual state on check
     document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(chk => {
       chk.addEventListener('change', () => {
         chk.closest('.checklist-item').classList.toggle('checked', chk.checked);
@@ -643,17 +607,19 @@
     document.getElementById('btn-submit').addEventListener('click', async () => {
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;
-      btn.textContent = 'Submitting…';
+      btn.textContent = 'Submitting Inspection…';
 
       const body = {
-        roomId: selectedRoomId,
-        wetWasteSeparated:     document.getElementById('chk-wet').checked,
-        dryWasteSeparated:     document.getElementById('chk-dry').checked,
+        buildingId: selectedBuildingId,
+        roomId: selectedRoomId || undefined,
+        wetWasteSeparated:      document.getElementById('chk-wet').checked,
+        dryWasteSeparated:      document.getElementById('chk-dry').checked,
         sanitaryWasteSeparated: document.getElementById('chk-sanitary').checked,
-        correctBinsUsed:       document.getElementById('chk-bins').checked,
-        binsLabelled:          document.getElementById('chk-label').checked,
-        noMixedWaste:          document.getElementById('chk-nomix').checked,
-        remarks:               document.getElementById('remarks').value.trim() || undefined,
+        correctBinsUsed:        document.getElementById('chk-bins').checked,
+        binsLabelled:           document.getElementById('chk-label').checked,
+        noMixedWaste:           document.getElementById('chk-nomix').checked,
+        remarks:                document.getElementById('remarks').value.trim() || undefined,
+        evidenceImageUrl:       document.getElementById('evidence-url').value.trim() || undefined
       };
 
       try {
@@ -663,7 +629,7 @@
         goToStep(3);
         Toast.success('Inspection Submitted', `Score: ${r.totalScore}/100`);
       } catch (e) {
-        Toast.error('Submit Failed', e.message);
+        Toast.error('Submission Failed', e.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Submit Inspection ✓';
@@ -677,21 +643,30 @@
       const emojis = { EXCELLENT: '🌟', GOOD: '👍', NEEDS_IMPROVEMENT: '🔸', POOR: '❗' };
       const colors = { EXCELLENT: '#2ECC71', GOOD: '#00BFFF', NEEDS_IMPROVEMENT: '#F39C12', POOR: '#E74C3C' };
       const msgs   = {
-        EXCELLENT: 'Outstanding compliance! Keep up the excellent work.',
-        GOOD: 'Good effort — a few more improvements can make it excellent.',
-        NEEDS_IMPROVEMENT: 'Some segregation gaps found. Follow up recommended.',
-        POOR: 'Critical non-compliance detected. A violation has been raised.'
+        EXCELLENT: 'Outstanding waste segregation! Building meets gold municipal standards.',
+        GOOD: 'Good segregation compliance. Consistent monitoring will maintain high hygiene.',
+        NEEDS_IMPROVEMENT: 'Minor segregation gaps observed. Building supervisor advised.',
+        POOR: 'Critical non-compliance detected. An automatic violation notice has been dispatched.'
       };
+
+      const locationLabel = r.roomNumber
+        ? `Room ${r.roomNumber} (${r.buildingName || 'Building'})`
+        : `Building ${r.buildingName || 'Building'}`;
 
       document.getElementById('result-card').innerHTML = `
         <div class="result-emoji">${emojis[cls] || '📋'}</div>
+        <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
+          ${locationLabel}
+        </div>
         <div class="result-score" style="color:${colors[cls]}">${score}<span style="font-size:1.5rem;color:var(--text-muted)">/100</span></div>
-        <div><span class="badge badge-${Fmt.classifyBadge(cls)}" style="font-size:1rem;padding:6px 16px;">${Fmt.classify(cls)}</span></div>
-        <div class="result-msg" style="margin-top:16px;">${msgs[cls] || ''}</div>
+        <div style="margin-bottom:12px;">
+          <span class="badge badge-${Fmt.classifyBadge(cls)}" style="font-size:1rem;padding:6px 16px;">${Fmt.classify(cls)}</span>
+        </div>
+        <div class="result-msg">${msgs[cls] || ''}</div>
 
         ${r.violationCreated ? `
-        <div style="background:hsla(0,78%,58%,0.08);border:1px solid hsla(0,78%,58%,0.3);border-radius:12px;padding:16px;margin-top:16px;font-size:0.9rem;color:hsl(0,78%,70%);">
-          ⚠️ Violation #${r.violationId || ''} was auto-generated and assigned to this room.
+        <div style="background:hsla(0,78%,58%,0.08);border:1px solid hsla(0,78%,58%,0.3);border-radius:12px;padding:16px;margin-top:16px;font-size:0.9rem;color:hsl(0,78%,70%);text-align:left;">
+          ⚠️ <strong>Violation #${r.violationId || ''} Auto-Raised:</strong> Marked for administrative review and remediation.
         </div>` : ''}
 
         <div style="display:flex;gap:12px;margin-top:var(--space-8);justify-content:center;">
@@ -702,31 +677,18 @@
     }
 
     function resetForm() {
-      selectedRoomId = null;
-      selectedRoom = null;
-      document.getElementById('qr-input').value = '';
-      document.getElementById('sel-building').value = '';
-      document.getElementById('sel-room').innerHTML = '<option value="">— Choose room —</option>';
-      document.getElementById('sel-room').disabled = true;
-      hidePreview();
-      document.getElementById('btn-to-step2').disabled = true;
+      clearBuildingSelection();
+      document.getElementById('building-search').value = '';
       document.querySelectorAll('.checklist-item input').forEach(c => { c.checked = false; });
       document.querySelectorAll('.checklist-item').forEach(c => c.classList.remove('checked'));
       document.getElementById('remarks').value = '';
+      document.getElementById('evidence-url').value = '';
       goToStep(1);
     }
 
     // ── Init ──
     updateLiveScore();
     loadBuildings();
-
-    // Check if a QR code is passed in the URL (e.g., from direct scan or redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialQr = urlParams.get('qr') || urlParams.get('code');
-    if (initialQr) {
-      document.getElementById('qr-input').value = initialQr;
-      lookupQr(initialQr);
-    }
   </script>
 </body>
 </html>

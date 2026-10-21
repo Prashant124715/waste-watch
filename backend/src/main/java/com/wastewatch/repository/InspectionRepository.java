@@ -16,44 +16,53 @@ public interface InspectionRepository extends JpaRepository<Inspection, Long> {
     List<Inspection> findByRoomIdOrderByInspectionDateDesc(Long roomId);
     List<Inspection> findByVolunteerIdOrderByInspectionDateDesc(Long volunteerId);
     List<Inspection> findByRoomBuildingIdOrderByInspectionDateDesc(Long buildingId);
+    List<Inspection> findByBuildingIdOrderByInspectionDateDesc(Long buildingId);
     Optional<Inspection> findFirstByRoomIdOrderByInspectionDateDesc(Long roomId);
+    Optional<Inspection> findFirstByBuildingIdOrderByInspectionDateDesc(Long buildingId);
     Optional<Inspection> findFirstByRoomBuildingIdOrderByInspectionDateDesc(Long buildingId);
     Optional<Inspection> findFirstByRoomIdAndVolunteerIdOrderByCreatedAtDesc(Long roomId, Long volunteerId);
+    Optional<Inspection> findFirstByBuildingIdAndVolunteerIdOrderByCreatedAtDesc(Long buildingId, Long volunteerId);
     List<Inspection> findTop20ByOrderByInspectionDateDesc();
     List<Inspection> findTop20ByVolunteerIdOrderByInspectionDateDesc(Long volunteerId);
 
+    @Query("SELECT i FROM Inspection i WHERE (i.building.id = :buildingId OR (i.room IS NOT NULL AND i.room.building.id = :buildingId)) ORDER BY i.inspectionDate DESC")
+    List<Inspection> findAllByEffectiveBuildingIdOrderByInspectionDateDesc(@Param("buildingId") Long buildingId);
+
+    @Query("SELECT i FROM Inspection i WHERE (i.building.id = :buildingId OR (i.room IS NOT NULL AND i.room.building.id = :buildingId)) ORDER BY i.inspectionDate DESC LIMIT :limit")
+    List<Inspection> findTopNByEffectiveBuildingIdOrderByInspectionDateDesc(@Param("buildingId") Long buildingId, @Param("limit") int limit);
+
     // Analytics Aggregations
-    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i")
+    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room IS NOT NULL")
     Long countDistinctInspectedRooms();
 
-    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room.building.area.id = :areaId")
+    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room IS NOT NULL AND i.room.building.area.id = :areaId")
     Long countDistinctInspectedRoomsByAreaId(@Param("areaId") Long areaId);
 
-    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room.building.id = :buildingId")
+    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room IS NOT NULL AND i.room.building.id = :buildingId")
     Long countDistinctInspectedRoomsByBuildingId(@Param("buildingId") Long buildingId);
 
-    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.volunteer.id = :volunteerId")
+    @Query("SELECT COUNT(DISTINCT i.room.id) FROM Inspection i WHERE i.room IS NOT NULL AND i.volunteer.id = :volunteerId")
     Long countDistinctInspectedRoomsByVolunteerId(@Param("volunteerId") Long volunteerId);
 
-    @Query("SELECT COUNT(DISTINCT i.room.building.id) FROM Inspection i WHERE i.volunteer.id = :volunteerId")
+    @Query("SELECT COUNT(DISTINCT COALESCE(i.building.id, i.room.building.id)) FROM Inspection i WHERE i.volunteer.id = :volunteerId")
     Long countDistinctInspectedBuildingsByVolunteerId(@Param("volunteerId") Long volunteerId);
 
     @Query("SELECT AVG(i.totalScore) FROM Inspection i")
     Double getOverallAverageScore();
 
-    @Query("SELECT AVG(i.totalScore) FROM Inspection i WHERE i.room.building.area.id = :areaId")
+    @Query("SELECT AVG(i.totalScore) FROM Inspection i WHERE (i.building IS NOT NULL AND i.building.area.id = :areaId) OR (i.room IS NOT NULL AND i.room.building.area.id = :areaId)")
     Double getAverageScoreByAreaId(@Param("areaId") Long areaId);
 
-    @Query("SELECT AVG(i.totalScore) FROM Inspection i WHERE i.room.building.id = :buildingId")
+    @Query("SELECT AVG(i.totalScore) FROM Inspection i WHERE i.building.id = :buildingId OR (i.room IS NOT NULL AND i.room.building.id = :buildingId)")
     Double getAverageScoreByBuildingId(@Param("buildingId") Long buildingId);
 
     @Query("SELECT AVG(i.totalScore) FROM Inspection i WHERE i.volunteer.id = :volunteerId")
     Double getAverageScoreByVolunteerId(@Param("volunteerId") Long volunteerId);
 
-    @Query("SELECT COUNT(i) FROM Inspection i WHERE i.room.building.area.id = :areaId")
+    @Query("SELECT COUNT(i) FROM Inspection i WHERE (i.building IS NOT NULL AND i.building.area.id = :areaId) OR (i.room IS NOT NULL AND i.room.building.area.id = :areaId)")
     Long countByAreaId(@Param("areaId") Long areaId);
 
-    @Query("SELECT COUNT(i) FROM Inspection i WHERE i.room.building.id = :buildingId")
+    @Query("SELECT COUNT(i) FROM Inspection i WHERE i.building.id = :buildingId OR (i.room IS NOT NULL AND i.room.building.id = :buildingId)")
     Long countByBuildingId(@Param("buildingId") Long buildingId);
 
     long countByVolunteerId(Long volunteerId);

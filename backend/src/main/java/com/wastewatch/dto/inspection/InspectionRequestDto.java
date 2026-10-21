@@ -4,8 +4,17 @@ import jakarta.validation.constraints.NotNull;
 
 public class InspectionRequestDto {
 
-    @NotNull(message = "Room ID is required")
+    /**
+     * Room ID — required for legacy room-level inspections.
+     * Optional when buildingId is provided (building-level inspection).
+     */
     private Long roomId;
+
+    /**
+     * Building ID — required for building-level inspections.
+     * Optional when roomId is provided (room-level inspection).
+     */
+    private Long buildingId;
 
     @NotNull(message = "Wet waste separation status is required")
     private Boolean wetWasteSeparated;
@@ -32,12 +41,27 @@ public class InspectionRequestDto {
     public InspectionRequestDto() {
     }
 
+    /**
+     * Returns true if this is a building-level inspection request.
+     */
+    public boolean isBuildingLevelInspection() {
+        return buildingId != null && roomId == null;
+    }
+
     public Long getRoomId() {
         return roomId;
     }
 
     public void setRoomId(Long roomId) {
         this.roomId = roomId;
+    }
+
+    public Long getBuildingId() {
+        return buildingId;
+    }
+
+    public void setBuildingId(Long buildingId) {
+        this.buildingId = buildingId;
     }
 
     public Boolean getWetWasteSeparated() {

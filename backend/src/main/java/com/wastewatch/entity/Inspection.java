@@ -15,9 +15,14 @@ public class Inspection {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Room room;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "building_id", nullable = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Building building;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "volunteer_id", nullable = false)
@@ -92,6 +97,24 @@ public class Inspection {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * Returns the Building associated with this inspection.
+     * For building-level inspections, this returns the direct building reference.
+     * For legacy room-level inspections, this navigates through room → building.
+     */
+    public Building getEffectiveBuilding() {
+        if (this.building != null) return this.building;
+        if (this.room != null) return this.room.getBuilding();
+        return null;
+    }
+
+    /**
+     * Returns true if this is a building-level inspection (no room reference).
+     */
+    public boolean isBuildingLevel() {
+        return this.room == null && this.building != null;
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -107,6 +130,14 @@ public class Inspection {
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    public Building getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
     }
 
     public AppUser getVolunteer() {

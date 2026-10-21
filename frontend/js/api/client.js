@@ -168,6 +168,14 @@ class ApiClient {
     );
   }
 
+  searchBuildings(query) {
+    return this.get(
+      query
+        ? `/buildings/search?query=${encodeURIComponent(query)}`
+        : '/buildings'
+    );
+  }
+
   getBuilding(id) {
     return this.get(`/buildings/${id}`);
   }

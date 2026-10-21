@@ -38,6 +38,9 @@ class InspectionWorkflowTest {
     @Autowired
     private RoomRepository roomRepository;
 
+    @Autowired
+    private com.wastewatch.repository.BuildingRepository buildingRepository;
+
     private String adminToken;
     private String volunteerToken;
     private Long testRoomId;
@@ -255,7 +258,7 @@ class InspectionWorkflowTest {
     @Test
     void testMissingRequiredFieldsReturns400BadRequest() throws Exception {
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        // roomId is missing
+        // Required fields are missing
 
         mockMvc.perform(post("/api/inspections")
                         .header("Authorization", "Bearer " + volunteerToken)
@@ -263,7 +266,43 @@ class InspectionWorkflowTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Bad Request"))
-                .andExpect(jsonPath("$.validationErrors.roomId").exists());
+                .andExpect(jsonPath("$.validationErrors.wetWasteSeparated").exists());
+    }
+
+    @Test
+    void testVolunteerSubmitsBuildingLevelInspection() throws Exception {
+        com.wastewatch.entity.Building existing = buildingRepository.findAll().get(0);
+        com.wastewatch.entity.Building building = new com.wastewatch.entity.Building(
+                existing.getArea(),
+                "BLD-LEVEL-" + System.currentTimeMillis(),
+                "Building Level Test Center",
+                "123 Test Street",
+                existing.getLatitude(),
+                existing.getLongitude(),
+                com.wastewatch.entity.enums.BuildingType.COMMERCIAL,
+                4
+        );
+        building = buildingRepository.save(building);
+
+        InspectionRequestDto requestDto = new InspectionRequestDto();
+        requestDto.setBuildingId(building.getId());
+        requestDto.setWetWasteSeparated(true);
+        requestDto.setDryWasteSeparated(true);
+        requestDto.setSanitaryWasteSeparated(true);
+        requestDto.setCorrectBinsUsed(true);
+        requestDto.setBinsLabelled(true);
+        requestDto.setNoMixedWaste(true);
+        requestDto.setRemarks("Building-level segregation audit passed.");
+
+        mockMvc.perform(post("/api/inspections")
+                        .header("Authorization", "Bearer " + volunteerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.buildingId").value(building.getId()))
+                .andExpect(jsonPath("$.data.buildingLevelInspection").value(true))
+                .andExpect(jsonPath("$.data.totalScore").value(100));
     }
 
     @Test

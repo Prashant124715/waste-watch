@@ -55,6 +55,16 @@ public class ViolationResponseDto {
             }
         }
 
+        // For building-level violations (room is null, building is set directly)
+        com.wastewatch.entity.Building effectiveBuilding = violation.getEffectiveBuilding();
+        if (dto.getBuildingId() == null && effectiveBuilding != null) {
+            dto.setBuildingId(effectiveBuilding.getId());
+            dto.setBuildingName(effectiveBuilding.getName());
+            if (effectiveBuilding.getArea() != null) {
+                dto.setAreaName(effectiveBuilding.getArea().getName());
+            }
+        }
+
         dto.setSeverity(violation.getSeverity());
         dto.setStatus(violation.getStatus());
         dto.setDescription(violation.getDescription());

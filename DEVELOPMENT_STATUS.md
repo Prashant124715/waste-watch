@@ -22,8 +22,9 @@
 | **Spring Security & Authentication**| **COMPLETED** | Stateless JWT (JJWT 0.12.5), BCrypt hashing, `POST /api/auth/login`, `GET /api/auth/me` |
 | **Role-Based Access Control (RBAC)**| **COMPLETED** | URL protection (`ROLE_ADMIN`, `ROLE_VOLUNTEER`) and volunteer record isolation |
 | **Infrastructure Management APIs** | **COMPLETED** | Full CRUD REST APIs for Area, Building, and Room with DTOs, coordinate validations, and unique checks |
-| **Inspection Submission APIs** | **COMPLETED** | Field audit submission (`POST /api/inspections`), 30s cooldown, `/api/volunteers/me/inspections`, `/api/inspections/recent` |
+| **Inspection Submission APIs** | **COMPLETED** | Building-level audits (`POST /api/inspections` with `buildingId`), legacy room audits, 30s cooldown, search endpoint |
 | **Compliance Scoring Engine** | **COMPLETED** | Authoritative 100-point service with granular breakdown (`ScoreBreakdownDto`, `ComplianceResult`) |
+| **Building-Level Workflow** | **COMPLETED** | Streamlined volunteer flow directly selecting/searching building; room audits optional |
 | **QR Code Workflow (Phase 12)** | **COMPLETED** | Unique token per room (`WASTEWATCH-ROOM-...`), safe metadata endpoint `GET /api/rooms/qr/{token}`, client QR modal & canvas scanner |
 | **Violation & Escalation (Phase 13)**| **COMPLETED** | Auto-creation on POOR score (<40), repeat non-compliance detection (3 consecutive poor audits), status lifecycle (`OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`) |
 | **In-App Notifications (Phase 13)** | **COMPLETED** | Targeted notifications for admins and volunteers (`GET /api/notifications`, unread counts, mark read) |
@@ -33,7 +34,7 @@
 | **Analytics & Decision Engine (Phase 10)**| **COMPLETED** | Area health score formula, confidence ratings, trends, period deltas, hotspots, volunteer productivity |
 | **Interactive Map (Phase 11)** | **COMPLETED** | Leaflet.js OpenStreetMap integration with live geo-markers and building compliance metrics |
 | **Frontend UI (Vanilla JS/HTML/CSS)**| **COMPLETED** | Framework-free Vanilla JS/HTML5/CSS3 SaaS design system across 9 Admin pages & 2 Volunteer pages |
-| **Automated Test Suite** | **COMPLETED** | **95 unit and integration tests passing (100% success)** |
+| **Automated Test Suite** | **COMPLETED** | **132 unit and integration tests passing (100% success)** |
 
 ---
 

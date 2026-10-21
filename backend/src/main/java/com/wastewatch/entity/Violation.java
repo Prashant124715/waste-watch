@@ -21,9 +21,14 @@ public class Violation {
     private Inspection inspection;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Room room;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "building_id", nullable = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Building building;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "severity", nullable = false, length = 20)
@@ -85,6 +90,23 @@ public class Violation {
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    public Building getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
+    }
+
+    /**
+     * Returns the effective building: directly set, or via room.
+     */
+    public Building getEffectiveBuilding() {
+        if (this.building != null) return this.building;
+        if (this.room != null) return this.room.getBuilding();
+        return null;
     }
 
     public ViolationSeverity getSeverity() {
