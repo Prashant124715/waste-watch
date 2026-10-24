@@ -52,6 +52,11 @@ public class VolunteerService {
     public VolunteerSummaryDto getVolunteerPerformance(Long volunteerId) {
         AppUser volunteer = userRepository.findById(volunteerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", volunteerId));
+
+        if (volunteer.getRole() != UserRole.VOLUNTEER) {
+            throw new InvalidRequestException("Cannot retrieve volunteer performance for non-volunteer user");
+        }
+
         return buildVolunteerSummary(volunteer);
     }
 

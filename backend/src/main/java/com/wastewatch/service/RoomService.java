@@ -14,6 +14,7 @@ import com.wastewatch.repository.AuditLogRepository;
 import com.wastewatch.repository.BuildingRepository;
 import com.wastewatch.repository.InspectionRepository;
 import com.wastewatch.repository.RoomRepository;
+import com.wastewatch.repository.ViolationRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +33,20 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final BuildingRepository buildingRepository;
     private final InspectionRepository inspectionRepository;
+    private final ViolationRepository violationRepository;
     private final AuditLogRepository auditLogRepository;
     private final QrCodeService qrCodeService;
 
     public RoomService(RoomRepository roomRepository,
                        BuildingRepository buildingRepository,
                        InspectionRepository inspectionRepository,
+                       ViolationRepository violationRepository,
                        AuditLogRepository auditLogRepository,
                        QrCodeService qrCodeService) {
         this.roomRepository = roomRepository;
         this.buildingRepository = buildingRepository;
         this.inspectionRepository = inspectionRepository;
+        this.violationRepository = violationRepository;
         this.auditLogRepository = auditLogRepository;
         this.qrCodeService = qrCodeService;
     }
@@ -279,6 +283,14 @@ public class RoomService {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Room", "id", id));
+
+        if (inspectionRepository.countByRoomId(id) > 0) {
+            throw new InvalidRequestException("Cannot delete room: Room has existing inspection records");
+        }
+
+        if (violationRepository.countByRoomId(id) > 0) {
+            throw new InvalidRequestException("Cannot delete room: Room has associated violation records");
+        }
 
         // Record Audit Log (Phase 14 Governance)
         AuditLog auditLog = new AuditLog(
