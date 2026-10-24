@@ -8,6 +8,7 @@ const API_BASE = 'http://localhost:8080/api';
 class ApiClient {
   constructor() {
     this._token = null;
+    this.baseUrl = API_BASE;
   }
 
   setToken(token) {
@@ -56,7 +57,10 @@ class ApiClient {
 
     if (res.status === 401 && !path.startsWith('/auth/')) {
       this.clearToken();
-      window.location.href = '/index.html';
+      const loginUrl = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/volunteer/')
+        ? '../index.html'
+        : './index.html';
+      window.location.href = loginUrl;
       throw new Error('Unauthorized — redirecting to login');
     }
 

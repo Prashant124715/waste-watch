@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Indian Civic-Tech Waste Segregation Monitoring</title>
   <meta name="description" content="WasteWatch — The intelligent waste-segregation monitoring and civic compliance platform for Indian housing societies and municipal corporations."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="./css/variables.css"/>
+  <link rel="stylesheet" href="./css/base.css"/>
+  <link rel="stylesheet" href="./css/components.css"/>
   <style>
     body {
       min-height: 100vh;
@@ -122,6 +122,10 @@
       cursor: pointer;
       font-size: 1rem;
       padding: 2px;
+    }
+
+    .input-toggle:hover {
+      color: var(--text-primary);
     }
 
     .btn-login {
@@ -294,7 +298,7 @@
 
       <div class="volunteer-register-box">
         <p class="volunteer-register-prompt">Want to conduct housing society inspections?</p>
-        <a href="/register.html" class="btn-register-link" id="link-register-volunteer">
+        <a href="./register.html" class="btn-register-link" id="link-register-volunteer">
           <span>🤝</span>
           <span>Register as Volunteer</span>
         </a>
@@ -312,14 +316,14 @@
 
   <div id="toast-container"></div>
 
-  <script src="/js/api/client.js"></script>
+  <script src="./js/api/client.js"></script>
   <script>
     // Redirect if already logged in
     if (api.getToken()) {
       const user = JSON.parse(localStorage.getItem('ww_user') || 'null');
       window.location.href = user?.role === 'ADMIN'
-        ? '/admin/dashboard.html'
-        : '/volunteer/inspect.html';
+        ? './admin/dashboard.html'
+        : './volunteer/inspect.html';
     }
 
     const form    = document.getElementById('login-form');
@@ -354,15 +358,15 @@
         const data = await api.login(username, password);
         api.setToken(data.token);
         localStorage.setItem('ww_user', JSON.stringify({
-          id: data.id,
+          id: data.userId || data.id,
           username: data.username,
           fullName: data.fullName,
           email: data.email,
           role: data.role
         }));
         window.location.href = data.role === 'ADMIN'
-          ? '/admin/dashboard.html'
-          : '/volunteer/inspect.html';
+          ? './admin/dashboard.html'
+          : './volunteer/inspect.html';
       } catch (err) {
         showError(err.message || 'Invalid credentials. Please try again.');
       } finally {

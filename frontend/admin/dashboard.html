@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Executive Compliance Dashboard</title>
   <meta name="description" content="WasteWatch real-time compliance monitoring, KPI intelligence, and waste segregation analytics dashboard."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
   <!-- Leaflet.js Interactive Maps -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -304,7 +304,7 @@
       </div>
       <div style="display:flex;gap:10px;margin-left:auto;">
         <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh analytics">🔄 Refresh</button>
-        <a href="/admin/inspections.html" class="btn btn-primary btn-sm">📋 All Inspections</a>
+        <a href="./inspections.html" class="btn btn-primary btn-sm">📋 All Inspections</a>
       </div>
     </header>
 
@@ -389,7 +389,7 @@
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;">
             <button class="btn btn-secondary btn-sm" id="btn-fit-map" onclick="fitDashboardMap()">🎯 Fit All</button>
             <button class="btn btn-secondary btn-sm" id="btn-refresh-map" onclick="loadDashboardMap()">🔄 Refresh</button>
-            <a href="/admin/map.html" class="btn btn-ghost btn-sm" title="Open full screen map console">Full Screen Map ↗</a>
+            <a href="./map.html" class="btn btn-ghost btn-sm" title="Open full screen map console">Full Screen Map ↗</a>
           </div>
         </div>
 
@@ -598,7 +598,7 @@
             <div class="card-title">📋 Recent Field Audits</div>
             <div class="card-subtitle">Latest verified room inspections from field volunteers</div>
           </div>
-          <a href="/admin/inspections.html" class="btn btn-ghost btn-sm">Full Audit Trail →</a>
+          <a href="./inspections.html" class="btn btn-ghost btn-sm">Full Audit Trail →</a>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -624,9 +624,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error('Unauthorized');
     injectSidebar('ADMIN');
@@ -900,7 +900,13 @@
 
       dashMarkersLayer = L.featureGroup().addTo(dashMap);
       dashHotspotLayer = L.featureGroup().addTo(dashMap);
+      window.dashMap = dashMap;
+      window.dashMarkersLayer = dashMarkersLayer;
     }
+
+    window.addEventListener('resize', () => {
+      if (dashMap) dashMap.invalidateSize();
+    });
 
     async function loadDashboardMap() {
       const loadingEl = document.getElementById('dash-map-loading');
@@ -1073,8 +1079,8 @@
                 <span class="${b.openViolations > 0 ? 'text-warning font-bold' : 'text-muted'}">${b.openViolations || 0}</span>
               </div>
               <div class="popup-actions">
-                <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;">🔍 Details</a>
-                <a href="/admin/inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">📋 Audits</a>
+                <a href="./areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;">🔍 Details</a>
+                <a href="./inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">📋 Audits</a>
               </div>
             </div>
           `;
@@ -1119,7 +1125,8 @@
 
       let alertsCount = 0;
       container.innerHTML = dashHotspotsData.map(h => {
-        if (h.isHotspot) alertsCount++;
+        const isHot = !!(h.isHotspot || h.hotspot);
+        if (isHot) alertsCount++;
         const score = h.averageScore !== null ? h.averageScore : null;
         let scoreColor = '#10B981';
         let barClass = 'badge-success';
@@ -1146,8 +1153,8 @@
             </div>
             <div style="font-size:0.7rem;color:var(--text-muted);display:flex;justify-content:space-between;">
               <span>${h.totalBuildings} bldgs · ${h.openViolations} viol.</span>
-              <span style="color:${h.isHotspot ? 'var(--color-danger)' : 'var(--color-success)'}">
-                ${h.isHotspot ? '🚨 ' + h.hotspotSeverity : '✓ Healthy'}
+              <span style="color:${isHot ? 'var(--color-danger)' : 'var(--color-success)'}">
+                ${isHot ? '🚨 ' + h.hotspotSeverity : '✓ Healthy'}
               </span>
             </div>
           </div>
@@ -1185,7 +1192,7 @@
             <span class="badge ${getComplianceBadgeClass(b.complianceStatus)}" style="font-size:10px;padding:1px 6px;">
               ${b.complianceStatus || 'NO_DATA'}
             </span>
-            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.65rem;">Set Coords</a>
+            <a href="./areas.html" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.65rem;">Set Coords</a>
           </div>
         </div>
       `).join('');
@@ -1208,6 +1215,10 @@
       else if (st === 'POOR') return 'badge-danger';
       return 'badge-neutral';
     }
+
+    window.fitDashboardMap = fitDashboardMap;
+    window.loadDashboardMap = loadDashboardMap;
+    window.filterDashboardMap = filterDashboardMap;
 
     loadDashboard();
     loadDashboardMap();

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Volunteer Applications & Governance</title>
   <meta name="description" content="Review volunteer applications, approve or reject applicants, and monitor field audit performance."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
   <style>
     /* Tab bar */
     .tab-nav {
@@ -217,7 +217,7 @@
   <div class="main-content">
     <header class="topbar">
       <div>
-        <div class="topbar-title">Volunteer Applications & Verification</div>
+        <div class="topbar-title">Volunteer Applications & Governance</div>
         <div class="topbar-subtitle">Review new registrations, verify Indian civic volunteers, and manage field inspection permissions</div>
       </div>
     </header>
@@ -275,10 +275,21 @@
     </div>
   </div>
 
+  <!-- Performance & Statistics Modal (Preserved from origin/main) -->
+  <div class="modal-overlay hidden" id="perf-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="perf-modal-title">Volunteer Performance & Audit Analytics</h2>
+        <button class="modal-close" onclick="closeModal('perf-modal')">✕</button>
+      </div>
+      <div id="perf-body" style="color:var(--text-secondary);padding:var(--space-2) 0;"></div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error();
     injectSidebar('ADMIN');
@@ -430,7 +441,10 @@
 
           <div class="vol-card-actions">
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openDetails(${v.id})">
-              👁️ View Details
+              👁️ Details
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openPerf(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              📈 Stats
             </button>
             ${isPending ? `
               <button class="btn-approve" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
@@ -444,11 +458,11 @@
                 ✓ Re-Approve
               </button>
             ` : isActive ? `
-              <button class="btn btn-danger btn-sm" onclick="deactivateVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE', '${escapeHtml(v.fullName || v.username)}')">
                 ⏸️ Deactivate
               </button>
             ` : `
-              <button class="btn btn-primary btn-sm" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE', '${escapeHtml(v.fullName || v.username)}')">
                 ▶️ Activate
               </button>
             `}
@@ -464,13 +478,15 @@
     }
 
     async function approveVolunteer(id, name) {
-      if (!confirm(`Are you sure you want to APPROVE volunteer application for "${name}"?\n\nThey will be granted access to conduct housing society inspections and submit compliance reports.`)) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      if (!confirm(`Are you sure you want to APPROVE volunteer application for "${displayName}"?\n\nThey will be granted access to conduct housing society inspections and submit compliance reports.`)) {
         return;
       }
 
       try {
         await api.approveVolunteer(id);
-        Toast.success('Application Approved', `Volunteer "${name}" is now approved and active.`);
+        Toast.success('Application Approved', `Volunteer "${displayName}" is now approved and active.`);
         await loadVolunteers();
       } catch(err) {
         Toast.error('Approval Failed', err.message || 'Could not approve applicant');
@@ -478,27 +494,33 @@
     }
 
     async function rejectVolunteer(id, name) {
-      if (!confirm(`Are you sure you want to REJECT volunteer application for "${name}"?\n\nRejected applicants cannot submit inspection complaints.`)) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      if (!confirm(`Are you sure you want to REJECT volunteer application for "${displayName}"?\n\nRejected applicants cannot submit inspection complaints.`)) {
         return;
       }
 
       try {
         await api.rejectVolunteer(id);
-        Toast.warning('Application Rejected', `Volunteer application for "${name}" was marked rejected.`);
+        Toast.warning('Application Rejected', `Volunteer application for "${displayName}" was marked rejected.`);
         await loadVolunteers();
       } catch(err) {
         Toast.error('Rejection Failed', err.message || 'Could not reject applicant');
       }
     }
 
-    async function deactivateVolunteer(id, name) {
-      if (!confirm(`Are you sure you want to temporarily deactivate "${name}"?`)) return;
+    async function toggleStatus(id, newStatus, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      const verb = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
+      if (!confirm(`Are you sure you want to ${verb} volunteer "${displayName}"?`)) return;
+
       try {
-        await api.updateVolunteerStatus(id, 'INACTIVE');
-        Toast.success('Status Updated', `Volunteer "${name}" is now INACTIVE.`);
+        await api.updateVolunteerStatus(id, newStatus);
+        Toast.success('Updated', `Volunteer "${displayName}" is now ${newStatus}`);
         await loadVolunteers();
       } catch (err) {
-        Toast.error('Failed', err.message);
+        Toast.error('Action Failed', err.message || 'Failed to update volunteer status');
       }
     }
 
@@ -576,9 +598,60 @@
       openModal('detail-modal');
     }
 
+    async function openPerf(id, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      openModal('perf-modal');
+      document.getElementById('perf-modal-title').textContent = displayName + ' — Statistics & Performance';
+      const body = document.getElementById('perf-body');
+      body.innerHTML = `<div style="display:flex;justify-content:center;padding:40px;"><div class="spinner"></div></div>`;
+      try {
+        const res = await api.getVolunteerPerformance(id);
+        const p = res.data || res;
+        body.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+            ${[
+              ['Total Audits',        p.inspectionsCount ?? 0, 'kpi-icon-green'],
+              ['Avg Score Given',     p.averageScoreGiven != null ? p.averageScoreGiven + '/100' : '—', 'kpi-icon-blue'],
+              ['Violations Raised',   p.violationsFlagged ?? 0, 'kpi-icon-red'],
+              ['Rooms Audited',       p.distinctRoomsInspected ?? 0, 'kpi-icon-purple'],
+              ['Buildings Covered',   p.distinctBuildingsInspected ?? 0, 'kpi-icon-amber'],
+              ['Status',              p.status || 'ACTIVE', 'kpi-icon-blue'],
+            ].map(([label, val, cls]) => `
+              <div class="kpi-card" style="padding:16px;">
+                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;">${label[0]}</div>
+                <div class="kpi-value" style="font-size:1.4rem;">${val}</div>
+                <div class="kpi-label" style="font-size:0.75rem;">${label}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:16px;">
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Governance Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
+              <div><span style="color:var(--text-muted)">Username:</span> <strong>${p.username}</strong></div>
+              <div><span style="color:var(--text-muted)">Email:</span> <strong>${p.email || '—'}</strong></div>
+              <div><span style="color:var(--text-muted)">Phone:</span> <strong>${p.phoneNumber || '—'}</strong></div>
+              <div><span style="color:var(--text-muted)">Last Activity:</span> <strong>${p.lastInspectionDate ? Fmt.date(p.lastInspectionDate) : 'Never'}</strong></div>
+            </div>
+          </div>
+        `;
+      } catch(err) {
+        body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message || 'Failed to load performance metrics'}</div>`;
+      }
+    }
+
     document.getElementById('search-input').addEventListener('input', renderVolunteers);
     document.getElementById('city-filter').addEventListener('change', renderVolunteers);
     document.getElementById('btn-refresh').addEventListener('click', loadVolunteers);
+
+    window.toggleStatus = toggleStatus;
+    window.openPerf = openPerf;
+    window.openDetails = openDetails;
+    window.approveVolunteer = approveVolunteer;
+    window.rejectVolunteer = rejectVolunteer;
+    window.loadVolunteers = loadVolunteers;
+
     loadVolunteers();
   </script>
 </body>

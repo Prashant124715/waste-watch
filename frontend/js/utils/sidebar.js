@@ -20,39 +20,39 @@ function buildAdminSidebar() {
 
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Overview</div>
-      <a class="nav-item ${isActive('dashboard')}" href="/admin/dashboard.html">
+      <a class="nav-item ${isActive('dashboard')}" href="./dashboard.html">
         <span class="nav-icon">📊</span> Dashboard
       </a>
-      <a class="nav-item ${isActive('analytics')}" href="/admin/analytics.html">
+      <a class="nav-item ${isActive('analytics')}" href="./analytics.html">
         <span class="nav-icon">📈</span> Analytics Engine
       </a>
-      <a class="nav-item ${isActive('map')}" href="/admin/map.html">
+      <a class="nav-item ${isActive('map')}" href="./map.html">
         <span class="nav-icon">🗺️</span> Live Map
       </a>
 
       <div class="sidebar-section-label">Operations</div>
-      <a class="nav-item ${isActive('areas')}" href="/admin/areas.html">
+      <a class="nav-item ${isActive('areas')}" href="./areas.html">
         <span class="nav-icon">🏙️</span> Areas & Buildings
       </a>
-      <a class="nav-item ${isActive('inspections')}" href="/admin/inspections.html">
+      <a class="nav-item ${isActive('inspections')}" href="./inspections.html">
         <span class="nav-icon">📋</span> Inspections
       </a>
-      <a class="nav-item ${isActive('violations')}" href="/admin/violations.html">
+      <a class="nav-item ${isActive('violations')}" href="./violations.html">
         <span class="nav-icon">⚠️</span> Violations
         <span class="nav-badge" id="open-viol-count" style="display:none"></span>
       </a>
 
       <div class="sidebar-section-label">People</div>
-      <a class="nav-item ${isActive('volunteers')}" href="/admin/volunteers.html">
+      <a class="nav-item ${isActive('volunteers')}" href="./volunteers.html">
         <span class="nav-icon">🤝</span> Volunteer Verification
         <span class="nav-badge" id="pending-vol-count" style="display:none; background:var(--color-warning);"></span>
       </a>
 
       <div class="sidebar-section-label">Governance</div>
-      <a class="nav-item ${isActive('reports')}" href="/admin/reports.html">
+      <a class="nav-item ${isActive('reports')}" href="./reports.html">
         <span class="nav-icon">📑</span> Reports & Exports
       </a>
-      <a class="nav-item ${isActive('audit-logs')}" href="/admin/audit-logs.html">
+      <a class="nav-item ${isActive('audit-logs')}" href="./audit-logs.html">
         <span class="nav-icon">🛡️</span> Audit Logs
       </a>
     </nav>
@@ -85,10 +85,10 @@ function buildVolunteerSidebar() {
 
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Inspect</div>
-      <a class="nav-item ${isActive('inspect')}" href="/volunteer/inspect.html">
+      <a class="nav-item ${isActive('inspect')}" href="./inspect.html">
         <span class="nav-icon">📝</span> New Inspection
       </a>
-      <a class="nav-item ${isActive('history')}" href="/volunteer/history.html">
+      <a class="nav-item ${isActive('history')}" href="./history.html">
         <span class="nav-icon">🕐</span> My History
       </a>
     </nav>

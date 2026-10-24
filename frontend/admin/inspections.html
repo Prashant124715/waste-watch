@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — All Inspections</title>
   <meta name="description" content="Browse all historical room inspection records in WasteWatch."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
 </head>
 <body>
   <div class="main-content">
@@ -73,9 +73,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error();
     injectSidebar('ADMIN');
@@ -86,19 +86,21 @@
       const tbody = document.getElementById('inspections-tbody');
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>`;
       try {
-        inspections = await api.getInspections();
+        const res = await api.getInspections();
+        inspections = Array.isArray(res) ? res : (res?.data || []);
         render();
       } catch(err) {
-        Toast.error('Error', err.message);
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load inspections</td></tr>`;
+        Toast.error('Error', err.message || 'Failed to load inspections');
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-danger);">Failed to load inspections: ${escapeHtml(err.message || 'Unknown error')}</td></tr>`;
       }
     }
 
     function render() {
-      const search  = document.getElementById('search-input').value.toLowerCase();
-      const classFil = document.getElementById('classification-filter').value;
+      const search  = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+      const classFil = document.getElementById('classification-filter')?.value || '';
 
-      const filtered = inspections.filter(i => {
+      const list = Array.isArray(inspections) ? inspections : [];
+      const filtered = list.filter(i => {
         const matchSearch = !search || [i.roomNumber, i.buildingName, i.areaName, i.volunteerName]
           .some(f => f && f.toLowerCase().includes(search));
         const matchClass = !classFil || i.classification === classFil;
@@ -111,26 +113,30 @@
         return;
       }
 
-      tbody.innerHTML = filtered.map(i => `
+      tbody.innerHTML = filtered.map(i => {
+        const locTitle = i.buildingLevelInspection
+          ? '🏢 Building Audit'
+          : `${escapeHtml(i.roomNumber || '—')} · F${i.floorNumber ?? '?'}`;
+        return `
         <tr style="cursor:pointer;" onclick="openDetail(${i.id})">
           <td class="font-mono text-muted">#${i.id}</td>
-          <td class="td-primary">${i.roomNumber||'—'} · F${i.floorNumber||'?'}</td>
-          <td>${i.buildingName||'—'}<br><span style="font-size:0.75rem;color:var(--text-muted)">${i.areaName||''}</span></td>
-          <td>${i.volunteerName||'—'}</td>
+          <td class="td-primary">${locTitle}</td>
+          <td>${escapeHtml(i.buildingName || '—')}<br><span style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(i.areaName || '')}</span></td>
+          <td>${escapeHtml(i.volunteerName || '—')}</td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="font-mono td-primary">${i.totalScore}</span>
+              <span class="font-mono td-primary">${i.totalScore ?? 0}</span>
               <div class="score-bar-wrap" style="width:60px;">
-                <div class="score-bar-fill ${Fmt.classifyBadge(i.classification)}" style="width:${i.totalScore}%"></div>
+                <div class="score-bar-fill ${Fmt.classifyBadge(i.classification)}" style="width:${i.totalScore ?? 0}%"></div>
               </div>
             </div>
           </td>
           <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
-          <td><span class="badge badge-${i.status === 'FLAGGED' ? 'danger' : 'neutral'}">${i.status||'—'}</span></td>
+          <td><span class="badge badge-${i.status === 'FLAGGED' ? 'danger' : 'neutral'}">${escapeHtml(i.status || '—')}</span></td>
           <td>${i.violationCreated ? '<span class="badge badge-danger">⚠️ Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
           <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
         </tr>
-      `).join('');
+      `}).join('');
     }
 
     async function openDetail(id) {
@@ -234,6 +240,8 @@
       Toast.success('Export', 'PDF print dialog opened.');
     });
 
+    window.openDetail = openDetail;
+    window.loadInspections = loadInspections;
     loadInspections();
   </script>
 </body>
