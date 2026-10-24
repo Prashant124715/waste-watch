@@ -195,6 +195,30 @@
     </header>
     <div class="page-content">
 
+      <!-- Verification Status Alerts -->
+      <div id="verification-banner" style="display:none;background:var(--color-warning-light);border:1.5px solid var(--color-warning);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;align-items:flex-start;gap:16px;">
+        <div style="font-size:2.2rem;line-height:1;">⏳</div>
+        <div>
+          <h3 style="font-size:1.2rem;font-weight:700;color:var(--color-warning);margin-bottom:6px;">Your account is awaiting admin verification.</h3>
+          <p style="font-size:0.9rem;color:var(--text-secondary);margin:0;line-height:1.5;">
+            Your volunteer application has been submitted successfully and is currently under municipal review. You can submit inspection complaints after an administrator verifies and approves your account.
+          </p>
+          <div style="margin-top:14px;">
+            <a href="/volunteer/history.html" class="btn btn-secondary btn-sm">View Audit History</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="rejected-banner" style="display:none;background:var(--color-danger-light);border:1.5px solid var(--color-danger);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;align-items:flex-start;gap:16px;">
+        <div style="font-size:2.2rem;line-height:1;">🚫</div>
+        <div>
+          <h3 style="font-size:1.2rem;font-weight:700;color:var(--color-danger);margin-bottom:6px;">Volunteer Application Not Approved</h3>
+          <p style="font-size:0.9rem;color:var(--text-secondary);margin:0;line-height:1.5;">
+            Your volunteer registration application was not approved by the municipal administration. You cannot submit inspection complaints or field reports.
+          </p>
+        </div>
+      </div>
+
       <!-- Stepper -->
       <div class="stepper" id="stepper">
         <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-label">Select Building</div></div>
@@ -208,9 +232,9 @@
       <div class="step-panel active" id="panel-1">
         <div class="building-select-section">
           <div class="building-hero-icon">🏢</div>
-          <h3 style="color:var(--text-primary);margin:0;">Select Building for Audit</h3>
+          <h3 style="color:var(--text-primary);margin:0;">Select Housing Society / Building</h3>
           <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:480px;text-align:center;margin:0;">
-            Choose a building to audit waste segregation bins, dry/wet compliance, and sanitary waste handling.
+            Choose a residential CHS, apartment complex, or commercial building to audit waste segregation compliance.
           </p>
 
           <div style="width:100%;max-width:480px;">
@@ -686,9 +710,35 @@
       goToStep(1);
     }
 
+    async function checkVolunteerStatus() {
+      try {
+        const user = await api.getMe();
+        if (user && user.status === 'PENDING') {
+          document.getElementById('verification-banner').style.display = 'flex';
+          document.getElementById('stepper').style.display = 'none';
+          document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
+          return false;
+        } else if (user && user.status === 'REJECTED') {
+          document.getElementById('rejected-banner').style.display = 'flex';
+          document.getElementById('stepper').style.display = 'none';
+          document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.warn('Could not verify profile status', err);
+        return true;
+      }
+    }
+
     // ── Init ──
-    updateLiveScore();
-    loadBuildings();
+    (async () => {
+      const isApproved = await checkVolunteerStatus();
+      if (isApproved) {
+        updateLiveScore();
+        loadBuildings();
+      }
+    })();
   </script>
 </body>
 </html>

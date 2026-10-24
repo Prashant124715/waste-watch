@@ -310,62 +310,72 @@
 
     <div class="page-content">
 
-      <!-- TOP 8 KPI CARDS -->
-      <div class="kpi-grid-8" id="kpi-grid">
-        <div class="kpi-card" id="card-kpi-areas">
-          <div class="kpi-icon kpi-icon-blue">🏙️</div>
-          <div class="kpi-value" id="kpi-total-areas">—</div>
-          <div class="kpi-label">Total Areas</div>
-          <div class="kpi-delta" id="kpi-areas-audited-sub">— audited</div>
-        </div>
-
-        <div class="kpi-card" id="card-kpi-buildings">
-          <div class="kpi-icon kpi-icon-green">🏢</div>
-          <div class="kpi-value" id="kpi-total-buildings">—</div>
+      <!-- TOP 5 PRIMARY STATS CARDS (Requirement 8) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:20px;" id="kpi-top-5">
+        <div class="kpi-card" style="border-top:3px solid var(--color-primary);">
+          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary);font-size:1.2rem;">🏢</div>
+          <div class="kpi-value font-mono" id="kpi-total-buildings">—</div>
           <div class="kpi-label">Total Buildings</div>
-          <div class="kpi-delta" id="kpi-buildings-audited-sub">— audited</div>
+          <div class="kpi-delta">Registered housing societies</div>
         </div>
 
-        <div class="kpi-card" id="card-kpi-rooms">
-          <div class="kpi-icon kpi-icon-purple">🚪</div>
-          <div class="kpi-value" id="kpi-total-rooms">—</div>
-          <div class="kpi-label">Total Rooms</div>
-          <div class="kpi-delta" id="kpi-rooms-covered-sub">— units covered</div>
+        <div class="kpi-card" style="border-top:3px solid var(--color-success);">
+          <div class="kpi-icon" style="background:var(--color-success-light);color:var(--color-success);font-size:1.2rem;">✓</div>
+          <div class="kpi-value font-mono" id="kpi-inspections-completed">—</div>
+          <div class="kpi-label">Inspections Completed</div>
+          <div class="kpi-delta" id="kpi-total-inspections-sub">Verified audits done</div>
         </div>
 
-        <div class="kpi-card" id="card-kpi-today">
-          <div class="kpi-icon kpi-icon-green">⚡</div>
-          <div class="kpi-value" id="kpi-inspections-today">—</div>
-          <div class="kpi-label">Inspections Today</div>
-          <div class="kpi-delta" id="kpi-total-inspections-sub">— total records</div>
+        <div class="kpi-card" style="border-top:3px solid var(--color-warning);">
+          <div class="kpi-icon" style="background:var(--color-warning-light);color:var(--color-warning);font-size:1.2rem;">⏳</div>
+          <div class="kpi-value font-mono" id="kpi-pending-inspections">—</div>
+          <div class="kpi-label">Pending Inspections</div>
+          <div class="kpi-delta">Societies awaiting audit</div>
         </div>
 
-        <div class="kpi-card" id="card-kpi-compliance">
+        <div class="kpi-card" style="border-top:3px solid var(--color-danger);">
+          <div class="kpi-icon" style="background:var(--color-danger-light);color:var(--color-danger);font-size:1.2rem;">⚠️</div>
+          <div class="kpi-value font-mono" id="kpi-open-violations" style="color:var(--color-danger);">—</div>
+          <div class="kpi-label">Reported Violations</div>
+          <div class="kpi-delta">Segregation non-compliance</div>
+        </div>
+
+        <a href="/admin/volunteers.html" class="kpi-card" style="border-top:3px solid var(--color-primary);text-decoration:none;display:block;">
+          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary-dark);font-size:1.2rem;">🤝</div>
+          <div class="kpi-value font-mono" id="kpi-pending-volunteers">—</div>
+          <div class="kpi-label">Pending Volunteer Apps</div>
+          <div class="kpi-delta" style="color:var(--color-primary);font-weight:700;">Review & Verify ↗</div>
+        </a>
+      </div>
+
+      <!-- Secondary Metrics Row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:24px;">
+        <div class="kpi-card">
           <div class="kpi-icon kpi-icon-blue">📈</div>
-          <div class="kpi-value" id="kpi-avg-compliance">—</div>
-          <div class="kpi-label">Average Compliance</div>
-          <div class="kpi-delta" id="kpi-compliance-status-sub">Weighted 100-pt index</div>
+          <div class="kpi-value font-mono" id="kpi-avg-compliance">—</div>
+          <div class="kpi-label">Average Compliance Rate</div>
+          <div class="kpi-delta">Municipal benchmark index</div>
         </div>
 
-        <div class="kpi-card" id="card-kpi-poor">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon-purple">👥</div>
+          <div class="kpi-value font-mono" id="kpi-active-volunteers">—</div>
+          <div class="kpi-label">Active Approved Volunteers</div>
+          <div class="kpi-delta">Authorized field inspectors</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon-blue">🏙️</div>
+          <div class="kpi-value font-mono" id="kpi-total-areas">—</div>
+          <div class="kpi-label">Municipal Zones / Areas</div>
+          <div class="kpi-delta" id="kpi-areas-audited-sub">— zones audited</div>
+        </div>
+
+        <div class="kpi-card">
           <div class="kpi-icon kpi-icon-red">❗</div>
-          <div class="kpi-value" id="kpi-poor-rooms">—</div>
-          <div class="kpi-label">Poor/Non-Compliant Units</div>
-          <div class="kpi-delta" style="color:var(--color-danger)">Score &lt; 40 / At-Risk</div>
-        </div>
-
-        <div class="kpi-card" id="card-kpi-violations">
-          <div class="kpi-icon kpi-icon-amber">⚠️</div>
-          <div class="kpi-value" id="kpi-open-violations">—</div>
-          <div class="kpi-label">Open Violations</div>
-          <div class="kpi-delta">Pending resolution</div>
-        </div>
-
-        <div class="kpi-card" id="card-kpi-coverage">
-          <div class="kpi-icon kpi-icon-purple">🎯</div>
-          <div class="kpi-value" id="kpi-coverage-percent">—</div>
-          <div class="kpi-label">Inspection Coverage</div>
-          <div class="kpi-delta" id="kpi-active-volunteers-sub">— active volunteers</div>
+          <div class="kpi-value font-mono" id="kpi-poor-rooms">—</div>
+          <div class="kpi-label">High-Risk Units (Score &lt; 40)</div>
+          <div class="kpi-delta" style="color:var(--color-danger);">Priority remediation</div>
         </div>
       </div>
 
@@ -664,24 +674,43 @@
     }
 
     function renderKpiCards(d) {
-      document.getElementById('kpi-total-areas').textContent = d.totalAreas ?? '0';
-      document.getElementById('kpi-areas-audited-sub').textContent = `${d.totalAreasAudited ?? 0} active zones audited`;
+      // 1. Total Buildings
+      const bldgEl = document.getElementById('kpi-total-buildings');
+      if (bldgEl) bldgEl.textContent = d.totalBuildings ?? '0';
 
-      document.getElementById('kpi-total-buildings').textContent = d.totalBuildings ?? '0';
-      document.getElementById('kpi-buildings-audited-sub').textContent = `${d.totalBuildingsAudited ?? 0} audited structures`;
+      // 2. Inspections Completed
+      const inspEl = document.getElementById('kpi-inspections-completed');
+      if (inspEl) inspEl.textContent = d.totalInspections ?? '0';
+      const inspSub = document.getElementById('kpi-total-inspections-sub');
+      if (inspSub) inspSub.textContent = `${d.inspectionsToday ?? 0} audits today`;
 
-      document.getElementById('kpi-total-rooms').textContent = d.totalRooms ?? '0';
-      document.getElementById('kpi-rooms-covered-sub').textContent = `${d.totalRoomsCovered ?? 0} units covered`;
+      // 3. Pending Inspections
+      const pendingInsp = Math.max(0, (d.totalBuildings ?? 0) - (d.totalBuildingsAudited ?? 0));
+      const pendInspEl = document.getElementById('kpi-pending-inspections');
+      if (pendInspEl) pendInspEl.textContent = pendingInsp;
 
-      document.getElementById('kpi-inspections-today').textContent = d.inspectionsToday ?? '0';
-      document.getElementById('kpi-total-inspections-sub').textContent = `${d.totalInspections ?? 0} lifetime audits`;
+      // 4. Reported Segregation Violations
+      const openViolEl = document.getElementById('kpi-open-violations');
+      if (openViolEl) openViolEl.textContent = d.openViolationsCount ?? '0';
 
-      document.getElementById('kpi-avg-compliance').textContent = d.overallComplianceRate ? `${d.overallComplianceRate}%` : '0.0%';
-      document.getElementById('kpi-poor-rooms').textContent = d.poorRoomsCount ?? '0';
+      // 5. Pending Volunteer Applications
+      const pendVolEl = document.getElementById('kpi-pending-volunteers');
+      if (pendVolEl) pendVolEl.textContent = d.pendingVolunteersCount ?? '0';
 
-      document.getElementById('kpi-open-violations').textContent = d.openViolationsCount ?? '0';
-      document.getElementById('kpi-coverage-percent').textContent = d.inspectionCoveragePercent ? `${d.inspectionCoveragePercent}%` : '0.0%';
-      document.getElementById('kpi-active-volunteers-sub').textContent = `${d.activeVolunteersCount ?? 0} active volunteers`;
+      // Secondary KPIs
+      const compEl = document.getElementById('kpi-avg-compliance');
+      if (compEl) compEl.textContent = d.overallComplianceRate ? `${d.overallComplianceRate}%` : '0.0%';
+
+      const actVolEl = document.getElementById('kpi-active-volunteers');
+      if (actVolEl) actVolEl.textContent = d.activeVolunteersCount ?? '0';
+
+      const areasEl = document.getElementById('kpi-total-areas');
+      if (areasEl) areasEl.textContent = d.totalAreas ?? '0';
+      const areasAudSub = document.getElementById('kpi-areas-audited-sub');
+      if (areasAudSub) areasAudSub.textContent = `${d.totalAreasAudited ?? 0} zones audited`;
+
+      const poorEl = document.getElementById('kpi-poor-rooms');
+      if (poorEl) poorEl.textContent = d.poorRoomsCount ?? '0';
     }
 
     function renderTrendChart(trends) {

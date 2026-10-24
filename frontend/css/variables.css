@@ -1,54 +1,61 @@
 /* ====================================================
-   WasteWatch Design System — CSS Custom Properties
+   WasteWatch Design System — Modern Orange & White Civic-Tech Theme
+   Clean, accessible, high-contrast palette for Indian municipal inspections
    ==================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* ── Brand Palette ── */
-  --color-primary:        hsl(154, 72%, 37%);   /* Eco Green */
-  --color-primary-light:  hsl(154, 60%, 48%);
-  --color-primary-dark:   hsl(154, 80%, 26%);
-  --color-primary-glow:   hsla(154, 72%, 37%, 0.25);
+  /* ── Brand Palette (Modern Orange & White) ── */
+  --color-primary:        #E87524;   /* Saffron / Civic Orange */
+  --color-primary-light:  #F98D3F;
+  --color-primary-dark:   #C85B16;
+  --color-primary-pale:   #FFF4EB;   /* Soft warm background tint */
+  --color-primary-glow:   rgba(232, 117, 36, 0.16);
 
-  --color-accent:         hsl(196, 90%, 56%);   /* Aqua Blue */
-  --color-accent-light:   hsl(196, 90%, 68%);
-  --color-accent-glow:    hsla(196, 90%, 56%, 0.25);
+  --color-accent:         #2B6CB0;   /* Secondary Municipal Slate Blue */
+  --color-accent-light:   #3182CE;
+  --color-accent-glow:    rgba(43, 108, 176, 0.15);
 
-  --color-danger:         hsl(0, 78%, 58%);
-  --color-warning:        hsl(38, 92%, 55%);
-  --color-info:           hsl(215, 80%, 57%);
-  --color-success:        hsl(154, 72%, 37%);
+  /* ── Restrained Status Indicators ── */
+  --color-danger:         #DC2626;   /* Crimson Red */
+  --color-danger-light:   #FEE2E2;
+  --color-warning:        #D97706;   /* Warm Amber */
+  --color-warning-light:  #FEF3C7;
+  --color-success:        #168048;   /* Restrained Eco Green */
+  --color-success-light:  #E8F7EE;
+  --color-info:           #2563EB;   /* Info Blue */
+  --color-info-light:     #EFF6FF;
 
-  /* ── Compliance Classification ── */
-  --color-excellent:      hsl(154, 72%, 37%);
-  --color-good:           hsl(196, 80%, 46%);
-  --color-needs-improv:   hsl(38, 92%, 55%);
-  --color-poor:           hsl(0, 78%, 58%);
+  /* ── Compliance Classifications ── */
+  --color-excellent:      #168048;
+  --color-good:           #2563EB;
+  --color-needs-improv:   #D97706;
+  --color-poor:           #DC2626;
 
-  /* ── Dark Background System ── */
-  --bg-base:              hsl(222, 22%, 8%);
-  --bg-surface:           hsl(222, 20%, 11%);
-  --bg-surface-2:         hsl(222, 18%, 14%);
-  --bg-surface-3:         hsl(222, 16%, 18%);
-  --bg-overlay:           hsla(222, 22%, 5%, 0.85);
-  --bg-glass:             hsla(222, 20%, 14%, 0.6);
-  --bg-glass-light:       hsla(255, 100%, 100%, 0.05);
+  /* ── Clean Light Background System ── */
+  --bg-base:              #F8FAF8;   /* Subtle neutral background */
+  --bg-surface:           #FFFFFF;   /* Pure white cards */
+  --bg-surface-2:         #F3F5F4;   /* Light table headers, pill background */
+  --bg-surface-3:         #E8ECE9;   /* Subtle divider / chip */
+  --bg-overlay:           rgba(20, 26, 23, 0.55);
+  --bg-glass:             rgba(255, 255, 255, 0.95);
+  --bg-glass-light:       rgba(232, 117, 36, 0.06);
 
-  /* ── Text ── */
-  --text-primary:         hsl(210, 20%, 94%);
-  --text-secondary:       hsl(210, 12%, 65%);
-  --text-muted:           hsl(210, 10%, 45%);
-  --text-inverse:         hsl(222, 22%, 8%);
+  /* ── Charcoal Typography ── */
+  --text-primary:         #1C2521;   /* Deep charcoal — WCAG AAA contrast */
+  --text-secondary:       #4B5852;   /* Medium charcoal for descriptions */
+  --text-muted:           #74837B;   /* Subtle labels, timestamps */
+  --text-inverse:         #FFFFFF;
 
   /* ── Borders ── */
-  --border-subtle:        hsla(210, 14%, 40%, 0.2);
-  --border-default:       hsla(210, 14%, 50%, 0.3);
-  --border-strong:        hsla(210, 14%, 60%, 0.5);
-  --border-primary:       hsla(154, 72%, 37%, 0.5);
+  --border-subtle:        #E7ECE9;
+  --border-default:       #D3DDD7;
+  --border-strong:        #B4C2BB;
+  --border-primary:       rgba(232, 117, 36, 0.4);
 
-  /* ── Sidebar ── */
-  --sidebar-width:        260px;
+  /* ── Layout Dimensions ── */
+  --sidebar-width:        264px;
   --topbar-height:        64px;
 
   /* ── Spacing ── */
@@ -64,27 +71,30 @@
   --space-16:  64px;
 
   /* ── Border Radius ── */
+  --radius-xs:    4px;
   --radius-sm:    6px;
   --radius-md:    10px;
-  --radius-lg:    16px;
-  --radius-xl:    24px;
+  --radius-lg:    14px;
+  --radius-xl:    20px;
   --radius-full:  9999px;
 
-  /* ── Shadows ── */
-  --shadow-sm:    0 1px 3px hsla(0,0%,0%,0.3), 0 1px 2px hsla(0,0%,0%,0.2);
-  --shadow-md:    0 4px 16px hsla(0,0%,0%,0.35), 0 2px 6px hsla(0,0%,0%,0.25);
-  --shadow-lg:    0 8px 32px hsla(0,0%,0%,0.45), 0 4px 12px hsla(0,0%,0%,0.3);
-  --shadow-glow-primary: 0 0 20px var(--color-primary-glow);
-  --shadow-glow-accent:  0 0 20px var(--color-accent-glow);
+  /* ── Crisp Subtle Shadows (Never Muddy) ── */
+  --shadow-xs:    0 1px 2px rgba(16, 24, 20, 0.04);
+  --shadow-sm:    0 1px 3px rgba(16, 24, 20, 0.06), 0 1px 2px rgba(16, 24, 20, 0.04);
+  --shadow-md:    0 4px 12px rgba(16, 24, 20, 0.07), 0 2px 4px rgba(16, 24, 20, 0.04);
+  --shadow-lg:    0 12px 28px rgba(16, 24, 20, 0.09), 0 4px 8px rgba(16, 24, 20, 0.03);
+  --shadow-card:  0 1px 3px rgba(16, 24, 20, 0.05), 0 0 0 1px rgba(16, 24, 20, 0.04);
+  --shadow-glow-primary: 0 4px 14px var(--color-primary-glow);
+  --shadow-glow-accent:  0 4px 14px var(--color-accent-glow);
 
   /* ── Transitions ── */
-  --transition-fast:   150ms ease;
-  --transition-base:   250ms ease;
-  --transition-slow:   400ms ease;
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ── Typography ── */
-  --font-sans:   'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:   'JetBrains Mono', 'Fira Code', monospace;
+  /* ── Typography Scale ── */
+  --font-sans:   'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
 
   --text-xs:    0.75rem;
   --text-sm:    0.875rem;

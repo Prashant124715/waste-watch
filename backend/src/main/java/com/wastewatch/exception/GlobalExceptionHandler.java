@@ -91,10 +91,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
         log.warn("Access denied on {}: {}", request.getRequestURI(), ex.getMessage());
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank() && !ex.getMessage().equalsIgnoreCase("Access Denied"))
+                ? ex.getMessage()
+                : "Access denied: Insufficient privileges to perform this operation";
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "Access denied: Insufficient privileges to perform this operation",
+                message,
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);

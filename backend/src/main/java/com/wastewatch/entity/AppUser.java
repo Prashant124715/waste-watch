@@ -30,6 +30,18 @@ public class AppUser {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
+    @Column(name = "city", length = 50)
+    private String city;
+
+    @Column(name = "state", length = 50)
+    private String state;
+
+    @Column(name = "address", length = 200)
+    private String address;
+
+    @Column(name = "reason", length = 500)
+    private String reason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private UserRole role;
@@ -149,5 +161,37 @@ public class AppUser {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

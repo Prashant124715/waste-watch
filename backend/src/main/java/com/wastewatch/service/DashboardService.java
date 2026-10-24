@@ -7,6 +7,8 @@ import com.wastewatch.entity.Inspection;
 import com.wastewatch.entity.Room;
 import com.wastewatch.entity.Violation;
 import com.wastewatch.entity.enums.ComplianceClassification;
+import com.wastewatch.entity.enums.UserRole;
+import com.wastewatch.entity.enums.UserStatus;
 import com.wastewatch.entity.enums.ViolationStatus;
 import com.wastewatch.repository.*;
 import org.springframework.stereotype.Service;
@@ -29,19 +31,22 @@ public class DashboardService {
     private final BuildingRepository buildingRepository;
     private final RoomRepository roomRepository;
     private final ComplianceScoringService scoringService;
+    private final UserRepository userRepository;
 
     public DashboardService(InspectionRepository inspectionRepository,
                             ViolationRepository violationRepository,
                             AreaRepository areaRepository,
                             BuildingRepository buildingRepository,
                             RoomRepository roomRepository,
-                            ComplianceScoringService scoringService) {
+                            ComplianceScoringService scoringService,
+                            UserRepository userRepository) {
         this.inspectionRepository = inspectionRepository;
         this.violationRepository = violationRepository;
         this.areaRepository = areaRepository;
         this.buildingRepository = buildingRepository;
         this.roomRepository = roomRepository;
         this.scoringService = scoringService;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
@@ -130,7 +135,9 @@ public class DashboardService {
                 ? BigDecimal.valueOf((double) roomsCovered.size() / totalRooms * 100).setScale(1, RoundingMode.HALF_UP).doubleValue()
                 : 0.0;
 
-        return new DashboardSummaryDto(
+        long pendingVolunteersCount = userRepository.countByRoleAndStatus(UserRole.VOLUNTEER, UserStatus.PENDING);
+
+        DashboardSummaryDto summaryDto = new DashboardSummaryDto(
                 totalAreas,
                 totalBuildings,
                 totalRooms,
@@ -146,6 +153,8 @@ public class DashboardService {
                 activeVolunteers.size(),
                 scoreDist
         );
+        summaryDto.setPendingVolunteersCount(pendingVolunteersCount);
+        return summaryDto;
     }
 
     @Transactional(readOnly = true)
