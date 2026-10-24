@@ -160,8 +160,11 @@ public class MapService {
             marker.setComplianceStatus("NO_DATA");
         }
 
-        // Latest inspection date
+        // Latest inspection date (supporting both room inspections and direct building-level inspections)
         Optional<Inspection> latestInsp = inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(bId);
+        if (latestInsp.isEmpty()) {
+            latestInsp = inspectionRepository.findFirstByBuildingIdOrderByInspectionDateDesc(bId);
+        }
         marker.setLastInspectionDate(latestInsp.map(Inspection::getInspectionDate).orElse(null));
 
         // Poor rooms count in building (< 40)
@@ -334,8 +337,8 @@ public class MapService {
             }
             dto.setPoorRoomCount(poorRooms);
 
-            // Open violations
-            Long openViolations = violationRepository.countByAreaIdAndStatus(areaId, ViolationStatus.OPEN);
+            // Open violations (all non-resolved violations: OPEN, ACKNOWLEDGED, ACTION_REQUIRED)
+            Long openViolations = violationRepository.countByAreaIdAndStatusNot(areaId, ViolationStatus.RESOLVED);
             dto.setOpenViolations(openViolations != null ? openViolations : 0L);
 
             // Area health score: 0.70 * compliance + 0.20 * coverage + 0.10 * resolutionRate

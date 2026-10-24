@@ -6,10 +6,13 @@ import com.wastewatch.entity.Area;
 import com.wastewatch.entity.AuditLog;
 import com.wastewatch.entity.Building;
 import com.wastewatch.exception.DuplicateResourceException;
+import com.wastewatch.exception.InvalidRequestException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.AreaRepository;
 import com.wastewatch.repository.AuditLogRepository;
 import com.wastewatch.repository.BuildingRepository;
+import com.wastewatch.repository.InspectionRepository;
+import com.wastewatch.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +24,19 @@ public class BuildingService {
 
     private final BuildingRepository buildingRepository;
     private final AreaRepository areaRepository;
+    private final RoomRepository roomRepository;
+    private final InspectionRepository inspectionRepository;
     private final AuditLogRepository auditLogRepository;
 
     public BuildingService(BuildingRepository buildingRepository,
                            AreaRepository areaRepository,
+                           RoomRepository roomRepository,
+                           InspectionRepository inspectionRepository,
                            AuditLogRepository auditLogRepository) {
         this.buildingRepository = buildingRepository;
         this.areaRepository = areaRepository;
+        this.roomRepository = roomRepository;
+        this.inspectionRepository = inspectionRepository;
         this.auditLogRepository = auditLogRepository;
     }
 
@@ -152,6 +161,14 @@ public class BuildingService {
     public void deleteBuilding(Long id) {
         Building building = buildingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Building", "id", id));
+
+        if (roomRepository.countByBuildingId(id) > 0) {
+            throw new InvalidRequestException("Cannot delete building: Building has associated rooms");
+        }
+
+        if (inspectionRepository.countByBuildingId(id) > 0) {
+            throw new InvalidRequestException("Cannot delete building: Building has inspection records");
+        }
 
         // Record Audit Log (Phase 14 Governance)
         AuditLog auditLog = new AuditLog(

@@ -5,9 +5,11 @@ import com.wastewatch.dto.area.AreaResponseDto;
 import com.wastewatch.entity.Area;
 import com.wastewatch.entity.AuditLog;
 import com.wastewatch.exception.DuplicateResourceException;
+import com.wastewatch.exception.InvalidRequestException;
 import com.wastewatch.exception.ResourceNotFoundException;
 import com.wastewatch.repository.AreaRepository;
 import com.wastewatch.repository.AuditLogRepository;
+import com.wastewatch.repository.BuildingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +20,12 @@ import java.util.stream.Collectors;
 public class AreaService {
 
     private final AreaRepository areaRepository;
+    private final BuildingRepository buildingRepository;
     private final AuditLogRepository auditLogRepository;
 
-    public AreaService(AreaRepository areaRepository, AuditLogRepository auditLogRepository) {
+    public AreaService(AreaRepository areaRepository, BuildingRepository buildingRepository, AuditLogRepository auditLogRepository) {
         this.areaRepository = areaRepository;
+        this.buildingRepository = buildingRepository;
         this.auditLogRepository = auditLogRepository;
     }
 
@@ -109,6 +113,10 @@ public class AreaService {
     public void deleteArea(Long id) {
         Area area = areaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Area", "id", id));
+
+        if (buildingRepository.countByAreaId(id) > 0) {
+            throw new InvalidRequestException("Cannot delete area: Area has associated buildings");
+        }
 
         // Record Audit Log (Phase 14 Governance)
         AuditLog auditLog = new AuditLog(

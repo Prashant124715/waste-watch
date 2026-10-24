@@ -53,6 +53,9 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
     @Query("SELECT COUNT(v) FROM Violation v WHERE ((v.building IS NOT NULL AND v.building.area.id = :areaId) OR (v.room IS NOT NULL AND v.room.building.area.id = :areaId)) AND v.status = :status")
     Long countByAreaIdAndStatus(@Param("areaId") Long areaId, @Param("status") ViolationStatus status);
 
+    @Query("SELECT COUNT(v) FROM Violation v WHERE ((v.building IS NOT NULL AND v.building.area.id = :areaId) OR (v.room IS NOT NULL AND v.room.building.area.id = :areaId)) AND v.status != :status")
+    Long countByAreaIdAndStatusNot(@Param("areaId") Long areaId, @Param("status") ViolationStatus status);
+
     @Query("SELECT COUNT(v) FROM Violation v WHERE (v.building.id = :buildingId OR (v.room IS NOT NULL AND v.room.building.id = :buildingId)) AND v.status != :status")
     Long countByBuildingIdAndStatusNot(@Param("buildingId") Long buildingId, @Param("status") ViolationStatus status);
 

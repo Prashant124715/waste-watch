@@ -94,11 +94,12 @@ public class DashboardService {
                     latestRoomInspections.put(rId, insp);
                 }
 
-                if (insp.getRoom().getBuilding() != null) {
-                    buildingsAudited.add(insp.getRoom().getBuilding().getId());
-                    if (insp.getRoom().getBuilding().getArea() != null) {
-                        areasAudited.add(insp.getRoom().getBuilding().getArea().getId());
-                    }
+            }
+            Building effBuilding = insp.getEffectiveBuilding();
+            if (effBuilding != null) {
+                buildingsAudited.add(effBuilding.getId());
+                if (effBuilding.getArea() != null) {
+                    areasAudited.add(effBuilding.getArea().getId());
                 }
             }
             if (insp.getVolunteer() != null) {
@@ -188,7 +189,7 @@ public class DashboardService {
             for (Building b : buildings) {
                 List<Room> rooms = roomRepository.findByBuildingId(b.getId());
                 totalRooms += rooms.size();
-                areaInspections.addAll(inspectionRepository.findByRoomBuildingIdOrderByInspectionDateDesc(b.getId()));
+                areaInspections.addAll(inspectionRepository.findAllByEffectiveBuildingIdOrderByInspectionDateDesc(b.getId()));
             }
 
             double avgScore = 0.0;

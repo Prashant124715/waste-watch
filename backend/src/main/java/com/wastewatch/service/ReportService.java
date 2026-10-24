@@ -76,7 +76,10 @@ public class ReportService {
         }
 
         dto.setTotalRooms(allRooms.size());
-        Set<Long> inspectedRoomIds = inspections.stream().map(i -> i.getRoom().getId()).collect(Collectors.toSet());
+        Set<Long> inspectedRoomIds = inspections.stream()
+                .filter(i -> i.getRoom() != null)
+                .map(i -> i.getRoom().getId())
+                .collect(Collectors.toSet());
         dto.setInspectedRooms(inspectedRoomIds.size());
         dto.setCoveragePercent(allRooms.isEmpty() ? 0.0 : round(((double) inspectedRoomIds.size() / allRooms.size()) * 100.0));
 
@@ -121,14 +124,22 @@ public class ReportService {
             dto.setTotalRooms(areaRooms.size());
 
             // Filter inspections belonging to this area
+            Set<Long> areaBldIds = blds.stream().map(Building::getId).collect(Collectors.toSet());
             Set<Long> areaRoomIds = areaRooms.stream().map(Room::getId).collect(Collectors.toSet());
             List<Inspection> areaInspections = allInspections.stream()
-                    .filter(i -> areaRoomIds.contains(i.getRoom().getId()))
+                    .filter(i -> {
+                        if (i.getRoom() != null && areaRoomIds.contains(i.getRoom().getId())) return true;
+                        Building eb = i.getEffectiveBuilding();
+                        return eb != null && areaBldIds.contains(eb.getId());
+                    })
                     .collect(Collectors.toList());
 
             dto.setTotalInspections(areaInspections.size());
 
-            Set<Long> inspectedRoomIds = areaInspections.stream().map(i -> i.getRoom().getId()).collect(Collectors.toSet());
+            Set<Long> inspectedRoomIds = areaInspections.stream()
+                    .filter(i -> i.getRoom() != null)
+                    .map(i -> i.getRoom().getId())
+                    .collect(Collectors.toSet());
             dto.setInspectedRooms(inspectedRoomIds.size());
             dto.setCoveragePercent(areaRooms.isEmpty() ? 0.0 : round(((double) inspectedRoomIds.size() / areaRooms.size()) * 100.0));
 
@@ -145,7 +156,11 @@ public class ReportService {
 
             // Violations in this area
             List<Violation> areaViolations = allViolations.stream()
-                    .filter(v -> v.getRoom() != null && areaRoomIds.contains(v.getRoom().getId()))
+                    .filter(v -> {
+                        if (v.getRoom() != null && areaRoomIds.contains(v.getRoom().getId())) return true;
+                        if (v.getBuilding() != null && areaBldIds.contains(v.getBuilding().getId())) return true;
+                        return false;
+                    })
                     .collect(Collectors.toList());
             long resolved = areaViolations.stream().filter(v -> v.getStatus() == ViolationStatus.RESOLVED).count();
             long open = areaViolations.size() - resolved;
@@ -188,12 +203,19 @@ public class ReportService {
 
             Set<Long> bldRoomIds = rooms.stream().map(Room::getId).collect(Collectors.toSet());
             List<Inspection> bldInspections = allInspections.stream()
-                    .filter(i -> bldRoomIds.contains(i.getRoom().getId()))
+                    .filter(i -> {
+                        if (i.getRoom() != null && bldRoomIds.contains(i.getRoom().getId())) return true;
+                        Building eb = i.getEffectiveBuilding();
+                        return eb != null && b.getId().equals(eb.getId());
+                    })
                     .collect(Collectors.toList());
 
             dto.setTotalInspections(bldInspections.size());
 
-            Set<Long> inspectedRoomIds = bldInspections.stream().map(i -> i.getRoom().getId()).collect(Collectors.toSet());
+            Set<Long> inspectedRoomIds = bldInspections.stream()
+                    .filter(i -> i.getRoom() != null)
+                    .map(i -> i.getRoom().getId())
+                    .collect(Collectors.toSet());
             dto.setInspectedRooms(inspectedRoomIds.size());
             dto.setCoveragePercent(rooms.isEmpty() ? 0.0 : round(((double) inspectedRoomIds.size() / rooms.size()) * 100.0));
 
@@ -210,7 +232,8 @@ public class ReportService {
             }
 
             List<Violation> bldViolations = allViolations.stream()
-                    .filter(v -> v.getRoom() != null && bldRoomIds.contains(v.getRoom().getId()))
+                    .filter(v -> (v.getRoom() != null && bldRoomIds.contains(v.getRoom().getId())) ||
+                                 (v.getBuilding() != null && b.getId().equals(v.getBuilding().getId())))
                     .collect(Collectors.toList());
             long resolved = bldViolations.stream().filter(v -> v.getStatus() == ViolationStatus.RESOLVED).count();
             long open = bldViolations.size() - resolved;
@@ -231,7 +254,10 @@ public class ReportService {
         List<Room> allRooms = roomRepository.findAll();
         List<Inspection> allInspections = inspectionRepository.findAll();
 
-        Set<Long> inspectedRoomIds = allInspections.stream().map(i -> i.getRoom().getId()).collect(Collectors.toSet());
+        Set<Long> inspectedRoomIds = allInspections.stream()
+                .filter(i -> i.getRoom() != null)
+                .map(i -> i.getRoom().getId())
+                .collect(Collectors.toSet());
 
         CoverageReportDto dto = new CoverageReportDto();
         dto.setTotalRooms(allRooms.size());
@@ -333,11 +359,15 @@ public class ReportService {
             if (!volInspections.isEmpty()) {
                 double avg = volInspections.stream().mapToInt(Inspection::getTotalScore).average().orElse(0.0);
                 dto.setAverageScore(round(avg));
-                Set<Long> rooms = volInspections.stream().map(i -> i.getRoom().getId()).collect(Collectors.toSet());
+                Set<Long> rooms = volInspections.stream()
+                        .filter(i -> i.getRoom() != null)
+                        .map(i -> i.getRoom().getId())
+                        .collect(Collectors.toSet());
                 dto.setUniqueRoomsAudited(rooms.size());
                 Set<Long> blds = volInspections.stream()
-                        .filter(i -> i.getRoom().getBuilding() != null)
-                        .map(i -> i.getRoom().getBuilding().getId())
+                        .map(Inspection::getEffectiveBuilding)
+                        .filter(Objects::nonNull)
+                        .map(Building::getId)
                         .collect(Collectors.toSet());
                 dto.setUniqueBuildingsAudited(blds.size());
 
@@ -489,8 +519,8 @@ public class ReportService {
         for (Inspection i : inspections) {
             sb.append(i.getId()).append(",")
               .append(i.getInspectionDate() != null ? i.getInspectionDate().toString() : "").append(",")
-              .append(escape(i.getRoom() != null ? i.getRoom().getRoomNumber() : "")).append(",")
-              .append(escape(i.getRoom() != null && i.getRoom().getBuilding() != null ? i.getRoom().getBuilding().getName() : "")).append(",")
+              .append(escape(i.getRoom() != null ? i.getRoom().getRoomNumber() : "BUILDING")).append(",")
+              .append(escape(i.getEffectiveBuilding() != null ? i.getEffectiveBuilding().getName() : "")).append(",")
               .append(escape(i.getVolunteer() != null ? i.getVolunteer().getFullName() : "")).append(",")
               .append(Boolean.TRUE.equals(i.getWetWasteSeparated())).append(",")
               .append(Boolean.TRUE.equals(i.getDryWasteSeparated())).append(",")

@@ -66,6 +66,7 @@ public interface InspectionRepository extends JpaRepository<Inspection, Long> {
     Long countByBuildingId(@Param("buildingId") Long buildingId);
 
     long countByVolunteerId(Long volunteerId);
+    long countByRoomId(Long roomId);
 
     @Query("SELECT COUNT(i) FROM Inspection i WHERE i.volunteer.id = :volunteerId AND i.totalScore < 40")
     Long countViolationsFlaggedByVolunteerId(@Param("volunteerId") Long volunteerId);
