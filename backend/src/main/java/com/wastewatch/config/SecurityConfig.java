@@ -74,6 +74,7 @@ public class SecurityConfig {
                         // Public Endpoints
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

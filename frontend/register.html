@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatch — Volunteer Registration</title>
+  <meta name="description" content="Register as a WasteWatch civic volunteer to inspect housing societies and report waste segregation compliance."/>
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/components.css"/>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #FFF9F5 0%, #F8FAF8 100%);
+      padding: var(--space-6) var(--space-4);
+      color: var(--text-primary);
+    }
+
+    .register-container {
+      width: 100%;
+      max-width: 620px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .register-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 36px 36px;
+      box-shadow: 0 10px 30px rgba(28, 37, 33, 0.08), 0 1px 3px rgba(28, 37, 33, 0.04);
+    }
+
+    .register-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .register-logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px var(--color-primary-glow);
+    }
+
+    .register-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .register-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .register-card {
+        padding: 24px 20px;
+      }
+    }
+
+    .col-span-2 {
+      grid-column: 1 / -1;
+    }
+
+    .form-group {
+      margin-bottom: 4px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .form-label .required {
+      color: var(--color-danger);
+      margin-left: 2px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap .form-control {
+      background: #FFFFFF;
+      border: 1px solid var(--border-default);
+      color: var(--text-primary);
+    }
+
+    .phone-prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .input-phone {
+      padding-left: 48px !important;
+    }
+
+    .input-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px;
+    }
+
+    .helper-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .error-msg {
+      display: none;
+      background: var(--color-danger-light);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      color: var(--color-danger);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .error-msg.visible { display: block; }
+
+    .success-card {
+      display: none;
+      text-align: center;
+      padding: 20px 8px;
+    }
+    .success-card.visible { display: block; }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--color-success-light);
+      color: var(--color-success);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      border: 2px solid var(--color-success);
+    }
+
+    .success-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .success-message {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      background: #F8FAF8;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin: 16px 0 24px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--color-primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px var(--color-primary-glow);
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .btn-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #FFFFFF;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .register-footer {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .register-footer a {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+    .register-footer a:hover {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="register-card">
+      <div id="form-container">
+        <div class="register-header">
+          <div class="register-logo">🤝</div>
+          <h1 class="register-title">Register as Volunteer</h1>
+          <p class="register-subtitle">Join WasteWatch to inspect housing societies, report segregation, and support Swachh Bharat civic initiatives.</p>
+        </div>
+
+        <div class="error-msg" id="error-msg" role="alert"></div>
+
+        <form id="register-form" autocomplete="on">
+          <div class="form-grid">
+            <!-- Full Name -->
+            <div class="form-group col-span-2">
+              <label class="form-label" for="fullName">Full Name <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="text" id="fullName" name="fullName" class="form-control"
+                  placeholder="e.g. Ramesh Kulkarni" required autocomplete="name" minlength="2" maxlength="100"/>
+              </div>
+            </div>
+
+            <!-- Username -->
+            <div class="form-group">
+              <label class="form-label" for="username">Username <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="text" id="username" name="username" class="form-control"
+                  placeholder="e.g. ramesh_k" required autocomplete="username" minlength="3" maxlength="50"/>
+              </div>
+              <div class="helper-text">Unique handle for logging in</div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="email" id="email" name="email" class="form-control"
+                  placeholder="e.g. ramesh@example.com" required autocomplete="email"/>
+              </div>
+              <div class="helper-text">Official communication & alerts</div>
+            </div>
+
+            <!-- Indian Mobile Number -->
+            <div class="form-group col-span-2">
+              <label class="form-label" for="phoneNumber">Indian Mobile Number (+91) <span class="required">*</span></label>
+              <div class="input-wrap">
+                <span class="phone-prefix">+91</span>
+                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control input-phone"
+                  placeholder="98765 43210" required autocomplete="tel" pattern="[6-9][0-9]{9}" maxlength="14"/>
+              </div>
+              <div class="helper-text">Valid 10-digit Indian mobile number (e.g. 9876543210)</div>
+            </div>
+
+            <!-- City -->
+            <div class="form-group">
+              <label class="form-label" for="city">City / Municipal Corp <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="text" id="city" name="city" class="form-control"
+                  placeholder="e.g. Mumbai, Pune, Bengaluru" required/>
+              </div>
+            </div>
+
+            <!-- State -->
+            <div class="form-group">
+              <label class="form-label" for="state">State <span class="required">*</span></label>
+              <div class="input-wrap">
+                <select id="state" name="state" class="form-control" required>
+                  <option value="">Select State</option>
+                  <option value="Maharashtra" selected>Maharashtra</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Delhi">Delhi NCR</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Locality or Address -->
+            <div class="form-group col-span-2">
+              <label class="form-label" for="address">Locality / Housing Society Area <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="text" id="address" name="address" class="form-control"
+                  placeholder="e.g. Andheri West, Bandra East, Kothrud CHS area" required/>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <label class="form-label" for="password">Password <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="password" id="password" name="password" class="form-control"
+                  placeholder="At least 6 characters" required autocomplete="new-password" minlength="6"/>
+                <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password">👁️</button>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+              <label class="form-label" for="confirmPassword">Confirm Password <span class="required">*</span></label>
+              <div class="input-wrap">
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                  placeholder="Re-enter password" required autocomplete="new-password" minlength="6"/>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-btn">
+            <span class="btn-spinner" id="btn-spinner"></span>
+            <span id="btn-text">Submit Volunteer Application</span>
+          </button>
+        </form>
+
+        <div class="register-footer">
+          Already registered or municipal staff? <a href="/index.html">Sign in here</a>
+        </div>
+      </div>
+
+      <!-- Success Card shown after registration -->
+      <div class="success-card" id="success-card">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Application Submitted!</h2>
+        <div class="success-message">
+          <strong>Your volunteer application has been submitted successfully.</strong> You can submit inspection complaints after an administrator verifies and approves your account.
+        </div>
+        <a href="/index.html" class="btn btn-primary" style="display:inline-flex;padding:12px 28px;text-decoration:none;">
+          Return to Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api/client.js"></script>
+  <script>
+    const form         = document.getElementById('register-form');
+    const formContainer = document.getElementById('form-container');
+    const successCard  = document.getElementById('success-card');
+    const errMsg       = document.getElementById('error-msg');
+    const submitBtn    = document.getElementById('submit-btn');
+    const btnText      = document.getElementById('btn-text');
+    const spinner      = document.getElementById('btn-spinner');
+
+    function setLoading(v) {
+      submitBtn.disabled = v;
+      spinner.style.display = v ? 'block' : 'none';
+      btnText.textContent = v ? 'Submitting Application…' : 'Submit Volunteer Application';
+    }
+
+    function showError(msg) {
+      errMsg.textContent = msg;
+      errMsg.classList.add('visible');
+      errMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function hideError() {
+      errMsg.classList.remove('visible');
+    }
+
+    // Password visibility toggle
+    document.getElementById('toggle-pwd').addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      const conf = document.getElementById('confirmPassword');
+      const isPwd = pwd.type === 'password';
+      pwd.type = isPwd ? 'text' : 'password';
+      conf.type = isPwd ? 'text' : 'password';
+      document.getElementById('toggle-pwd').textContent = isPwd ? '👁️' : '🙈';
+    });
+
+    // Auto-generate username suggestion if empty
+    document.getElementById('fullName').addEventListener('blur', () => {
+      const uField = document.getElementById('username');
+      if (!uField.value.trim()) {
+        const parts = document.getElementById('fullName').value.trim().toLowerCase().split(/\s+/);
+        if (parts.length > 0 && parts[0]) {
+          const rand = Math.floor(100 + Math.random() * 900);
+          uField.value = parts[0] + (parts[1] ? '_' + parts[1][0] : '') + rand;
+        }
+      }
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      hideError();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      let phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const state = document.getElementById('state').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Validation
+      if (!fullName || !username || !email || !phoneNumber || !city || !state || !address || !password) {
+        return showError('Please fill in all required fields.');
+      }
+
+      if (password !== confirmPassword) {
+        return showError('Passwords do not match. Please verify your password confirmation.');
+      }
+
+      if (password.length < 6) {
+        return showError('Password must be at least 6 characters long.');
+      }
+
+      // Format Indian phone number
+      const cleanPhoneDigits = phoneNumber.replace(/[^0-9]/g, '');
+      if (cleanPhoneDigits.length < 10) {
+        return showError('Please enter a valid 10-digit Indian mobile number.');
+      }
+      const tenDigits = cleanPhoneDigits.slice(-10);
+      if (!/^[6-9]\d{9}$/.test(tenDigits)) {
+        return showError('Indian mobile numbers must begin with 6, 7, 8, or 9.');
+      }
+      const formattedPhone = '+91' + tenDigits;
+
+      setLoading(true);
+      try {
+        await api.register({
+          fullName,
+          username,
+          email,
+          phoneNumber: formattedPhone,
+          city,
+          state,
+          address,
+          password,
+          confirmPassword
+        });
+
+        // Show exact requested prompt message
+        formContainer.style.display = 'none';
+        successCard.classList.add('visible');
+      } catch (err) {
+        showError(err.message || 'Registration failed. An account with this email, username, or phone may already exist.');
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>

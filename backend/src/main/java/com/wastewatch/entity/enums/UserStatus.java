@@ -3,5 +3,7 @@ package com.wastewatch.entity.enums;
 public enum UserStatus {
     ACTIVE,
     INACTIVE,
-    SUSPENDED
+    SUSPENDED,
+    PENDING,
+    REJECTED
 }

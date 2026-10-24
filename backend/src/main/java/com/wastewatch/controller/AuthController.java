@@ -1,11 +1,14 @@
 package com.wastewatch.controller;
 
+import com.wastewatch.dto.ApiResponse;
 import com.wastewatch.dto.auth.AuthResponseDto;
 import com.wastewatch.dto.auth.LoginRequestDto;
+import com.wastewatch.dto.auth.RegisterRequestDto;
 import com.wastewatch.dto.auth.UserProfileDto;
 import com.wastewatch.security.UserPrincipal;
 import com.wastewatch.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,15 @@ public class AuthController {
     public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest) {
         AuthResponseDto response = authService.login(loginRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<UserProfileDto>> register(@Valid @RequestBody RegisterRequestDto registerRequest) {
+        UserProfileDto profile = authService.registerVolunteer(registerRequest);
+        return new ResponseEntity<>(
+                ApiResponse.ok("Volunteer registration submitted successfully. Your account is pending administrator verification.", profile),
+                HttpStatus.CREATED
+        );
     }
 
     @GetMapping("/me")

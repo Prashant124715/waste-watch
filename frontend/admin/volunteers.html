@@ -3,66 +3,213 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WasteWatch — Volunteer Governance</title>
-  <meta name="description" content="Manage volunteer status, activity metrics, and performance audit trails."/>
+  <title>WasteWatch — Volunteer Applications & Governance</title>
+  <meta name="description" content="Review volunteer applications, approve or reject applicants, and monitor field audit performance."/>
   <link rel="stylesheet" href="../css/variables.css"/>
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <style>
+    /* Tab bar */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-subtle);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .tab-btn:hover {
+      color: var(--color-primary);
+    }
+    .tab-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 700;
+    }
+    .tab-count {
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+    }
+    .tab-btn.active .tab-count {
+      background: var(--color-primary-pale);
+      color: var(--color-primary-dark);
+    }
+
+    /* Volunteers grid */
     .vol-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 20px;
     }
+
     .vol-card {
-      background: var(--bg-surface);
+      background: #FFFFFF;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-card);
       transition: all var(--transition-base);
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     .vol-card:hover {
       border-color: var(--border-primary);
-      box-shadow: var(--shadow-glow-primary);
+      box-shadow: 0 4px 14px rgba(28, 37, 33, 0.08);
       transform: translateY(-2px);
     }
+    .vol-card.pending-border {
+      border-left: 4px solid var(--color-warning);
+    }
+    .vol-card.approved-border {
+      border-left: 4px solid var(--color-success);
+    }
+    .vol-card.rejected-border {
+      border-left: 4px solid var(--color-danger);
+    }
+
     .vol-card-header {
       display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
     }
+
     .vol-avatar {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 1.1rem;
-      color: #fff;
+      font-size: 1rem;
+      color: #FFFFFF;
       flex-shrink: 0;
     }
-    .vol-stat-row {
+
+    .vol-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .vol-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .vol-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge-pending {
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+    }
+    .badge-approved, .badge-active {
+      background: var(--color-success-light);
+      color: var(--color-success);
+      border: 1px solid rgba(22, 128, 72, 0.3);
+    }
+    .badge-rejected {
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    .vol-details-table {
+      font-size: 0.825rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vol-detail-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border-subtle);
-      font-size: 0.875rem;
+      color: var(--text-secondary);
     }
-    .vol-stat-row:last-child { border-bottom: none; }
-    .vol-stat-label { color: var(--text-muted); }
-    .vol-stat-value { font-weight: 700; color: var(--text-primary); }
+    .vol-detail-label {
+      color: var(--text-muted);
+    }
+    .vol-detail-val {
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
     .vol-card-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       margin-top: auto;
-      padding-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    .btn-approve {
+      background: var(--color-success);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background var(--transition-fast);
+    }
+    .btn-approve:hover {
+      background: #116839;
+    }
+
+    .btn-reject {
+      background: #FFFFFF;
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all var(--transition-fast);
+    }
+    .btn-reject:hover {
+      background: var(--color-danger-light);
     }
   </style>
 </head>
@@ -70,42 +217,72 @@
   <div class="main-content">
     <header class="topbar">
       <div>
-        <div class="topbar-title">Volunteer Governance</div>
-        <div class="topbar-subtitle">Monitor activity, view audit productivity, and manage account statuses</div>
+        <div class="topbar-title">Volunteer Applications & Governance</div>
+        <div class="topbar-subtitle">Review new registrations, verify Indian civic volunteers, and manage field inspection permissions</div>
       </div>
     </header>
+
     <div class="page-content">
+      <!-- Filter Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-status="ALL" onclick="setTab('ALL')">
+          <span>All Applications</span>
+          <span class="tab-count" id="count-all">0</span>
+        </button>
+        <button class="tab-btn" data-status="PENDING" onclick="setTab('PENDING')">
+          <span>⏳ Pending Verification</span>
+          <span class="tab-count" id="count-pending" style="background:var(--color-warning-light);color:var(--color-warning);">0</span>
+        </button>
+        <button class="tab-btn" data-status="ACTIVE" onclick="setTab('ACTIVE')">
+          <span>✓ Approved / Active</span>
+          <span class="tab-count" id="count-approved">0</span>
+        </button>
+        <button class="tab-btn" data-status="REJECTED" onclick="setTab('REJECTED')">
+          <span>✕ Rejected</span>
+          <span class="tab-count" id="count-rejected">0</span>
+        </button>
+      </div>
+
       <div class="toolbar">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search volunteer name, email, username…"/>
+          <input type="text" class="search-input" id="search-input" placeholder="Search applicant by name, email, phone, city…"/>
         </div>
-        <select class="form-control form-control-sm" id="status-filter" style="max-width:180px;">
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="SUSPENDED">Suspended</option>
+        <select class="form-control form-control-sm" id="city-filter" style="max-width:180px;">
+          <option value="">All Cities</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh List</button>
         </div>
       </div>
+
       <div class="vol-grid" id="vol-grid">
         <div class="empty-state" style="grid-column:1/-1;">
-          <div class="animate-pulse" style="color:var(--text-muted);">Loading volunteers…</div>
+          <div class="animate-pulse" style="color:var(--text-muted);">Loading volunteer applications…</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Performance Detail Modal -->
+  <!-- Detail & Application Review Modal -->
+  <div class="modal-overlay hidden" id="detail-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="detail-modal-title">Volunteer Application Details</h2>
+        <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+      </div>
+      <div id="detail-body" style="color:var(--text-secondary);padding:var(--space-2) 0;"></div>
+    </div>
+  </div>
+
+  <!-- Performance & Statistics Modal (Preserved from origin/main) -->
   <div class="modal-overlay hidden" id="perf-modal">
     <div class="modal modal-lg">
       <div class="modal-header">
-        <h2 class="modal-title" id="perf-modal-title">Volunteer Performance</h2>
+        <h2 class="modal-title" id="perf-modal-title">Volunteer Performance & Audit Analytics</h2>
         <button class="modal-close" onclick="closeModal('perf-modal')">✕</button>
       </div>
-      <div id="perf-body" style="color:var(--text-secondary);"></div>
+      <div id="perf-body" style="color:var(--text-secondary);padding:var(--space-2) 0;"></div>
     </div>
   </div>
 
@@ -118,95 +295,218 @@
     injectSidebar('ADMIN');
 
     let volunteers = [];
+    let currentTab = 'ALL';
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.status === tab);
+      });
+      renderVolunteers();
+    }
 
     async function loadVolunteers() {
       try {
         const res = await api.getVolunteers();
         volunteers = res.data || res;
+        populateCityFilter();
+        updateTabCounts();
         renderVolunteers();
       } catch(e) {
-        Toast.error('Error', e.message);
-        document.getElementById('vol-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Failed to load volunteers</div></div>`;
+        Toast.error('Error', e.message || 'Failed to load volunteers');
+        document.getElementById('vol-grid').innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-title">Failed to load volunteer records</div>
+            <p>${e.message}</p>
+          </div>`;
       }
     }
 
+    function updateTabCounts() {
+      const allCount = volunteers.length;
+      const pendingCount = volunteers.filter(v => v.status === 'PENDING').length;
+      const approvedCount = volunteers.filter(v => v.status === 'ACTIVE').length;
+      const rejectedCount = volunteers.filter(v => v.status === 'REJECTED').length;
+
+      document.getElementById('count-all').textContent = allCount;
+      document.getElementById('count-pending').textContent = pendingCount;
+      document.getElementById('count-approved').textContent = approvedCount;
+      document.getElementById('count-rejected').textContent = rejectedCount;
+    }
+
+    function populateCityFilter() {
+      const citySelect = document.getElementById('city-filter');
+      const current = citySelect.value;
+      const cities = Array.from(new Set(volunteers.map(v => v.city).filter(Boolean))).sort();
+      citySelect.innerHTML = '<option value="">All Cities</option>' +
+        cities.map(c => `<option value="${c}" ${c === current ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
     function renderVolunteers() {
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const statusFilter = document.getElementById('status-filter').value;
+      const search = document.getElementById('search-input').value.toLowerCase().trim();
+      const cityFilter = document.getElementById('city-filter').value;
 
       const filtered = volunteers.filter(v => {
-        const matchesSearch = [v.fullName, v.username, v.email, v.phoneNumber].some(f => f && f.toLowerCase().includes(search));
-        const matchesStatus = !statusFilter || v.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        // Tab filter
+        if (currentTab !== 'ALL') {
+          if (v.status !== currentTab) return false;
+        }
+
+        // City filter
+        if (cityFilter && v.city !== cityFilter) return false;
+
+        // Search filter
+        if (search) {
+          const fields = [v.fullName, v.username, v.email, v.phoneNumber, v.city, v.state, v.address];
+          const match = fields.some(f => f && f.toLowerCase().includes(search));
+          if (!match) return false;
+        }
+
+        return true;
       });
 
       const grid = document.getElementById('vol-grid');
       if (!filtered.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">👷</div><div class="empty-state-title">No volunteers match the selected filter</div></div>`;
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-title">No volunteer applications found</div>
+            <p style="color:var(--text-muted);font-size:0.875rem;">
+              ${currentTab === 'PENDING' ? 'There are no pending volunteer registrations requiring verification.' : 'Try adjusting your search query or tab filters.'}
+            </p>
+          </div>`;
         return;
       }
 
       grid.innerHTML = filtered.map(v => {
+        const isPending = v.status === 'PENDING';
         const isActive = v.status === 'ACTIVE';
+        const isRejected = v.status === 'REJECTED';
+
+        let borderClass = 'pending-border';
+        let badgeClass = 'badge-pending';
+        let badgeText = 'Pending Approval';
+
+        if (isActive) {
+          borderClass = 'approved-border';
+          badgeClass = 'badge-approved';
+          badgeText = 'Approved / Active';
+        } else if (isRejected) {
+          borderClass = 'rejected-border';
+          badgeClass = 'badge-rejected';
+          badgeText = 'Rejected';
+        } else if (v.status === 'INACTIVE' || v.status === 'SUSPENDED') {
+          borderClass = '';
+          badgeClass = 'badge badge-secondary';
+          badgeText = v.status;
+        }
+
+        const dateStr = v.createdAt ? Fmt.date(v.createdAt) : (v.lastInspectionDate ? Fmt.date(v.lastInspectionDate) : 'Registered');
+
         return `
-        <div class="vol-card">
+        <div class="vol-card ${borderClass}">
           <div class="vol-card-header">
             <div class="vol-avatar">${Fmt.avatar(v.fullName || v.username)}</div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.fullName || v.username}</div>
-              <div style="font-size:0.8rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${v.username} • ${v.email || '—'}</div>
+            <div class="vol-info">
+              <div class="vol-name">${v.fullName || v.username}</div>
+              <div class="vol-sub">@${v.username} • ${v.city || 'Location unlisted'}</div>
             </div>
-            <span class="badge badge-${isActive ? 'excellent' : 'poor'}">${v.status || 'ACTIVE'}</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
 
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Total Audits</span>
-            <span class="vol-stat-value font-mono">${v.inspectionsCount ?? 0}</span>
-          </div>
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Avg Score Awarded</span>
-            <span class="vol-stat-value font-mono">${v.averageScoreGiven != null ? v.averageScoreGiven + '/100' : '—'}</span>
-          </div>
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Rooms Audited</span>
-            <span class="vol-stat-value font-mono">${v.distinctRoomsInspected ?? 0}</span>
-          </div>
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Buildings Covered</span>
-            <span class="vol-stat-value font-mono">${v.distinctBuildingsInspected ?? 0}</span>
-          </div>
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Violations Raised</span>
-            <span class="vol-stat-value font-mono" style="color:${v.violationsFlagged > 0 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.violationsFlagged ?? 0}</span>
-          </div>
-          <div class="vol-stat-row">
-            <span class="vol-stat-label">Last Audit</span>
-            <span class="vol-stat-value" style="font-size:0.8rem;">${v.lastInspectionDate ? Fmt.date(v.lastInspectionDate) : 'Never'}</span>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="score-bar-wrap">
-              <div class="score-bar-fill ${v.averageScoreGiven >= 80 ? 'excellent' : v.averageScoreGiven >= 60 ? 'good' : v.averageScoreGiven >= 40 ? 'needs-improvement' : 'poor'}"
-                style="width:${v.averageScoreGiven || 0}%"></div>
+          <div class="vol-details-table">
+            <div class="vol-detail-row">
+              <span class="vol-detail-label">Email:</span>
+              <span class="vol-detail-val">${v.email || '—'}</span>
             </div>
+            <div class="vol-detail-row">
+              <span class="vol-detail-label">Mobile:</span>
+              <span class="vol-detail-val font-mono">${v.phoneNumber || '—'}</span>
+            </div>
+            <div class="vol-detail-row">
+              <span class="vol-detail-label">City & State:</span>
+              <span class="vol-detail-val">${[v.city, v.state].filter(Boolean).join(', ') || '—'}</span>
+            </div>
+            <div class="vol-detail-row">
+              <span class="vol-detail-label">Reg. Date:</span>
+              <span class="vol-detail-val">${dateStr}</span>
+            </div>
+            ${isActive ? `
+            <div class="vol-detail-row">
+              <span class="vol-detail-label">Total Audits:</span>
+              <span class="vol-detail-val font-mono">${v.inspectionsCount ?? 0}</span>
+            </div>` : ''}
           </div>
 
           <div class="vol-card-actions">
-            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openPerf(${v.id})">
-              📈 Statistics
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openDetails(${v.id})">
+              👁️ Details
             </button>
-            ${isActive ? `
-              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE')">
+            <button class="btn btn-secondary btn-sm" onclick="openPerf(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              📈 Stats
+            </button>
+            ${isPending ? `
+              <button class="btn-approve" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+                ✓ Approve
+              </button>
+              <button class="btn-reject" onclick="rejectVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+                ✕ Reject
+              </button>
+            ` : isRejected ? `
+              <button class="btn-approve" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+                ✓ Re-Approve
+              </button>
+            ` : isActive ? `
+              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE', '${escapeHtml(v.fullName || v.username)}')">
                 ⏸️ Deactivate
               </button>
             ` : `
-              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE')">
+              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE', '${escapeHtml(v.fullName || v.username)}')">
                 ▶️ Activate
               </button>
             `}
           </div>
         </div>
-      `}).join('');
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    async function approveVolunteer(id, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      if (!confirm(`Are you sure you want to APPROVE volunteer application for "${displayName}"?\n\nThey will be granted access to conduct housing society inspections and submit compliance reports.`)) {
+        return;
+      }
+
+      try {
+        await api.approveVolunteer(id);
+        Toast.success('Application Approved', `Volunteer "${displayName}" is now approved and active.`);
+        await loadVolunteers();
+      } catch(err) {
+        Toast.error('Approval Failed', err.message || 'Could not approve applicant');
+      }
+    }
+
+    async function rejectVolunteer(id, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
+      if (!confirm(`Are you sure you want to REJECT volunteer application for "${displayName}"?\n\nRejected applicants cannot submit inspection complaints.`)) {
+        return;
+      }
+
+      try {
+        await api.rejectVolunteer(id);
+        Toast.warning('Application Rejected', `Volunteer application for "${displayName}" was marked rejected.`);
+        await loadVolunteers();
+      } catch(err) {
+        Toast.error('Rejection Failed', err.message || 'Could not reject applicant');
+      }
     }
 
     async function toggleStatus(id, newStatus, name) {
@@ -218,10 +518,84 @@
       try {
         await api.updateVolunteerStatus(id, newStatus);
         Toast.success('Updated', `Volunteer "${displayName}" is now ${newStatus}`);
-        loadVolunteers();
+        await loadVolunteers();
       } catch (err) {
         Toast.error('Action Failed', err.message || 'Failed to update volunteer status');
       }
+    }
+
+    function openDetails(id) {
+      const v = volunteers.find(x => x.id === id);
+      if (!v) return;
+
+      const modal = document.getElementById('detail-modal');
+      document.getElementById('detail-modal-title').textContent = (v.fullName || v.username) + ' — Application Details';
+
+      const body = document.getElementById('detail-body');
+      const isPending = v.status === 'PENDING';
+      const isApproved = v.status === 'ACTIVE';
+      const isRejected = v.status === 'REJECTED';
+
+      body.innerHTML = `
+        <div style="background:#F8FAF8;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:18px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+            <div class="vol-avatar" style="width:54px;height:54px;font-size:1.2rem;">${Fmt.avatar(v.fullName || v.username)}</div>
+            <div>
+              <div style="font-size:1.15rem;font-weight:800;color:var(--text-primary);">${v.fullName || v.username}</div>
+              <div style="font-size:0.85rem;color:var(--text-muted);">Registered volunteer account (@${v.username})</div>
+            </div>
+            <div style="margin-left:auto;">
+              <span class="badge ${isPending ? 'badge-pending' : (isApproved ? 'badge-approved' : 'badge-rejected')}">
+                ${v.status}
+              </span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.875rem;">
+            <div><span style="color:var(--text-muted)">Full Name:</span> <strong>${v.fullName || '—'}</strong></div>
+            <div><span style="color:var(--text-muted)">Username:</span> <strong>${v.username}</strong></div>
+            <div><span style="color:var(--text-muted)">Email:</span> <strong>${v.email || '—'}</strong></div>
+            <div><span style="color:var(--text-muted)">Mobile Number:</span> <strong>${v.phoneNumber || '—'}</strong></div>
+            <div><span style="color:var(--text-muted)">City:</span> <strong>${v.city || '—'}</strong></div>
+            <div><span style="color:var(--text-muted)">State:</span> <strong>${v.state || '—'}</strong></div>
+            <div style="grid-column:1/-1;"><span style="color:var(--text-muted)">Address / Locality:</span> <strong>${v.address || '—'}</strong></div>
+            <div style="grid-column:1/-1;"><span style="color:var(--text-muted)">Registration Date:</span> <strong>${v.createdAt ? Fmt.date(v.createdAt) : '—'}</strong></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+          <div class="kpi-card" style="padding:12px;">
+            <div class="kpi-value font-mono" style="font-size:1.2rem;">${v.inspectionsCount ?? 0}</div>
+            <div class="kpi-label" style="font-size:0.75rem;">Inspections Done</div>
+          </div>
+          <div class="kpi-card" style="padding:12px;">
+            <div class="kpi-value font-mono" style="font-size:1.2rem;">${v.averageScoreGiven != null ? v.averageScoreGiven + '/100' : '—'}</div>
+            <div class="kpi-label" style="font-size:0.75rem;">Avg Score Given</div>
+          </div>
+          <div class="kpi-card" style="padding:12px;">
+            <div class="kpi-value font-mono" style="font-size:1.2rem;color:${v.violationsFlagged > 0 ? 'var(--color-danger)' : 'inherit'};">${v.violationsFlagged ?? 0}</div>
+            <div class="kpi-label" style="font-size:0.75rem;">Violations Flagged</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:12px;border-top:1px solid var(--border-subtle);">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('detail-modal')">Close</button>
+          ${isPending ? `
+            <button class="btn-reject" onclick="closeModal('detail-modal'); rejectVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              ✕ Reject Application
+            </button>
+            <button class="btn-approve" onclick="closeModal('detail-modal'); approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              ✓ Approve & Authorize
+            </button>
+          ` : isRejected ? `
+            <button class="btn-approve" onclick="closeModal('detail-modal'); approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
+              ✓ Re-Approve Application
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      openModal('detail-modal');
     }
 
     async function openPerf(id, name) {
@@ -252,7 +626,7 @@
             `).join('')}
           </div>
 
-          <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:16px;">
+          <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:16px;">
             <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Governance Details</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
               <div><span style="color:var(--text-muted)">Username:</span> <strong>${p.username}</strong></div>
@@ -263,16 +637,19 @@
           </div>
         `;
       } catch(err) {
-        body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message}</div>`;
+        body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message || 'Failed to load performance metrics'}</div>`;
       }
     }
 
     document.getElementById('search-input').addEventListener('input', renderVolunteers);
-    document.getElementById('status-filter').addEventListener('change', renderVolunteers);
+    document.getElementById('city-filter').addEventListener('change', renderVolunteers);
     document.getElementById('btn-refresh').addEventListener('click', loadVolunteers);
 
     window.toggleStatus = toggleStatus;
     window.openPerf = openPerf;
+    window.openDetails = openDetails;
+    window.approveVolunteer = approveVolunteer;
+    window.rejectVolunteer = rejectVolunteer;
     window.loadVolunteers = loadVolunteers;
 
     loadVolunteers();

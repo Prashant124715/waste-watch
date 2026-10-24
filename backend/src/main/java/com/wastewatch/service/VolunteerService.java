@@ -38,7 +38,17 @@ public class VolunteerService {
 
     @Transactional(readOnly = true)
     public List<VolunteerSummaryDto> getAllVolunteers() {
-        List<AppUser> volunteers = userRepository.findByRole(UserRole.VOLUNTEER);
+        return getAllVolunteers(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VolunteerSummaryDto> getAllVolunteers(UserStatus status) {
+        List<AppUser> volunteers;
+        if (status != null) {
+            volunteers = userRepository.findByRoleAndStatus(UserRole.VOLUNTEER, status);
+        } else {
+            volunteers = userRepository.findByRole(UserRole.VOLUNTEER);
+        }
         List<VolunteerSummaryDto> result = new ArrayList<>();
 
         for (AppUser volunteer : volunteers) {
@@ -93,6 +103,16 @@ public class VolunteerService {
         return buildVolunteerSummary(updated);
     }
 
+    @Transactional
+    public VolunteerSummaryDto approveVolunteer(Long volunteerId, UserPrincipal currentUser) {
+        return updateVolunteerStatus(volunteerId, new VolunteerStatusUpdateDto(UserStatus.ACTIVE), currentUser);
+    }
+
+    @Transactional
+    public VolunteerSummaryDto rejectVolunteer(Long volunteerId, UserPrincipal currentUser) {
+        return updateVolunteerStatus(volunteerId, new VolunteerStatusUpdateDto(UserStatus.REJECTED), currentUser);
+    }
+
     private VolunteerSummaryDto buildVolunteerSummary(AppUser user) {
         VolunteerSummaryDto dto = new VolunteerSummaryDto();
         dto.setId(user.getId());
@@ -101,6 +121,11 @@ public class VolunteerService {
         dto.setEmail(user.getEmail());
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setStatus(user.getStatus().name());
+        dto.setCity(user.getCity());
+        dto.setState(user.getState());
+        dto.setAddress(user.getAddress());
+        dto.setReason(user.getReason());
+        dto.setCreatedAt(user.getCreatedAt());
 
         List<Inspection> inspections = inspectionRepository.findByVolunteerIdOrderByInspectionDateDesc(user.getId());
         dto.setInspectionsCount(inspections.size());

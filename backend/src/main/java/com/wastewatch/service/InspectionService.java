@@ -58,6 +58,13 @@ public class InspectionService {
         AppUser volunteer = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", currentUser.getId()));
 
+        if (!"ROLE_ADMIN".equals(volunteer.getRole()) && volunteer.getStatus() != com.wastewatch.entity.enums.UserStatus.ACTIVE) {
+            if (volunteer.getStatus() == com.wastewatch.entity.enums.UserStatus.PENDING) {
+                throw new org.springframework.security.access.AccessDeniedException("Your account is awaiting admin verification.");
+            }
+            throw new org.springframework.security.access.AccessDeniedException("Your volunteer account is not authorized to submit inspections.");
+        }
+
         Building building = null;
         Room room = null;
 

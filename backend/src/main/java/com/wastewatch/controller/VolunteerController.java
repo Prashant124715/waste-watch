@@ -26,8 +26,9 @@ public class VolunteerController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<VolunteerSummaryDto>>> getAllVolunteers() {
-        List<VolunteerSummaryDto> volunteers = volunteerService.getAllVolunteers();
+    public ResponseEntity<ApiResponse<List<VolunteerSummaryDto>>> getAllVolunteers(
+            @RequestParam(required = false) com.wastewatch.entity.enums.UserStatus status) {
+        List<VolunteerSummaryDto> volunteers = volunteerService.getAllVolunteers(status);
         return ResponseEntity.ok(ApiResponse.ok(volunteers));
     }
 
@@ -52,5 +53,23 @@ public class VolunteerController {
             @AuthenticationPrincipal UserPrincipal currentUser) {
         VolunteerSummaryDto updated = volunteerService.updateVolunteerStatus(id, dto, currentUser);
         return ResponseEntity.ok(ApiResponse.ok("Volunteer status updated successfully", updated));
+    }
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VolunteerSummaryDto>> approveVolunteer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        VolunteerSummaryDto approved = volunteerService.approveVolunteer(id, currentUser);
+        return ResponseEntity.ok(ApiResponse.ok("Volunteer application approved successfully", approved));
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VolunteerSummaryDto>> rejectVolunteer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        VolunteerSummaryDto rejected = volunteerService.rejectVolunteer(id, currentUser);
+        return ResponseEntity.ok(ApiResponse.ok("Volunteer application rejected", rejected));
     }
 }

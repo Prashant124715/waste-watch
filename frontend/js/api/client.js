@@ -55,7 +55,7 @@ class ApiClient {
 
     const res = await fetch(url, options);
 
-    if (res.status === 401) {
+    if (res.status === 401 && !path.startsWith('/auth/')) {
       this.clearToken();
       const loginUrl = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/volunteer/')
         ? '../index.html'
@@ -73,8 +73,15 @@ class ApiClient {
     }
 
     if (!res.ok) {
-      const msg = data?.message || `HTTP ${res.status}`;
-      throw new Error(msg);
+      let msg = data?.message;
+      if (!msg && data?.validationErrors) {
+        msg = Object.values(data.validationErrors).join('. ');
+      }
+      msg = msg || `HTTP ${res.status}`;
+      const err = new Error(msg);
+      err.data = data;
+      err.status = res.status;
+      throw err;
     }
 
     return data;
@@ -106,6 +113,10 @@ class ApiClient {
       username,
       password
     });
+  }
+
+  register(data) {
+    return this.post('/auth/register', data);
   }
 
   getMe() {
@@ -376,8 +387,9 @@ class ApiClient {
   // Volunteers & User Governance
   // ==================================================
 
-  getVolunteers() {
-    return this.get('/volunteers');
+  getVolunteers(status = null) {
+    const path = status ? `/volunteers?status=${encodeURIComponent(status)}` : '/volunteers';
+    return this.get(path);
   }
 
   getVolunteerPerformance(id) {
@@ -386,6 +398,14 @@ class ApiClient {
 
   updateVolunteerStatus(id, status) {
     return this.put(`/volunteers/${id}/status`, { status });
+  }
+
+  approveVolunteer(id) {
+    return this.post(`/volunteers/${id}/approve`, {});
+  }
+
+  rejectVolunteer(id) {
+    return this.post(`/volunteers/${id}/reject`, {});
   }
 
   // ==================================================
@@ -582,6 +602,31 @@ class ApiClient {
 
   getAnalyticsVolunteers() {
     return this.get('/analytics/volunteers');
+  }
+
+  // ==================================================
+  // Volunteer Management & Verification
+  // ==================================================
+
+  getVolunteers(status = null) {
+    const q = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.get(`/volunteers${q}`);
+  }
+
+  getVolunteerPerformance(id) {
+    return this.get(`/volunteers/${id}/performance`);
+  }
+
+  approveVolunteer(id) {
+    return this.post(`/volunteers/${id}/approve`, {});
+  }
+
+  rejectVolunteer(id) {
+    return this.post(`/volunteers/${id}/reject`, {});
+  }
+
+  updateVolunteerStatus(id, status) {
+    return this.put(`/volunteers/${id}/status`, { status });
   }
 }
 

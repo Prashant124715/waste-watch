@@ -17,6 +17,7 @@ public class DashboardSummaryDto {
     private long totalBuildingsAudited;
     private long totalRoomsCovered;
     private long activeVolunteersCount;
+    private long pendingVolunteersCount;
     private Map<String, Long> scoreDistribution;
 
     public DashboardSummaryDto() {
@@ -145,6 +146,14 @@ public class DashboardSummaryDto {
 
     public void setActiveVolunteersCount(long activeVolunteersCount) {
         this.activeVolunteersCount = activeVolunteersCount;
+    }
+
+    public long getPendingVolunteersCount() {
+        return pendingVolunteersCount;
+    }
+
+    public void setPendingVolunteersCount(long pendingVolunteersCount) {
+        this.pendingVolunteersCount = pendingVolunteersCount;
     }
 
     public Map<String, Long> getScoreDistribution() {
