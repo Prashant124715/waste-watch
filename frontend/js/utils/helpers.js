@@ -8,9 +8,15 @@ const Auth = {
   setUser(u) { localStorage.setItem('ww_user', JSON.stringify(u)); },
   isAdmin()  { const u = Auth.getUser(); return u?.role === 'ADMIN'; },
   isLoggedIn() { return !!api.getToken(); },
+  getToken() { return api.getToken(); },
+  _loginPath() {
+    return window.location.pathname.includes('/admin/') || window.location.pathname.includes('/volunteer/')
+      ? '../index.html'
+      : './index.html';
+  },
   requireLogin() {
     if (!Auth.isLoggedIn()) {
-      window.location.href = '/index.html';
+      window.location.href = Auth._loginPath();
       return false;
     }
     return true;
@@ -18,14 +24,16 @@ const Auth = {
   requireAdmin() {
     if (!Auth.requireLogin()) return false;
     if (!Auth.isAdmin()) {
-      window.location.href = '/volunteer/inspect.html';
+      window.location.href = window.location.pathname.includes('/admin/')
+        ? '../volunteer/inspect.html'
+        : './volunteer/inspect.html';
       return false;
     }
     return true;
   },
   logout() {
     api.clearToken();
-    window.location.href = '/index.html';
+    window.location.href = Auth._loginPath();
   }
 };
 
@@ -68,11 +76,19 @@ const Toast = {
 const Fmt = {
   date(dt) {
     if (!dt) return '—';
-    return new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    try {
+      return new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return String(dt);
+    }
   },
   datetime(dt) {
     if (!dt) return '—';
-    return new Date(dt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    try {
+      return new Date(dt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return String(dt);
+    }
   },
   score(s) {
     if (s == null) return '—';
@@ -113,8 +129,42 @@ const Fmt = {
     return parts.length >= 2
       ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
       : name.slice(0, 2).toUpperCase();
+  },
+  formatDate(dt) {
+    return formatDate(dt);
+  },
+  formatDateTime(dt) {
+    return formatDateTime(dt);
+  },
+  formatScore(s) {
+    return formatScore(s);
+  },
+  escapeHtml(str) {
+    return escapeHtml(str);
   }
 };
+
+// ── Date Formatting ──
+function formatDate(dt) {
+  if (!dt) return 'Never';
+  try { return new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch { return String(dt); }
+}
+
+function formatDateTime(dt) {
+  return Fmt.datetime(dt);
+}
+
+function formatScore(s) {
+  return Fmt.score(s);
+}
+
+// ── HTML Escaping ──
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
 // ── DOM helpers ──
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -204,11 +254,6 @@ function renderScoreRing(container, score) {
   `;
 }
 
-// ── Confirm dialog ──
-function confirm(msg) {
-  return window.confirm(msg);
-}
-
 window.Auth = Auth;
 window.Toast = Toast;
 window.Fmt = Fmt;
@@ -221,3 +266,7 @@ window.closeAllModals = closeAllModals;
 window.renderUserCard = renderUserCard;
 window.setActiveSidebarLink = setActiveSidebarLink;
 window.renderScoreRing = renderScoreRing;
+window.escapeHtml = escapeHtml;
+window.formatDate = formatDate;
+window.formatDateTime = formatDateTime;
+window.formatScore = formatScore;

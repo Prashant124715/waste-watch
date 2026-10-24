@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Volunteer Governance</title>
   <meta name="description" content="Manage volunteer status, activity metrics, and performance audit trails."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
   <style>
     .vol-grid {
       display: grid;
@@ -110,9 +110,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error();
     injectSidebar('ADMIN');
@@ -192,15 +192,15 @@
           </div>
 
           <div class="vol-card-actions">
-            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openPerf(${v.id}, '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openPerf(${v.id})">
               📈 Statistics
             </button>
             ${isActive ? `
-              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE', '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+              <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE')">
                 ⏸️ Deactivate
               </button>
             ` : `
-              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE', '${(v.fullName||v.username).replace(/'/g,"\\'")}')">
+              <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE')">
                 ▶️ Activate
               </button>
             `}
@@ -210,21 +210,25 @@
     }
 
     async function toggleStatus(id, newStatus, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
       const verb = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
-      if (!confirm(`Are you sure you want to ${verb} volunteer "${name}"?`)) return;
+      if (!confirm(`Are you sure you want to ${verb} volunteer "${displayName}"?`)) return;
 
       try {
         await api.updateVolunteerStatus(id, newStatus);
-        Toast.success('Updated', `Volunteer "${name}" is now ${newStatus}`);
+        Toast.success('Updated', `Volunteer "${displayName}" is now ${newStatus}`);
         loadVolunteers();
       } catch (err) {
-        Toast.error('Action Failed', err.message);
+        Toast.error('Action Failed', err.message || 'Failed to update volunteer status');
       }
     }
 
     async function openPerf(id, name) {
+      const vol = volunteers.find(x => x.id === id);
+      const displayName = name || vol?.fullName || vol?.username || 'Volunteer';
       openModal('perf-modal');
-      document.getElementById('perf-modal-title').textContent = name + ' — Statistics & Performance';
+      document.getElementById('perf-modal-title').textContent = displayName + ' — Statistics & Performance';
       const body = document.getElementById('perf-body');
       body.innerHTML = `<div style="display:flex;justify-content:center;padding:40px;"><div class="spinner"></div></div>`;
       try {
@@ -266,6 +270,11 @@
     document.getElementById('search-input').addEventListener('input', renderVolunteers);
     document.getElementById('status-filter').addEventListener('change', renderVolunteers);
     document.getElementById('btn-refresh').addEventListener('click', loadVolunteers);
+
+    window.toggleStatus = toggleStatus;
+    window.openPerf = openPerf;
+    window.loadVolunteers = loadVolunteers;
+
     loadVolunteers();
   </script>
 </body>

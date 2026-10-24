@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Areas & Buildings</title>
   <meta name="description" content="Manage geographic areas, buildings and rooms in WasteWatch."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
   <style>
     .hierarchy-tabs {
       display: flex;
@@ -395,9 +395,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error();
     injectSidebar('ADMIN');
@@ -438,7 +438,7 @@
           <td class="font-mono">${a.pincode}</td>
           <td style="display:flex;gap:6px;">
             <button class="btn btn-secondary btn-sm" onclick="editArea(${a.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteArea(${a.id},'${a.name}')">🗑️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteArea(${a.id})">🗑️</button>
           </td>
         </tr>
       `).join('');
@@ -474,10 +474,12 @@
     }
 
     async function deleteArea(id, name) {
-      if (!confirm(`Delete area "${name}"? This cannot be undone.`)) return;
+      const item = areas.find(x => x.id === id);
+      const displayName = name || item?.name || 'Area';
+      if (!confirm(`Delete area "${displayName}"? This cannot be undone.`)) return;
       try {
         await api.deleteArea(id);
-        Toast.success('Deleted', `Area "${name}" was removed.`);
+        Toast.success('Deleted', `Area "${displayName}" was removed.`);
         loadAreas();
       } catch(e) { Toast.error('Delete Failed', e.message); }
     }
@@ -531,7 +533,7 @@
           <td>${b.totalFloors}</td>
           <td style="display:flex;gap:6px;">
             <button class="btn btn-secondary btn-sm" onclick="editBuilding(${b.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteBuilding(${b.id},'${b.name}')">🗑️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteBuilding(${b.id})">🗑️</button>
           </td>
         </tr>
       `).join('');
@@ -571,10 +573,12 @@
     }
 
     async function deleteBuilding(id, name) {
-      if (!confirm(`Delete building "${name}"?`)) return;
+      const item = buildings.find(x => x.id === id);
+      const displayName = name || item?.name || 'Building';
+      if (!confirm(`Delete building "${displayName}"?`)) return;
       try {
         await api.deleteBuilding(id);
-        Toast.success('Deleted', `Building "${name}" removed.`);
+        Toast.success('Deleted', `Building "${displayName}" removed.`);
         loadBuildings();
       } catch(e) { Toast.error('Delete Failed', e.message); }
     }
@@ -632,7 +636,7 @@
           <td style="display:flex;gap:6px;">
             <button class="btn btn-secondary btn-sm" onclick="showQrModal(${r.id})" title="View Room QR Badge">📱 QR</button>
             <button class="btn btn-secondary btn-sm" onclick="editRoom(${r.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteRoom(${r.id},'${r.roomNumber}')">🗑️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRoom(${r.id})">🗑️</button>
           </td>
         </tr>
       `).join('');
@@ -662,10 +666,12 @@
     }
 
     async function deleteRoom(id, name) {
-      if (!confirm(`Delete room "${name}"?`)) return;
+      const item = rooms.find(x => x.id === id);
+      const displayName = name || item?.roomNumber || 'Room';
+      if (!confirm(`Delete room "${displayName}"?`)) return;
       try {
         await api.deleteRoom(id);
-        Toast.success('Deleted', `Room "${name}" removed.`);
+        Toast.success('Deleted', `Room "${displayName}" removed.`);
         loadRooms();
       } catch(e) { Toast.error('Delete Failed', e.message); }
     }
@@ -781,6 +787,15 @@
     function printQrBadge() {
       window.print();
     }
+
+    // ── Global exports ──
+    window.deleteArea = deleteArea;
+    window.deleteBuilding = deleteBuilding;
+    window.deleteRoom = deleteRoom;
+    window.editArea = editArea;
+    window.editBuilding = editBuilding;
+    window.editRoom = editRoom;
+    window.showQrModal = showQrModal;
 
     // ── Init ──
     Promise.all([loadAreas(), loadBuildings(), loadRooms()]);

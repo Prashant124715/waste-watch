@@ -4,21 +4,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WasteWatch ΓÇö Geographic Monitoring &amp; Live Compliance Map</title>
+  <title>WasteWatch — Geographic Monitoring &amp; Live Compliance Map</title>
   <meta name="description"
     content="Interactive Leaflet.js geographic monitoring of waste segregation compliance across buildings and areas, with hotspot analysis and advanced filtering." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="/css/variables.css" />
-  <link rel="stylesheet" href="/css/base.css" />
-  <link rel="stylesheet" href="/css/layout.css" />
-  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
   <!-- Leaflet.js 1.9.4 -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPaA=" crossorigin=""></script>
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
-    /* ΓöÇΓöÇ Map Layout ΓöÇΓöÇ */
+    /* ── Map Layout ── */
     .map-page-grid {
       display: grid;
       grid-template-columns: 1fr 360px;
@@ -51,7 +51,7 @@
       min-height: 520px;
     }
 
-    /* ΓöÇΓöÇ Map overlay loading state ΓöÇΓöÇ */
+    /* ── Map overlay loading state ── */
     .map-loading-overlay {
       position: absolute;
       inset: 0;
@@ -83,7 +83,7 @@
       }
     }
 
-    /* ΓöÇΓöÇ Custom Leaflet Markers ΓöÇΓöÇ */
+    /* ── Custom Leaflet Markers ── */
     .custom-marker {
       display: flex;
       align-items: center;
@@ -106,7 +106,7 @@
       z-index: 1000 !important;
     }
 
-    /* Compliance colour palette ΓÇö semantic & accessible */
+    /* Compliance colour palette — semantic & accessible */
     .marker-excellent {
       background: linear-gradient(135deg, #27AE60, #2ECC71);
     }
@@ -144,7 +144,7 @@
       }
     }
 
-    /* ΓöÇΓöÇ Leaflet Popup Theming ΓöÇΓöÇ */
+    /* ── Leaflet Popup Theming ── */
     .leaflet-popup-content-wrapper {
       background: var(--bg-surface-2) !important;
       border: 1px solid var(--border-default) !important;
@@ -296,7 +296,7 @@
       gap: 6px;
     }
 
-    /* ΓöÇΓöÇ Right Sidebar ΓöÇΓöÇ */
+    /* ── Right Sidebar ── */
     .map-sidebar {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -552,12 +552,12 @@
     <header class="topbar">
       <div>
         <div class="topbar-title">Geographic Monitoring</div>
-        <div class="topbar-subtitle">Leaflet.js interactive spatial compliance map ┬╖ hotspot analysis ┬╖ area health
+        <div class="topbar-subtitle">Leaflet.js interactive spatial compliance map · hotspot analysis · area health
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary btn-sm" id="btn-fit-all" onclick="fitAllMarkers()">≡ƒÄ» Fit All</button>
-        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadMapData()">≡ƒöä Refresh</button>
+        <button class="btn btn-secondary btn-sm" id="btn-fit-all" onclick="fitAllMarkers()">🎯 Fit All</button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadMapData()">🔄 Refresh</button>
       </div>
     </header>
 
@@ -566,8 +566,8 @@
       <!-- Filter toolbar -->
       <div class="filter-toolbar">
         <div class="filter-group">
-          <span class="filter-label">≡ƒöì</span>
-          <input type="text" class="form-control form-control-sm" id="search-input" placeholder="Search buildingΓÇª"
+          <span class="filter-label">🔍</span>
+          <input type="text" class="form-control form-control-sm" id="search-input" placeholder="Search building…"
             oninput="filterMarkers()" style="width:190px;" />
         </div>
 
@@ -586,11 +586,11 @@
           <select class="form-control form-control-sm" id="status-filter" onchange="filterMarkers()"
             style="min-width:175px;">
             <option value="">All Statuses</option>
-            <option value="EXCELLENT">Γ£à Excellent (80ΓÇô100)</option>
-            <option value="GOOD">≡ƒö╡ Good (60ΓÇô79)</option>
-            <option value="NEEDS_IMPROVEMENT">≡ƒƒá Needs Improvement (40ΓÇô59)</option>
-            <option value="POOR">≡ƒö┤ Poor (&lt;40)</option>
-            <option value="NO_DATA">ΓÜ½ No Inspections</option>
+            <option value="EXCELLENT">✅ Excellent (80–100)</option>
+            <option value="GOOD">🔵 Good (60–79)</option>
+            <option value="NEEDS_IMPROVEMENT">🟠 Needs Improvement (40–59)</option>
+            <option value="POOR">🔴 Poor (&lt;40)</option>
+            <option value="NO_DATA">⚪ No Inspections</option>
           </select>
         </div>
 
@@ -618,24 +618,24 @@
         <label
           style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text-secondary);cursor:pointer;margin-left:auto;">
           <input type="checkbox" id="chk-area-overlay" onchange="toggleAreaOverlay(this.checked)" checked />
-          <span>≡ƒù║∩╕Å Area Overlays</span>
+          <span>🗺️ Area Overlays</span>
         </label>
       </div>
 
       <!-- Compliance Legend -->
       <div class="legend-bar" aria-label="Compliance colour legend">
         <span class="legend-chip"><span class="legend-dot" style="background:#2ECC71;"></span>Excellent
-          (80ΓÇô100)</span>
-        <span class="legend-chip"><span class="legend-dot" style="background:#1E90FF;"></span>Good (60ΓÇô79)</span>
+          (80–100)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#1E90FF;"></span>Good (60–79)</span>
         <span class="legend-chip"><span class="legend-dot" style="background:#F39C12;"></span>Needs Improvement
-          (40ΓÇô59)</span>
+          (40–59)</span>
         <span class="legend-chip"><span class="legend-dot" style="background:#E74C3C;"></span>Poor / Hotspot
           (&lt;40)</span>
         <span class="legend-chip"><span class="legend-dot" style="background:#6B7280;"></span>No Inspections</span>
         <span class="legend-chip" style="margin-left:8px;opacity:.7;"><span class="legend-dot"
             style="background:rgba(231,76,60,0.25);border:1.5px solid #E74C3C;"></span>Poor Area Zone</span>
         <span id="map-building-count"
-          style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);">LoadingΓÇª</span>
+          style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);">Loading…</span>
       </div>
 
       <!-- Main 2-column grid: Map + Sidebar -->
@@ -649,13 +649,13 @@
           <div class="map-loading-overlay" id="map-loading">
             <div style="text-align:center;">
               <div class="map-spinner-ring" style="margin:0 auto 12px;"></div>
-              <div style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Loading map dataΓÇª</div>
+              <div style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Loading map data…</div>
             </div>
           </div>
 
           <!-- Error banner -->
           <div class="map-error-banner hidden" id="map-error-banner">
-            <span>ΓÜá∩╕Å</span>
+            <span>⚠️</span>
             <span id="map-error-text">Failed to load map data.</span>
             <button onclick="loadMapData();document.getElementById('map-error-banner').classList.add('hidden');"
               style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Retry</button>
@@ -677,19 +677,19 @@
           <div class="sidebar-pane active" id="pane-overview">
             <div class="stat-mini-grid">
               <div class="stat-mini">
-                <div class="stat-mini-val" id="stat-total" style="color:var(--color-primary-light);">ΓÇö</div>
+                <div class="stat-mini-val" id="stat-total" style="color:var(--color-primary-light);">—</div>
                 <div class="stat-mini-label">Total Buildings</div>
               </div>
               <div class="stat-mini">
-                <div class="stat-mini-val" id="stat-mapped" style="color:#2ECC71;">ΓÇö</div>
+                <div class="stat-mini-val" id="stat-mapped" style="color:#2ECC71;">—</div>
                 <div class="stat-mini-label">On Map</div>
               </div>
               <div class="stat-mini">
-                <div class="stat-mini-val" id="stat-unmapped" style="color:#F39C12;">ΓÇö</div>
+                <div class="stat-mini-val" id="stat-unmapped" style="color:#F39C12;">—</div>
                 <div class="stat-mini-label">Unmapped</div>
               </div>
               <div class="stat-mini">
-                <div class="stat-mini-val" id="stat-hotspots" style="color:#E74C3C;">ΓÇö</div>
+                <div class="stat-mini-val" id="stat-hotspots" style="color:#E74C3C;">—</div>
                 <div class="stat-mini-label">Hotspots</div>
               </div>
             </div>
@@ -698,18 +698,18 @@
             <div id="dist-bars" style="margin-bottom:16px;"></div>
 
             <div class="section-label">Visible Markers</div>
-            <div id="visible-count" style="font-size:0.8125rem;color:var(--text-muted);padding:8px 0;">ΓÇö</div>
+            <div id="visible-count" style="font-size:0.8125rem;color:var(--text-muted);padding:8px 0;">—</div>
           </div>
 
           <!-- Tab: Hotspot Areas -->
           <div class="sidebar-pane" id="pane-hotspots">
             <div class="section-label">Area Health Analysis</div>
             <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">
-              Area health score = <strong>0.70 ├ù compliance + 0.20 ├ù coverage + 0.10 ├ù resolution rate</strong>.
+              Area health score = <strong>0.70 × compliance + 0.20 × coverage + 0.10 × resolution rate</strong>.
               Shaded map circles indicate poor-performing zones.
             </p>
             <div id="area-hotspot-list">
-              <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading area dataΓÇª</div>
+              <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading area data…</div>
             </div>
           </div>
 
@@ -721,7 +721,7 @@
               manager.
             </p>
             <div id="unmapped-list">
-              <div style="text-align:center;padding:20px;color:var(--text-muted);">LoadingΓÇª</div>
+              <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading…</div>
             </div>
           </div>
         </div>
@@ -731,16 +731,16 @@
   </div><!-- /main-content -->
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error('Unauthorized');
     injectSidebar('ADMIN');
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        State
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     let map;
     let markersLayer;
     let hotspotCircleLayer;   // per-building pulse circles
@@ -749,24 +749,10 @@
     let areasData = [];  // raw from /api/areas  (for filter dropdown)
     let areaMapData = [];  // raw from /api/map/areas
     let hotspotsData = [];
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-       Utilities
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
-    function escapeHtml(str) {
-      if (str == null) return '';
-      return String(str).replace(/[&<>"']/g, c =>
-        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
 
-    function formatDate(dt) {
-      if (!dt) return 'Never';
-      try { return new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
-      catch { return dt; }
-    }
-
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────────────────────────
        Map initialisation
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────────────────────────── */
     function initMap() {
       map = L.map('map', {
         zoomControl: true,
@@ -775,17 +761,23 @@
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '┬⌐ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
       markersLayer = L.featureGroup().addTo(map);
       hotspotCircleLayer = L.featureGroup().addTo(map);
       areaOverlayLayer = L.featureGroup().addTo(map);
+
+      setTimeout(() => { if (map) map.invalidateSize(); }, 200);
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    window.addEventListener('resize', () => {
+      if (map) map.invalidateSize();
+    });
+
+    /* ─────────────────────────────────────────────────────────────
        Data loading
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────────────────────────── */
     async function loadMapData() {
       showLoading(true);
       hideError();
@@ -812,6 +804,10 @@
         renderHotspotAreas();
         renderOverviewStats();
 
+        if (map) {
+          setTimeout(() => map.invalidateSize(), 200);
+        }
+
       } catch (err) {
         showError('Failed to load map data: ' + (err?.message || 'Network error'));
         Toast.error('Map Error', err?.message || 'Could not reach the server.');
@@ -820,9 +816,9 @@
       }
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Filter helpers
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function populateAreaFilter() {
       const areaSelect = document.getElementById('area-filter');
       const buildingSelect = document.getElementById('building-filter');
@@ -903,9 +899,9 @@
       return true;
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Marker rendering
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function renderMapMarkers() {
       markersLayer.clearLayers();
       hotspotCircleLayer.clearLayers();
@@ -933,7 +929,7 @@
           const icon = L.divIcon({
             className: 'custom-leaflet-icon',
             html: `<div class="custom-marker ${statusCls} ${isHotspot ? 'marker-hotspot' : ''}" title="${escapeHtml(b.name)}" role="img" aria-label="${escapeHtml(b.name)} - score ${score ?? 'N/A'}">
-                     ${score != null ? Math.round(score) : 'ΓÇö'}
+                     ${score != null ? Math.round(score) : '—'}
                    </div>`,
             iconSize: [34, 34],
             iconAnchor: [17, 17],
@@ -961,7 +957,7 @@
       // Update visible count
       const total = buildingsData.filter(b => buildingMatchesFilters(b, f)).length;
       document.getElementById('visible-count').textContent =
-        `${mappedVisible} mapped ┬╖ ${total - mappedVisible} unmapped ΓÇö from ${total} matching buildings`;
+        `${mappedVisible} mapped · ${total - mappedVisible} unmapped — from ${total} matching buildings`;
       document.getElementById('map-building-count').textContent =
         `${mappedVisible} of ${buildingsData.length} buildings visible`;
 
@@ -972,9 +968,9 @@
       renderOverviewStats();
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Popup HTML builder
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function buildPopupHtml(b) {
       const score = b.complianceScore ?? b.latestScore;
       const scoreCls = score == null ? 'popup-score-nd' : score >= 80 ? 'popup-score-excel' : score >= 60 ? 'popup-score-good' : score >= 40 ? 'popup-score-imp' : 'popup-score-poor';
@@ -985,17 +981,17 @@
         <div class="popup-box">
           <div class="popup-header">
             <div class="popup-title">${escapeHtml(b.name)}</div>
-            <div class="popup-sub">${escapeHtml(b.areaName || 'Area')} ┬╖ ${escapeHtml(b.buildingType || 'Building')} ┬╖ ${escapeHtml(b.buildingCode || '')}</div>
+            <div class="popup-sub">${escapeHtml(b.areaName || 'Area')} · ${escapeHtml(b.buildingType || 'Building')} · ${escapeHtml(b.buildingCode || '')}</div>
           </div>
 
           <div class="popup-score-row">
             <div>
-              <div class="${scoreCls}" style="font-size:2.1rem;font-weight:900;line-height:1;">${score != null ? Math.round(score) : 'ΓÇö'}</div>
+              <div class="${scoreCls}" style="font-size:2.1rem;font-weight:900;line-height:1;">${score != null ? Math.round(score) : '—'}</div>
               <div class="popup-score-label">avg compliance</div>
             </div>
             <div style="flex:1;margin-left:12px;">
               <span class="badge ${badgeCls}">${labelStatus(b.complianceStatus)}</span>
-              ${b.openViolations > 0 ? `<div style="margin-top:4px;font-size:0.7rem;color:#E74C3C;">ΓÜá∩╕Å ${b.openViolations} open violation${b.openViolations > 1 ? 's' : ''}</div>` : ''}
+              ${b.openViolations > 0 ? `<div style="margin-top:4px;font-size:0.7rem;color:#E74C3C;">⚠️ ${b.openViolations} open violation${b.openViolations > 1 ? 's' : ''}</div>` : ''}
             </div>
           </div>
 
@@ -1024,16 +1020,16 @@
           </div>
 
           <div class="popup-actions">
-            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;" id="popup-details-${b.id}">≡ƒÅó Details</a>
-            <a href="/admin/inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;" id="popup-audits-${b.id}">≡ƒôï Audits</a>
+            <a href="./areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;" id="popup-details-${b.id}">🏢 Details</a>
+            <a href="./inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;" id="popup-audits-${b.id}">📋 Audits</a>
           </div>
         </div>
       `;
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Area-level overlays (hotspot analysis)
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function renderAreaOverlays() {
       areaOverlayLayer.clearLayers();
 
@@ -1097,9 +1093,9 @@
       }
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Hotspot area sidebar list
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function renderHotspotAreas() {
       const list = document.getElementById('area-hotspot-list');
       if (!areaMapData.length) {
@@ -1113,7 +1109,7 @@
       list.innerHTML = sorted.map(area => {
         const health = area.areaHealthScore;
         const barColor = health >= 80 ? '#2ECC71' : health >= 60 ? '#1E90FF' : health >= 40 ? '#F39C12' : '#E74C3C';
-        const riskLabel = health >= 80 ? 'Low Risk' : health >= 60 ? 'Moderate' : health >= 40 ? 'At Risk' : '≡ƒö┤ Critical';
+        const riskLabel = health >= 80 ? 'Low Risk' : health >= 60 ? 'Moderate' : health >= 40 ? 'At Risk' : '🔴 Critical';
         const riskBadge = health >= 80 ? 'badge-success' : health >= 60 ? 'badge-info' : health >= 40 ? 'badge-warning' : 'badge-danger';
         const confBadge = area.confidenceRating === 'HIGH' ? 'badge-success' : area.confidenceRating === 'MEDIUM' ? 'badge-warning' : 'badge-neutral';
 
@@ -1122,7 +1118,7 @@
             <div class="area-card-header">
               <div>
                 <div class="area-card-name">${escapeHtml(area.areaName)}</div>
-                <div class="area-card-code">${escapeHtml(area.areaCode)} ┬╖ ${escapeHtml(area.city || '')}</div>
+                <div class="area-card-code">${escapeHtml(area.areaCode)} · ${escapeHtml(area.city || '')}</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
                 <span class="badge ${riskBadge}" style="font-size:0.67rem;">${riskLabel}</span>
@@ -1139,19 +1135,19 @@
             </div>
 
             <div class="area-metrics-row">
-              <span class="area-metric-chip">≡ƒÅó <strong>${area.totalBuildings}</strong> bldgs</span>
-              <span class="area-metric-chip">≡ƒôè <strong>${area.averageCompliance.toFixed(1)}</strong> avg</span>
-              <span class="area-metric-chip">≡ƒöì <strong>${area.inspectionCoverage.toFixed(1)}%</strong> coverage</span>
-              ${area.openViolations > 0 ? `<span class="area-metric-chip" style="color:#E74C3C;">ΓÜá∩╕Å <strong>${area.openViolations}</strong> violations</span>` : ''}
-              ${area.poorRoomCount > 0 ? `<span class="area-metric-chip" style="color:#F39C12;">Γ¥ù <strong>${area.poorRoomCount}</strong> poor rooms</span>` : ''}
+              <span class="area-metric-chip">🏢 <strong>${area.totalBuildings}</strong> bldgs</span>
+              <span class="area-metric-chip">📊 <strong>${area.averageCompliance.toFixed(1)}</strong> avg</span>
+              <span class="area-metric-chip">🔍 <strong>${area.inspectionCoverage.toFixed(1)}%</strong> coverage</span>
+              ${area.openViolations > 0 ? `<span class="area-metric-chip" style="color:#E74C3C;">⚠️ <strong>${area.openViolations}</strong> violations</span>` : ''}
+              ${area.poorRoomCount > 0 ? `<span class="area-metric-chip" style="color:#F39C12;">❌ <strong>${area.poorRoomCount}</strong> poor rooms</span>` : ''}
             </div>
           </div>`;
       }).join('');
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Unmapped buildings sidebar list
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function renderUnmappedList() {
       const unmapped = buildingsData.filter(
         b => !b.hasValidCoordinates || b.latitude == null || b.longitude == null
@@ -1160,7 +1156,7 @@
       document.getElementById('unmapped-label-count').textContent = unmapped.length;
 
       if (!unmapped.length) {
-        listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);">Γ£à All registered buildings have valid coordinates.</div>';
+        listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);">✅ All registered buildings have valid coordinates.</div>';
         return;
       }
 
@@ -1168,19 +1164,19 @@
         <div class="unmapped-card">
           <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;">${escapeHtml(b.name)}</div>
           <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;">
-            ${escapeHtml(b.areaName || 'No Area')} ┬╖ ${b.totalRooms ?? 0} rooms
+            ${escapeHtml(b.areaName || 'No Area')} · ${b.totalRooms ?? 0} rooms
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
             <span class="badge ${statusBadge(b.complianceStatus)}">${labelStatus(b.complianceStatus)}</span>
-            <a href="/admin/areas.html" class="btn btn-secondary btn-sm" style="padding:2px 10px;font-size:0.7rem;">Set Coords</a>
+            <a href="./areas.html" class="btn btn-secondary btn-sm" style="padding:2px 10px;font-size:0.7rem;">Set Coords</a>
           </div>
         </div>
       `).join('');
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Overview stats sidebar
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function renderOverviewStats() {
       const f = getActiveFilters();
       const visible = buildingsData.filter(b => buildingMatchesFilters(b, f));
@@ -1220,9 +1216,9 @@
       }).join('');
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Fit all visible markers
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function fitAllMarkers() {
       const valid = buildingsData.filter(
         b => b.hasValidCoordinates && b.latitude != null && b.longitude != null
@@ -1232,16 +1228,16 @@
       try { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 }); } catch { }
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Filter trigger
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function filterMarkers() {
       renderMapMarkers();
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Sidebar tab switching
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function switchTab(name) {
       document.querySelectorAll('.sidebar-tab').forEach(t => {
         t.classList.toggle('active', t.id === 'tab-' + name);
@@ -1252,9 +1248,9 @@
       });
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Colour helpers
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function markerClass(status) {
       const m = { EXCELLENT: 'marker-excellent', GOOD: 'marker-good', NEEDS_IMPROVEMENT: 'marker-needs-imp', POOR: 'marker-poor' };
       return m[status] || 'marker-no-data';
@@ -1270,9 +1266,9 @@
       return m[st] || st || 'No Data';
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Loading / error state helpers
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
     function showLoading(on) {
       document.getElementById('map-loading').classList.toggle('hidden', !on);
     }
@@ -1287,9 +1283,14 @@
       document.getElementById('map-error-banner').classList.add('hidden');
     }
 
-    /* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    /* ─────────────────────────────────────────
        Bootstrap
-    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    ───────────────────────────────────────── */
+    window.fitAllMarkers = fitAllMarkers;
+    window.loadMapData = loadMapData;
+    window.switchTab = switchTab;
+    window.filterMarkers = filterMarkers;
+
     initMap();
     loadMapData();
   </script>

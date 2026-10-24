@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Analytics & Decision Support Engine</title>
   <meta name="description" content="Management analytics, Area Health Scores, Inspection Coverage vs Compliance insights, and Hotspot tracking."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
   <style>
     .analytics-nav {
       display: flex;
@@ -445,9 +445,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/js/api/client.js"></script>
-  <script src="/js/utils/helpers.js"></script>
-  <script src="/js/utils/sidebar.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/utils/helpers.js"></script>
+  <script src="../js/utils/sidebar.js"></script>
   <script>
     if (!Auth.requireAdmin()) throw new Error();
     injectSidebar('ADMIN');
