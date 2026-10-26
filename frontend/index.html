@@ -318,12 +318,14 @@
 
   <script src="./js/api/client.js"></script>
   <script>
-    // Redirect if already logged in
-    if (api.getToken()) {
+    // Redirect if already logged in with valid unexpired token
+    if (api.getToken() && !api.isTokenExpired()) {
       const user = JSON.parse(localStorage.getItem('ww_user') || 'null');
-      window.location.href = user?.role === 'ADMIN'
-        ? './admin/dashboard.html'
-        : './volunteer/inspect.html';
+      if (user && user.role) {
+        window.location.href = user.role === 'ADMIN'
+          ? './admin/dashboard.html'
+          : './volunteer/inspect.html';
+      }
     }
 
     const form    = document.getElementById('login-form');
@@ -352,7 +354,7 @@
       hideError();
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
-      if (!username || !password) return showError('Please fill in all fields.');
+      if (!username || !password) return showError('Please fill in both username and password.');
       setLoading(true);
       try {
         const data = await api.login(username, password);
@@ -369,6 +371,11 @@
           : './volunteer/inspect.html';
       } catch (err) {
         showError(err.message || 'Invalid credentials. Please try again.');
+        const pwdField = document.getElementById('password');
+        if (pwdField) {
+          pwdField.value = '';
+          pwdField.focus();
+        }
       } finally {
         setLoading(false);
       }

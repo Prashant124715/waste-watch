@@ -170,7 +170,7 @@ public class AuthService {
 
         // 4. Record Governance Audit Log
         AuditLog auditLog = new AuditLog(
-                null,
+                saved,
                 "VOLUNTEER_REGISTERED",
                 "AppUser",
                 saved.getId().toString(),

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Volunteer Registration</title>
   <meta name="description" content="Register as a WasteWatch civic volunteer to inspect housing societies and report waste segregation compliance."/>
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
-  <link rel="stylesheet" href="/css/components.css"/>
+  <link rel="stylesheet" href="./css/variables.css"/>
+  <link rel="stylesheet" href="./css/base.css"/>
+  <link rel="stylesheet" href="./css/components.css"/>
   <style>
     body {
       min-height: 100vh;
@@ -17,11 +17,13 @@
       background: linear-gradient(180deg, #FFF9F5 0%, #F8FAF8 100%);
       padding: var(--space-6) var(--space-4);
       color: var(--text-primary);
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     .register-container {
       width: 100%;
-      max-width: 620px;
+      max-width: 640px;
       position: relative;
       z-index: 1;
     }
@@ -32,6 +34,7 @@
       border-radius: var(--radius-xl);
       padding: 36px 36px;
       box-shadow: 0 10px 30px rgba(28, 37, 33, 0.08), 0 1px 3px rgba(28, 37, 33, 0.04);
+      box-sizing: border-box;
     }
 
     .register-header {
@@ -63,23 +66,14 @@
     .register-subtitle {
       font-size: 0.875rem;
       color: var(--text-secondary);
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 600px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      .register-card {
-        padding: 24px 20px;
-      }
+      column-gap: 18px;
+      row-gap: 16px;
     }
 
     .col-span-2 {
@@ -87,7 +81,9 @@
     }
 
     .form-group {
-      margin-bottom: 4px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .form-label {
@@ -96,6 +92,7 @@
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 6px;
+      line-height: 1.25;
     }
 
     .form-label .required {
@@ -105,65 +102,134 @@
 
     .input-wrap {
       position: relative;
+      width: 100%;
     }
 
     .input-wrap .form-control {
+      width: 100%;
+      height: 44px;
       background: #FFFFFF;
-      border: 1px solid var(--border-default);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 0.875rem;
       color: var(--text-primary);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      box-sizing: border-box;
+      line-height: 1.4;
+    }
+
+    .input-wrap .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-glow);
+      background: #FFFFFF;
+    }
+
+    .input-wrap .form-control::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Standard select dropdown styling with chevron */
+    .input-wrap select.form-control {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5852' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+      cursor: pointer;
     }
 
     .phone-prefix {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       font-weight: 600;
       font-size: 0.875rem;
       color: var(--text-secondary);
       pointer-events: none;
+      user-select: none;
+      line-height: 1;
     }
 
     .input-phone {
-      padding-left: 48px !important;
+      padding-left: 50px !important;
+    }
+
+    .input-password {
+      padding-right: 42px !important;
     }
 
     .input-toggle {
       position: absolute;
-      right: 12px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: none;
       border: none;
+      border-radius: var(--radius-sm);
       color: var(--text-muted);
       cursor: pointer;
       font-size: 1rem;
-      padding: 2px;
+      padding: 0;
+      transition: color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .input-toggle:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-2);
+    }
+
+    .input-toggle:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 1px;
     }
 
     .helper-text {
       font-size: 0.75rem;
       color: var(--text-muted);
       margin-top: 4px;
+      line-height: 1.3;
     }
 
     .error-msg {
       display: none;
       background: var(--color-danger-light);
-      border: 1px solid rgba(220, 38, 38, 0.3);
+      border: 1px solid rgba(220, 38, 38, 0.35);
       border-radius: var(--radius-md);
-      padding: 10px 14px;
+      padding: 12px 16px;
       color: var(--color-danger);
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       font-weight: 500;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      line-height: 1.4;
     }
-    .error-msg.visible { display: block; }
+    .error-msg.visible {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .error-msg-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+      line-height: 1.3;
+    }
+    .error-msg-text {
+      flex: 1;
+    }
 
     .success-card {
       display: none;
       text-align: center;
-      padding: 20px 8px;
+      padding: 24px 8px;
     }
     .success-card.visible { display: block; }
 
@@ -210,7 +276,7 @@
       font-weight: 700;
       cursor: pointer;
       transition: all var(--transition-fast);
-      margin-top: 12px;
+      margin-top: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -221,11 +287,13 @@
     .btn-submit:hover:not(:disabled) {
       background: var(--color-primary-dark);
       transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(200, 91, 22, 0.35);
     }
 
     .btn-submit:disabled {
       opacity: 0.65;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-spinner {
@@ -241,7 +309,7 @@
 
     .register-footer {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
       padding-top: 16px;
       border-top: 1px solid var(--border-subtle);
       font-size: 0.85rem;
@@ -251,10 +319,31 @@
     .register-footer a {
       color: var(--color-primary);
       font-weight: 700;
+      text-decoration: none;
     }
     .register-footer a:hover {
       color: var(--color-primary-dark);
       text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: var(--space-4) var(--space-3);
+      }
+      .register-card {
+        padding: 24px 18px;
+        border-radius: var(--radius-lg);
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+        row-gap: 14px;
+      }
+      .col-span-2 {
+        grid-column: auto;
+      }
+      .register-title {
+        font-size: 1.4rem;
+      }
     }
   </style>
 </head>
@@ -268,7 +357,10 @@
           <p class="register-subtitle">Join WasteWatch to inspect housing societies, report segregation, and support Swachh Bharat civic initiatives.</p>
         </div>
 
-        <div class="error-msg" id="error-msg" role="alert"></div>
+        <div class="error-msg" id="error-msg" role="alert">
+          <span class="error-msg-icon">⚠️</span>
+          <span class="error-msg-text" id="error-msg-text"></span>
+        </div>
 
         <form id="register-form" autocomplete="on">
           <div class="form-grid">
@@ -307,7 +399,9 @@
               <div class="input-wrap">
                 <span class="phone-prefix">+91</span>
                 <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control input-phone"
-                  placeholder="98765 43210" required autocomplete="tel" pattern="[6-9][0-9]{9}" maxlength="14"/>
+                  placeholder="98765 43210" required autocomplete="tel"
+                  pattern="(\+91[\-\s]?)?[0]?[6-9]([\s\-]?\d){9}"
+                  title="10-digit Indian mobile number starting with 6, 7, 8, or 9" maxlength="16"/>
               </div>
               <div class="helper-text">Valid 10-digit Indian mobile number (e.g. 9876543210)</div>
             </div>
@@ -354,9 +448,9 @@
             <div class="form-group">
               <label class="form-label" for="password">Password <span class="required">*</span></label>
               <div class="input-wrap">
-                <input type="password" id="password" name="password" class="form-control"
+                <input type="password" id="password" name="password" class="form-control input-password"
                   placeholder="At least 6 characters" required autocomplete="new-password" minlength="6"/>
-                <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password">👁️</button>
+                <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password visibility" title="Show/Hide Password">👁️</button>
               </div>
             </div>
 
@@ -364,8 +458,9 @@
             <div class="form-group">
               <label class="form-label" for="confirmPassword">Confirm Password <span class="required">*</span></label>
               <div class="input-wrap">
-                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control input-password"
                   placeholder="Re-enter password" required autocomplete="new-password" minlength="6"/>
+                <button type="button" class="input-toggle" id="toggle-confirm-pwd" aria-label="Toggle confirm password visibility" title="Show/Hide Confirm Password">👁️</button>
               </div>
             </div>
           </div>
@@ -377,7 +472,7 @@
         </form>
 
         <div class="register-footer">
-          Already registered or municipal staff? <a href="/index.html">Sign in here</a>
+          Already registered or municipal staff? <a href="./index.html">Sign in here</a>
         </div>
       </div>
 
@@ -388,22 +483,23 @@
         <div class="success-message">
           <strong>Your volunteer application has been submitted successfully.</strong> You can submit inspection complaints after an administrator verifies and approves your account.
         </div>
-        <a href="/index.html" class="btn btn-primary" style="display:inline-flex;padding:12px 28px;text-decoration:none;">
+        <a href="./index.html" class="btn btn-primary" style="display:inline-flex;padding:12px 28px;text-decoration:none;">
           Return to Sign In
         </a>
       </div>
     </div>
   </div>
 
-  <script src="/js/api/client.js"></script>
+  <script src="./js/api/client.js"></script>
   <script>
-    const form         = document.getElementById('register-form');
+    const form          = document.getElementById('register-form');
     const formContainer = document.getElementById('form-container');
-    const successCard  = document.getElementById('success-card');
-    const errMsg       = document.getElementById('error-msg');
-    const submitBtn    = document.getElementById('submit-btn');
-    const btnText      = document.getElementById('btn-text');
-    const spinner      = document.getElementById('btn-spinner');
+    const successCard   = document.getElementById('success-card');
+    const errMsg        = document.getElementById('error-msg');
+    const errMsgText    = document.getElementById('error-msg-text');
+    const submitBtn     = document.getElementById('submit-btn');
+    const btnText       = document.getElementById('btn-text');
+    const spinner       = document.getElementById('btn-spinner');
 
     function setLoading(v) {
       submitBtn.disabled = v;
@@ -412,7 +508,7 @@
     }
 
     function showError(msg) {
-      errMsg.textContent = msg;
+      errMsgText.textContent = msg;
       errMsg.classList.add('visible');
       errMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -421,14 +517,24 @@
       errMsg.classList.remove('visible');
     }
 
-    // Password visibility toggle
+    // Auto hide error on input changes
+    form.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', hideError);
+    });
+
+    // Password visibility toggles
     document.getElementById('toggle-pwd').addEventListener('click', () => {
       const pwd = document.getElementById('password');
-      const conf = document.getElementById('confirmPassword');
       const isPwd = pwd.type === 'password';
       pwd.type = isPwd ? 'text' : 'password';
+      document.getElementById('toggle-pwd').textContent = isPwd ? '🙈' : '👁️';
+    });
+
+    document.getElementById('toggle-confirm-pwd').addEventListener('click', () => {
+      const conf = document.getElementById('confirmPassword');
+      const isPwd = conf.type === 'password';
       conf.type = isPwd ? 'text' : 'password';
-      document.getElementById('toggle-pwd').textContent = isPwd ? '👁️' : '🙈';
+      document.getElementById('toggle-confirm-pwd').textContent = isPwd ? '🙈' : '👁️';
     });
 
     // Auto-generate username suggestion if empty
@@ -438,7 +544,7 @@
         const parts = document.getElementById('fullName').value.trim().toLowerCase().split(/\s+/);
         if (parts.length > 0 && parts[0]) {
           const rand = Math.floor(100 + Math.random() * 900);
-          uField.value = parts[0] + (parts[1] ? '_' + parts[1][0] : '') + rand;
+          uField.value = parts[0].replace(/[^a-z0-9]/g, '') + (parts[1] ? '_' + parts[1][0].replace(/[^a-z0-9]/g, '') : '') + rand;
         }
       }
     });
@@ -495,7 +601,7 @@
           confirmPassword
         });
 
-        // Show exact requested prompt message
+        // Show success confirmation card
         formContainer.style.display = 'none';
         successCard.classList.add('visible');
       } catch (err) {
