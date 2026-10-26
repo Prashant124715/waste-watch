@@ -3,7 +3,10 @@
    All REST calls go through this module.
    ==================================================== */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = window.__API_BASE__ ||
+  (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http') && window.location.port === '8080'
+    ? `${window.location.origin}/api`
+    : 'http://localhost:8080/api');
 
 class ApiClient {
   constructor() {
@@ -16,9 +19,27 @@ class ApiClient {
     localStorage.setItem('ww_token', token);
   }
 
+  isTokenExpired(token = null) {
+    const t = token || this._token || localStorage.getItem('ww_token');
+    if (!t) return true;
+    try {
+      const parts = t.split('.');
+      if (parts.length !== 3) return true;
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (!payload.exp) return false;
+      return (payload.exp * 1000) <= Date.now();
+    } catch {
+      return true;
+    }
+  }
+
   getToken() {
     if (!this._token) {
       this._token = localStorage.getItem('ww_token');
+    }
+    if (this._token && this.isTokenExpired(this._token)) {
+      this.clearToken();
+      return null;
     }
     return this._token;
   }
@@ -27,6 +48,14 @@ class ApiClient {
     this._token = null;
     localStorage.removeItem('ww_token');
     localStorage.removeItem('ww_user');
+  }
+
+  logout() {
+    this.clearToken();
+    const loginUrl = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/volunteer/')
+      ? '../index.html'
+      : './index.html';
+    window.location.href = loginUrl;
   }
 
   getHeaders(isJson = true) {
@@ -42,7 +71,7 @@ class ApiClient {
   }
 
   async request(method, path, body = null) {
-    const url = `${API_BASE}${path}`;
+    const url = `${this.baseUrl}${path}`;
 
     const options = {
       method,
@@ -73,11 +102,13 @@ class ApiClient {
     }
 
     if (!res.ok) {
-      let msg = data?.message;
-      if (!msg && data?.validationErrors) {
+      let msg = null;
+      if (data?.validationErrors && typeof data.validationErrors === 'object' && Object.keys(data.validationErrors).length > 0) {
         msg = Object.values(data.validationErrors).join('. ');
       }
-      msg = msg || `HTTP ${res.status}`;
+      if (!msg) {
+        msg = data?.message || `HTTP ${res.status}`;
+      }
       const err = new Error(msg);
       err.data = data;
       err.status = res.status;
