@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WasteWatch — Indian Civic-Tech Waste Segregation Monitoring</title>
   <meta name="description" content="WasteWatch — The intelligent waste-segregation monitoring and civic compliance platform for Indian housing societies and municipal corporations."/>
+  <link rel="icon" type="image/png" href="./assets/favicon.png"/>
   <link rel="stylesheet" href="./css/variables.css"/>
   <link rel="stylesheet" href="./css/base.css"/>
   <link rel="stylesheet" href="./css/components.css"/>
@@ -20,11 +21,234 @@
       color: var(--text-primary);
     }
 
+    /* ── Opening Intro Animation Overlay ── */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.98) 0%, #F5FAF5 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      user-select: none;
+      /* CSS Fallback: automatically dismiss if JS is disabled or blocked */
+      animation: introAutoDismiss 0.5s ease 2.2s forwards;
+    }
+
+    @keyframes introAutoDismiss {
+      to {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+    }
+
+    .intro-overlay.dismissed {
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+
+    .intro-backdrop-glow {
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(149, 197, 61, 0.22) 0%, rgba(232, 117, 36, 0.10) 50%, transparent 72%);
+      filter: blur(45px);
+      animation: introGlowPulse 2.8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes introGlowPulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1.18); opacity: 1; }
+    }
+
+    .intro-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 32px 24px;
+      max-width: 440px;
+      animation: introContentEnter 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes introContentEnter {
+      0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.92);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .intro-logo-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .intro-halo-ring {
+      position: absolute;
+      inset: -14px;
+      border-radius: 50%;
+      border: 2px dashed rgba(149, 197, 61, 0.5);
+      animation: introRotateRing 14s linear infinite;
+    }
+
+    .intro-halo-glow {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(149, 197, 61, 0.3) 0%, transparent 70%);
+      animation: introPulseHalo 1.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes introRotateRing {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes introPulseHalo {
+      0% { transform: scale(0.94); opacity: 0.6; }
+      100% { transform: scale(1.12); opacity: 1; }
+    }
+
+    .intro-logo-img {
+      position: relative;
+      width: 104px;
+      height: 104px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 26px rgba(149, 197, 61, 0.38));
+      animation: introLogoBounce 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes introLogoBounce {
+      0% {
+        transform: scale(0.3) rotate(-18deg);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.08) rotate(3deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .intro-title {
+      font-size: 2.15rem;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: #1C2521;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .intro-title span {
+      color: #95C53D;
+    }
+
+    .intro-tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.775rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #545863;
+      background: rgba(149, 197, 61, 0.14);
+      border: 1px solid rgba(149, 197, 61, 0.35);
+      padding: 5px 14px;
+      border-radius: 9999px;
+      margin-top: 2px;
+    }
+
+    .intro-bar-wrap {
+      width: 190px;
+      height: 4px;
+      background: rgba(84, 88, 99, 0.12);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 24px;
+      position: relative;
+    }
+
+    .intro-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #95C53D, #E87524);
+      border-radius: 9999px;
+      animation: introBarFill 1.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes introBarFill {
+      0% { width: 0%; }
+      50% { width: 68%; }
+      100% { width: 100%; }
+    }
+
+    .intro-status {
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: #74837B;
+      margin-top: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .intro-skip-hint {
+      position: absolute;
+      bottom: 24px;
+      font-size: 0.725rem;
+      color: #8E9A94;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+    }
+    .intro-overlay:hover .intro-skip-hint {
+      opacity: 1;
+    }
+
+    /* ── Login Card Styling ── */
     .login-container {
       width: 100%;
       max-width: 440px;
       position: relative;
       z-index: 1;
+      animation: loginCardFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+    }
+
+    @keyframes loginCardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .login-card {
@@ -40,17 +264,31 @@
       margin-bottom: 28px;
     }
 
-    .login-logo {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      border-radius: 16px;
-      display: inline-flex;
+    .login-logo-wrap {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 16px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 18px var(--color-primary-glow);
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(149, 197, 61, 0.18), 0 2px 6px rgba(0, 0, 0, 0.04);
+      padding: 10px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .login-logo-wrap:hover {
+      transform: translateY(-2px) scale(1.06);
+      border-color: rgba(149, 197, 61, 0.45);
+      box-shadow: 0 12px 28px rgba(149, 197, 61, 0.28);
+    }
+
+    .login-logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .login-title {
@@ -259,10 +497,31 @@
   </style>
 </head>
 <body>
+  <!-- Opening Intro Animation Overlay -->
+  <div id="ww-intro-overlay" class="intro-overlay" aria-hidden="true" title="Click anywhere to enter">
+    <div class="intro-backdrop-glow"></div>
+    <div class="intro-content">
+      <div class="intro-logo-wrap">
+        <div class="intro-halo-ring"></div>
+        <div class="intro-halo-glow"></div>
+        <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="intro-logo-img"/>
+      </div>
+      <div class="intro-title">Waste<span>Watch</span></div>
+      <div class="intro-tagline">APP • Empowering Clean Cities</div>
+      <div class="intro-bar-wrap">
+        <div class="intro-bar-fill"></div>
+      </div>
+      <div class="intro-status">Initializing Civic Compliance Engine…</div>
+    </div>
+    <div class="intro-skip-hint">Click anywhere or press Esc to enter</div>
+  </div>
+
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <div class="login-logo">♻️</div>
+        <div class="login-logo-wrap">
+          <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="login-logo-img"/>
+        </div>
         <h1 class="login-title">WasteWatch</h1>
         <p class="login-subtitle">Civic Waste Segregation & Compliance Portal</p>
         <span class="civic-badge">🇮🇳 Indian Municipal & Housing Society Platform</span>
@@ -318,6 +577,43 @@
 
   <script src="./js/api/client.js"></script>
   <script>
+    // Opening intro animation controller
+    (function initIntroAnimation() {
+      const overlay = document.getElementById('ww-intro-overlay');
+      if (!overlay) return;
+
+      let dismissed = false;
+      function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        overlay.classList.add('dismissed');
+        setTimeout(() => {
+          if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+          }
+          const userField = document.getElementById('username');
+          if (userField) userField.focus();
+        }, 450);
+      }
+
+      // Automatically dismiss smoothly when intro duration ends
+      const timer = setTimeout(dismiss, 1400);
+
+      // Instant dismiss on click or tap
+      overlay.addEventListener('click', () => {
+        clearTimeout(timer);
+        dismiss();
+      });
+
+      // Instant dismiss on keyboard interaction (Escape, Enter, Space)
+      window.addEventListener('keydown', (e) => {
+        if (!dismissed && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) {
+          clearTimeout(timer);
+          dismiss();
+        }
+      }, { once: true });
+    })();
+
     // Redirect if already logged in with valid unexpired token
     if (api.getToken() && !api.isTokenExpired()) {
       const user = JSON.parse(localStorage.getItem('ww_user') || 'null');

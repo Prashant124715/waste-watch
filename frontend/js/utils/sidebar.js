@@ -5,13 +5,16 @@
 
 function buildAdminSidebar() {
   const loc = window.location.pathname;
+  const assetPrefix = (loc.includes('/admin/') || loc.includes('/volunteer/')) ? '../' : './';
   function isActive(href) {
     return loc.includes(href) ? 'active' : '';
   }
   return `
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo">♻️</div>
+      <div class="sidebar-logo">
+        <img src="${assetPrefix}assets/logo-icon.png" alt="WasteWatch" class="sidebar-logo-img"/>
+      </div>
       <div>
         <div class="sidebar-brand">WasteWatch</div>
         <div class="sidebar-role-badge">Admin Panel</div>
@@ -72,11 +75,14 @@ function buildAdminSidebar() {
 
 function buildVolunteerSidebar() {
   const loc = window.location.pathname;
+  const assetPrefix = (loc.includes('/admin/') || loc.includes('/volunteer/')) ? '../' : './';
   function isActive(href) { return loc.includes(href) ? 'active' : ''; }
   return `
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo">♻️</div>
+      <div class="sidebar-logo">
+        <img src="${assetPrefix}assets/logo-icon.png" alt="WasteWatch" class="sidebar-logo-img"/>
+      </div>
       <div>
         <div class="sidebar-brand">Waste<span>Watch</span></div>
         <div class="sidebar-role-badge">Field App</div>
