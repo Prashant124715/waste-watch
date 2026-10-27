@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./css/variables.css"/>
   <link rel="stylesheet" href="./css/base.css"/>
   <link rel="stylesheet" href="./css/components.css"/>
+  <script src="./js/lucide.min.js"></script>
   <style>
     body {
       min-height: 100vh;
@@ -68,6 +69,12 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+
+    .register-logo-wrap .lucide {
+      width: 28px;
+      height: 28px;
+      stroke: var(--color-primary);
     }
 
     .register-title {
@@ -375,7 +382,7 @@
         </div>
 
         <div class="error-msg" id="error-msg" role="alert">
-          <span class="error-msg-icon">⚠️</span>
+          <span class="error-msg-icon"><i data-lucide="triangle-alert"></i></span>
           <span class="error-msg-text" id="error-msg-text"></span>
         </div>
 
@@ -467,7 +474,7 @@
               <div class="input-wrap">
                 <input type="password" id="password" name="password" class="form-control input-password"
                   placeholder="At least 6 characters" required autocomplete="new-password" minlength="6"/>
-                <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password visibility" title="Show/Hide Password">👁️</button>
+                <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password visibility" title="Show/Hide Password"><i data-lucide="eye"></i></button>
               </div>
             </div>
 
@@ -477,7 +484,7 @@
               <div class="input-wrap">
                 <input type="password" id="confirmPassword" name="confirmPassword" class="form-control input-password"
                   placeholder="Re-enter password" required autocomplete="new-password" minlength="6"/>
-                <button type="button" class="input-toggle" id="toggle-confirm-pwd" aria-label="Toggle confirm password visibility" title="Show/Hide Confirm Password">👁️</button>
+                <button type="button" class="input-toggle" id="toggle-confirm-pwd" aria-label="Toggle confirm password visibility" title="Show/Hide Confirm Password"><i data-lucide="eye"></i></button>
               </div>
             </div>
           </div>
@@ -495,7 +502,7 @@
 
       <!-- Success Card shown after registration -->
       <div class="success-card" id="success-card">
-        <div class="success-icon">✓</div>
+        <div class="success-icon"><i data-lucide="check" class="icon-2xl"></i></div>
         <h2 class="success-title">Application Submitted!</h2>
         <div class="success-message">
           <strong>Your volunteer application has been submitted successfully.</strong> You can submit inspection complaints after an administrator verifies and approves your account.
@@ -544,14 +551,18 @@
       const pwd = document.getElementById('password');
       const isPwd = pwd.type === 'password';
       pwd.type = isPwd ? 'text' : 'password';
-      document.getElementById('toggle-pwd').textContent = isPwd ? '🙈' : '👁️';
+      const btn = document.getElementById('toggle-pwd');
+      btn.innerHTML = isPwd ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      if (window.lucide) lucide.createIcons({ root: btn });
     });
 
     document.getElementById('toggle-confirm-pwd').addEventListener('click', () => {
       const conf = document.getElementById('confirmPassword');
       const isPwd = conf.type === 'password';
       conf.type = isPwd ? 'text' : 'password';
-      document.getElementById('toggle-confirm-pwd').textContent = isPwd ? '🙈' : '👁️';
+      const btn = document.getElementById('toggle-confirm-pwd');
+      btn.innerHTML = isPwd ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      if (window.lucide) lucide.createIcons({ root: btn });
     });
 
     // Auto-generate username suggestion if empty
@@ -621,12 +632,18 @@
         // Show success confirmation card
         formContainer.style.display = 'none';
         successCard.classList.add('visible');
+        if (window.lucide) lucide.createIcons({ root: successCard });
       } catch (err) {
         showError(err.message || 'Registration failed. An account with this email, username, or phone may already exist.');
       } finally {
         setLoading(false);
       }
     });
+
+    // Initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   </script>
 </body>
 </html>

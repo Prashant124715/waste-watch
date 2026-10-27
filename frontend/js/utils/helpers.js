@@ -48,17 +48,23 @@ const Toast = {
   },
   show(type, title, message = '', duration = 4000) {
     this._ensureContainer();
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    const icons = {
+      success: '<i data-lucide="check-circle-2" class="icon-md"></i>',
+      error: '<i data-lucide="alert-circle" class="icon-md"></i>',
+      warning: '<i data-lucide="triangle-alert" class="icon-md"></i>',
+      info: '<i data-lucide="info" class="icon-md"></i>'
+    };
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-      <span class="toast-icon">${icons[type] || '📢'}</span>
+      <span class="toast-icon">${icons[type] || '<i data-lucide="bell" class="icon-md"></i>'}</span>
       <div class="toast-content">
         <div class="toast-title">${title}</div>
         ${message ? `<div class="toast-message">${message}</div>` : ''}
       </div>
     `;
     document.getElementById('toast-container').appendChild(toast);
+    renderIcons(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(32px)';
@@ -254,6 +260,21 @@ function renderScoreRing(container, score) {
   `;
 }
 
+// ── Icon rendering helper ──
+function renderIcons(container = document) {
+  if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+    lucide.createIcons({
+      root: container
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => renderIcons());
+} else {
+  renderIcons();
+}
+
 window.Auth = Auth;
 window.Toast = Toast;
 window.Fmt = Fmt;
@@ -266,7 +287,9 @@ window.closeAllModals = closeAllModals;
 window.renderUserCard = renderUserCard;
 window.setActiveSidebarLink = setActiveSidebarLink;
 window.renderScoreRing = renderScoreRing;
+window.renderIcons = renderIcons;
 window.escapeHtml = escapeHtml;
 window.formatDate = formatDate;
 window.formatDateTime = formatDateTime;
 window.formatScore = formatScore;
+

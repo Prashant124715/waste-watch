@@ -674,3 +674,155 @@
   50%       { opacity: 0.5; }
 }
 .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* ══════════════════════════════════════════
+   LUCIDE ICONS SYSTEM
+══════════════════════════════════════════ */
+.lucide {
+  width: 1.15em;
+  height: 1.15em;
+  stroke-width: 2;
+  vertical-align: -0.18em;
+  display: inline-block;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+/* Size utility classes */
+.icon-xs  { width: 14px; height: 14px; }
+.icon-sm  { width: 16px; height: 16px; }
+.icon-md  { width: 18px; height: 18px; }
+.icon-lg  { width: 22px; height: 22px; }
+.icon-xl  { width: 28px; height: 28px; }
+.icon-2xl { width: 36px; height: 36px; }
+.icon-3xl { width: 48px; height: 48px; }
+
+/* Buttons with icons */
+.btn .lucide {
+  width: 15px;
+  height: 15px;
+  vertical-align: -0.15em;
+}
+.btn-sm .lucide {
+  width: 14px;
+  height: 14px;
+}
+.btn-lg .lucide {
+  width: 18px;
+  height: 18px;
+}
+.btn-icon .lucide,
+.btn-icon-only .lucide {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.btn-icon-sm {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-icon-sm .lucide {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Modal close button icon */
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close .lucide {
+  width: 18px;
+  height: 18px;
+}
+
+/* Search Box & Inputs */
+.search-box .search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-box .search-icon .lucide {
+  width: 15px;
+  height: 15px;
+}
+.input-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.input-icon .lucide {
+  width: 17px;
+  height: 17px;
+}
+.input-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+.input-toggle .lucide {
+  width: 17px;
+  height: 17px;
+}
+
+/* Empty State Icons */
+.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.empty-state-icon .lucide {
+  width: 44px;
+  height: 44px;
+  stroke-width: 1.6;
+}
+
+/* KPI Card Icons */
+.kpi-icon .lucide {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
+/* Badges */
+.badge .lucide {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  vertical-align: -0.1em;
+}
+
+/* Toast */
+.toast-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.toast-icon .lucide {
+  width: 20px;
+  height: 20px;
+}
+
+/* Tabs with icons */
+.analytics-tab,
+.hierarchy-tab,
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.analytics-tab .lucide,
+.hierarchy-tab .lucide,
+.tab-btn .lucide {
+  width: 15px;
+  height: 15px;
+}
+

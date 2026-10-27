@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
 </head>
 <body>
   <div class="main-content">
@@ -22,7 +23,7 @@
     <div class="page-content">
       <div class="toolbar">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i data-lucide="search"></i></span>
           <input type="text" class="search-input" id="search-input" placeholder="Search room, building or inspector…"/>
         </div>
         <select class="form-control form-control-sm" id="classification-filter" style="max-width:200px;">
@@ -33,9 +34,9 @@
           <option value="POOR">Poor</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-export-csv">📥 CSV</button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-pdf">📄 PDF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-csv"><i data-lucide="file-spreadsheet"></i> CSV</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-pdf"><i data-lucide="file-text"></i> PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh</button>
         </div>
       </div>
 
@@ -67,7 +68,7 @@
     <div class="modal modal-lg">
       <div class="modal-header">
         <h2 class="modal-title">Inspection Detail</h2>
-        <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('detail-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <div id="detail-body" style="color:var(--text-secondary);font-size:0.9rem;"></div>
     </div>
@@ -110,13 +111,14 @@
 
       const tbody = document.getElementById('inspections-tbody');
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No inspections found</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-check" class="icon-3xl"></i></div><div class="empty-state-title">No inspections found</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
       tbody.innerHTML = filtered.map(i => {
         const locTitle = i.buildingLevelInspection
-          ? '🏢 Building Audit'
+          ? '<span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="building-2" class="icon-sm"></i> Building Audit</span>'
           : `${escapeHtml(i.roomNumber || '—')} · F${i.floorNumber ?? '?'}`;
         return `
         <tr style="cursor:pointer;" onclick="openDetail(${i.id})">
@@ -134,10 +136,11 @@
           </td>
           <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
           <td><span class="badge badge-${i.status === 'FLAGGED' ? 'danger' : 'neutral'}">${escapeHtml(i.status || '—')}</span></td>
-          <td>${i.violationCreated ? '<span class="badge badge-danger">⚠️ Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
+          <td>${i.violationCreated ? '<span class="badge badge-danger"><i data-lucide="triangle-alert" class="icon-xs"></i> Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
           <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
         </tr>
       `}).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     async function openDetail(id) {
@@ -171,7 +174,7 @@
           <div style="margin-bottom:20px;">
             ${criteria.map(c => `
               <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
-                <span style="font-size:1.2rem;">${c.value ? '✅' : '❌'}</span>
+                <span style="display:inline-flex;align-items:center;color:${c.value ? 'var(--color-success)' : 'var(--color-danger)'};"><i data-lucide="${c.value ? 'check-circle-2' : 'x-circle'}" class="icon-md"></i></span>
                 <span style="flex:1;font-size:0.875rem;color:${c.value ? 'var(--text-primary)' : 'var(--text-muted)'};">${c.label}</span>
                 <span style="font-size:0.8rem;font-weight:700;color:${c.value ? 'var(--color-primary-light)' : 'var(--text-muted)'};">${c.value ? '+'+c.pts : '0'} pts</span>
               </div>`).join('')}
@@ -189,10 +192,12 @@
             <strong>Remarks:</strong> ${i.remarks}
           </div>` : ''}
 
-          ${i.violationCreated ? `<div style="background:hsla(0,78%,58%,0.08);border:1px solid hsla(0,78%,58%,0.25);border-radius:10px;padding:14px;font-size:0.875rem;color:hsl(0,78%,70%);">
-            ⚠️ A violation was automatically generated for this inspection (Violation #${i.violationId}).
+          ${i.violationCreated ? `<div style="background:hsla(0,78%,58%,0.08);border:1px solid hsla(0,78%,58%,0.25);border-radius:10px;padding:14px;font-size:0.875rem;color:hsl(0,78%,70%);display:flex;align-items:center;gap:8px;">
+            <i data-lucide="triangle-alert" class="icon-md"></i>
+            <div>A violation was automatically generated for this inspection (Violation #${i.violationId}).</div>
           </div>` : ''}
         `;
+        if (window.lucide) lucide.createIcons({ root: body });
       } catch(err) {
         body.innerHTML = `<div style="color:var(--color-danger);padding:20px;">${err.message}</div>`;
       }
@@ -227,14 +232,14 @@
       const violCount = inspections.filter(i => i.violationCreated).length;
       let tbody = '';
       inspections.forEach(i => {
-        tbody += `<tr><td>#${i.id}</td><td>${i.roomNumber||'—'}</td><td>${i.buildingName||'—'}</td><td>${i.volunteerName||'—'}</td><td style="font-weight:bold;">${i.totalScore}/100</td><td>${Fmt.classify(i.classification)}</td><td>${i.violationCreated?'⚠ Yes':'—'}</td><td>${Fmt.date(i.inspectionDate)}</td></tr>`;
+        tbody += `<tr><td>#${i.id}</td><td>${i.roomNumber||'—'}</td><td>${i.buildingName||'—'}</td><td>${i.volunteerName||'—'}</td><td style="font-weight:bold;">${i.totalScore}/100</td><td>${Fmt.classify(i.classification)}</td><td>${i.violationCreated?'Yes':'—'}</td><td>${Fmt.date(i.inspectionDate)}</td></tr>`;
       });
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>WasteWatch — Inspections Report</title>
         <style>body{font-family:'Segoe UI',Arial,sans-serif;padding:40px;color:#222;}h1{color:#1A9D5C;margin-bottom:4px;}.sub{color:#666;font-size:14px;margin-bottom:24px;}.sum{display:flex;gap:20px;margin-bottom:28px;}.sc{background:#f0f9f4;border-radius:8px;padding:16px 28px;text-align:center;}.sv{font-size:28px;font-weight:800;color:#1A9D5C;}.sl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}table{width:100%;border-collapse:collapse;font-size:12px;}thead th{background:#1A9D5C;color:white;padding:10px 6px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}tbody td{padding:9px 6px;border-bottom:1px solid #eee;}tbody tr:nth-child(even){background:#fafafa;}.ft{margin-top:36px;font-size:10px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:14px;}</style>
-        </head><body><h1>♻️ WasteWatch — All Inspections Report</h1><p class="sub">Generated: ${new Date().toLocaleString('en-IN')}</p>
+        </head><body><h1>WasteWatch — All Inspections Report</h1><p class="sub">Generated: ${new Date().toLocaleString('en-IN')}</p>
         <div class="sum"><div class="sc"><div class="sv">${total}</div><div class="sl">Inspections</div></div><div class="sc"><div class="sv">${avg}%</div><div class="sl">Avg Score</div></div><div class="sc"><div class="sv">${violCount}</div><div class="sl">Violations</div></div></div>
         <table><thead><tr><th>ID</th><th>Room</th><th>Building</th><th>Inspector</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead><tbody>${tbody}</tbody></table>
-        <div class="ft">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div></body></html>`;
+        <div class="ft">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div><' + '/body><' + '/html>`;
       const win = window.open('', '_blank');
       win.document.write(html); win.document.close(); win.focus();
       setTimeout(() => win.print(), 500);
@@ -244,6 +249,7 @@
     window.openDetail = openDetail;
     window.loadInspections = loadInspections;
     loadInspections();
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>

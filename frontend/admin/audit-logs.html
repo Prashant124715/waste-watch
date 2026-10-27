@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
   <style>
     .filter-grid {
       display: grid;
@@ -75,19 +76,19 @@
         </div>
 
         <div style="display:flex;align-items:flex-end;gap:8px;">
-          <button class="btn btn-primary btn-sm" id="btn-apply-filters" style="flex:1;">Filter</button>
-          <button class="btn btn-secondary btn-sm" id="btn-reset-filters">Reset</button>
+          <button class="btn btn-primary btn-sm" id="btn-apply-filters" style="flex:1;"><i data-lucide="filter"></i> Filter</button>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-filters"><i data-lucide="rotate-ccw"></i> Reset</button>
         </div>
       </div>
 
       <div class="toolbar" style="margin-top:0;">
         <div class="search-box" style="max-width:400px;">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i data-lucide="search"></i></span>
           <input type="text" class="search-input" id="search-input" placeholder="Search actor or details…"/>
         </div>
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
           <span id="log-count" style="font-size:0.85rem;color:var(--text-muted);"></span>
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh</button>
         </div>
       </div>
 
@@ -156,7 +157,8 @@
 
       const tbody = document.getElementById('logs-tbody');
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No audit entries match the filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="shield-alert" class="icon-3xl"></i></div><div class="empty-state-title">No audit entries match the filters</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
@@ -200,6 +202,7 @@
     document.getElementById('btn-refresh').addEventListener('click', loadLogs);
 
     loadLogs();
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>

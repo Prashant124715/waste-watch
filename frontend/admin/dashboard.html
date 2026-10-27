@@ -304,8 +304,8 @@
         <div class="topbar-subtitle" id="dash-time">Loading system status…</div>
       </div>
       <div style="display:flex;gap:10px;margin-left:auto;">
-        <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh analytics">🔄 Refresh</button>
-        <a href="./inspections.html" class="btn btn-primary btn-sm">📋 All Inspections</a>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh analytics"><i data-lucide="refresh-cw" class="icon-sm"></i> Refresh</button>
+        <a href="./inspections.html" class="btn btn-primary btn-sm"><i data-lucide="clipboard-check" class="icon-sm"></i> All Inspections</a>
       </div>
     </header>
 
@@ -314,66 +314,66 @@
       <!-- TOP 5 PRIMARY STATS CARDS (Requirement 8) -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:20px;" id="kpi-top-5">
         <div class="kpi-card" style="border-top:3px solid var(--color-primary);">
-          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary);font-size:1.2rem;">🏢</div>
+          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary);"><i data-lucide="building-2" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-total-buildings">—</div>
           <div class="kpi-label">Total Buildings</div>
           <div class="kpi-delta">Registered housing societies</div>
         </div>
 
         <div class="kpi-card" style="border-top:3px solid var(--color-success);">
-          <div class="kpi-icon" style="background:var(--color-success-light);color:var(--color-success);font-size:1.2rem;">✓</div>
+          <div class="kpi-icon" style="background:var(--color-success-light);color:var(--color-success);"><i data-lucide="check-circle-2" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-inspections-completed">—</div>
           <div class="kpi-label">Inspections Completed</div>
           <div class="kpi-delta" id="kpi-total-inspections-sub">Verified audits done</div>
         </div>
 
         <div class="kpi-card" style="border-top:3px solid var(--color-warning);">
-          <div class="kpi-icon" style="background:var(--color-warning-light);color:var(--color-warning);font-size:1.2rem;">⏳</div>
+          <div class="kpi-icon" style="background:var(--color-warning-light);color:var(--color-warning);"><i data-lucide="clock-3" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-pending-inspections">—</div>
           <div class="kpi-label">Pending Inspections</div>
           <div class="kpi-delta">Societies awaiting audit</div>
         </div>
 
         <div class="kpi-card" style="border-top:3px solid var(--color-danger);">
-          <div class="kpi-icon" style="background:var(--color-danger-light);color:var(--color-danger);font-size:1.2rem;">⚠️</div>
+          <div class="kpi-icon" style="background:var(--color-danger-light);color:var(--color-danger);"><i data-lucide="triangle-alert" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-open-violations" style="color:var(--color-danger);">—</div>
           <div class="kpi-label">Reported Violations</div>
           <div class="kpi-delta">Segregation non-compliance</div>
         </div>
 
         <a href="/admin/volunteers.html" class="kpi-card" style="border-top:3px solid var(--color-primary);text-decoration:none;display:block;">
-          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary-dark);font-size:1.2rem;">🤝</div>
+          <div class="kpi-icon" style="background:var(--color-primary-pale);color:var(--color-primary-dark);"><i data-lucide="user-check" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-pending-volunteers">—</div>
           <div class="kpi-label">Pending Volunteer Apps</div>
-          <div class="kpi-delta" style="color:var(--color-primary);font-weight:700;">Review & Verify ↗</div>
+          <div class="kpi-delta" style="color:var(--color-primary);font-weight:700;display:inline-flex;align-items:center;gap:4px;">Review & Verify <i data-lucide="arrow-up-right" class="icon-xs"></i></div>
         </a>
       </div>
 
       <!-- Secondary Metrics Row -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:24px;">
         <div class="kpi-card">
-          <div class="kpi-icon kpi-icon-blue">📈</div>
+          <div class="kpi-icon kpi-icon-blue"><i data-lucide="line-chart" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-avg-compliance">—</div>
           <div class="kpi-label">Average Compliance Rate</div>
           <div class="kpi-delta">Municipal benchmark index</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon kpi-icon-purple">👥</div>
+          <div class="kpi-icon kpi-icon-purple"><i data-lucide="users" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-active-volunteers">—</div>
           <div class="kpi-label">Active Approved Volunteers</div>
           <div class="kpi-delta">Authorized field inspectors</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon kpi-icon-blue">🏙️</div>
+          <div class="kpi-icon kpi-icon-blue"><i data-lucide="map-pin" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-total-areas">—</div>
           <div class="kpi-label">Municipal Zones / Areas</div>
           <div class="kpi-delta" id="kpi-areas-audited-sub">— zones audited</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon kpi-icon-red">❗</div>
+          <div class="kpi-icon kpi-icon-red"><i data-lucide="alert-octagon" class="icon-lg"></i></div>
           <div class="kpi-value font-mono" id="kpi-poor-rooms">—</div>
           <div class="kpi-label">High-Risk Units (Score &lt; 40)</div>
           <div class="kpi-delta" style="color:var(--color-danger);">Priority remediation</div>
@@ -384,20 +384,20 @@
       <div class="card" style="margin-bottom:24px;">
         <div class="card-header" style="flex-wrap:wrap;gap:12px;">
           <div>
-            <div class="card-title">🗺️ Geographic Segregation Monitoring & Live Map</div>
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="map" class="icon-md"></i> Geographic Segregation Monitoring & Live Map</div>
             <div class="card-subtitle">Real-time spatial compliance visualization, building health markers, and hotspot visualizer</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;">
-            <button class="btn btn-secondary btn-sm" id="btn-fit-map" onclick="fitDashboardMap()">🎯 Fit All</button>
-            <button class="btn btn-secondary btn-sm" id="btn-refresh-map" onclick="loadDashboardMap()">🔄 Refresh</button>
-            <a href="./map.html" class="btn btn-ghost btn-sm" title="Open full screen map console">Full Screen Map ↗</a>
+            <button class="btn btn-secondary btn-sm" id="btn-fit-map" onclick="fitDashboardMap()"><i data-lucide="crosshair" class="icon-sm"></i> Fit All</button>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-map" onclick="loadDashboardMap()"><i data-lucide="refresh-cw" class="icon-sm"></i> Refresh</button>
+            <a href="./map.html" class="btn btn-ghost btn-sm" title="Open full screen map console" style="display:inline-flex;align-items:center;gap:4px;">Full Screen Map <i data-lucide="external-link" class="icon-xs"></i></a>
           </div>
         </div>
 
         <!-- Filter Controls Toolbar -->
         <div style="padding:12px 16px;background:var(--bg-surface-2);border-bottom:1px solid var(--border-subtle);display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <div class="search-box" style="max-width:220px;flex:1;min-width:160px;">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><i data-lucide="search" class="icon-sm"></i></span>
             <input type="text" class="search-input" id="dash-map-search" placeholder="Search building or area…" oninput="filterDashboardMap()"/>
           </div>
 
@@ -407,11 +407,11 @@
 
           <select class="form-control form-control-sm" id="dash-map-status" onchange="filterDashboardMap()" style="max-width:180px;">
             <option value="">All Statuses</option>
-            <option value="EXCELLENT">🟢 Excellent (80–100)</option>
-            <option value="GOOD">🟡 Good (60–79)</option>
-            <option value="NEEDS_IMPROVEMENT">🟠 Needs Improvement (40–59)</option>
-            <option value="POOR">🔴 Poor / Violation (&lt;40)</option>
-            <option value="NO_DATA">⚪ No Audits</option>
+            <option value="EXCELLENT">Excellent (80–100)</option>
+            <option value="GOOD">Good (60–79)</option>
+            <option value="NEEDS_IMPROVEMENT">Needs Improvement (40–59)</option>
+            <option value="POOR">Poor / Violation (&lt;40)</option>
+            <option value="NO_DATA">No Audits</option>
           </select>
 
           <select class="form-control form-control-sm" id="dash-map-building" onchange="filterDashboardMap()" style="max-width:170px;">
@@ -426,7 +426,7 @@
 
           <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-secondary);cursor:pointer;margin-left:auto;">
             <input type="checkbox" id="dash-chk-hotspots" onchange="filterDashboardMap()"/>
-            <span>🚨 Hotspots Only</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="flame" class="icon-sm" style="color:var(--color-danger);"></i> Hotspots Only</span>
           </label>
         </div>
 
@@ -449,10 +449,10 @@
                 <div class="spinner spinner-md"></div>
               </div>
               <div id="dash-map-error" style="position:absolute;inset:0;background:var(--bg-surface-2);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:1000;padding:24px;text-align:center;">
-                <div style="font-size:2rem;">⚠️</div>
+                <div><i data-lucide="map-pin-off" class="icon-2xl" style="color:var(--color-danger);"></i></div>
                 <div style="font-weight:700;color:var(--color-danger);">Failed to load geographic map data</div>
                 <div style="font-size:0.8125rem;color:var(--text-muted);" id="dash-map-error-msg">Connection error</div>
-                <button class="btn btn-secondary btn-sm" onclick="loadDashboardMap()">🔄 Retry Map</button>
+                <button class="btn btn-secondary btn-sm" onclick="loadDashboardMap()"><i data-lucide="refresh-cw" class="icon-sm"></i> Retry Map</button>
               </div>
             </div>
 
@@ -489,7 +489,7 @@
                 <!-- Location Unavailable List -->
                 <div>
                   <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">
-                    <span>⚠️ Location Unavailable (<span id="dash-unmapped-label-count">0</span>)</span>
+                    <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="alert-triangle" class="icon-sm" style="color:var(--color-warning);"></i> Location Unavailable (<span id="dash-unmapped-label-count">0</span>)</span>
                   </div>
                   <div id="dash-unmapped-list" style="display:flex;flex-direction:column;gap:6px;">
                     <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:10px 0;">All buildings mapped.</div>
@@ -540,7 +540,7 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">🏆 Top Performing Areas</div>
+              <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="trophy" class="icon-md" style="color:var(--color-warning);"></i> Top Performing Areas</div>
               <div class="card-subtitle">Municipal zones with highest waste segregation compliance</div>
             </div>
           </div>
@@ -553,7 +553,7 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">⚠️ Priority Attention Areas</div>
+              <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="triangle-alert" class="icon-md" style="color:var(--color-danger);"></i> Priority Attention Areas</div>
               <div class="card-subtitle">Zones requiring targeted enforcement and volunteer deployment</div>
             </div>
           </div>
@@ -567,7 +567,7 @@
       <div class="card" style="margin-bottom:24px;">
         <div class="card-header">
           <div>
-            <div class="card-title">🚨 Units Requiring Urgent Attention</div>
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="alert-triangle" class="icon-md" style="color:var(--color-danger);"></i> Units Requiring Urgent Attention</div>
             <div class="card-subtitle">Rooms with active violation tickets, poor scores, or overdue audits</div>
           </div>
           <span class="badge badge-danger" id="badge-attention-count">0 flagged</span>
@@ -596,10 +596,10 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">📋 Recent Field Audits</div>
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="clipboard-list" class="icon-md"></i> Recent Field Audits</div>
             <div class="card-subtitle">Latest verified room inspections from field volunteers</div>
           </div>
-          <a href="./inspections.html" class="btn btn-ghost btn-sm">Full Audit Trail →</a>
+          <a href="./inspections.html" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:4px;">Full Audit Trail <i data-lucide="arrow-right" class="icon-xs"></i></a>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -625,6 +625,7 @@
   </div>
 
   <div id="toast-container"></div>
+  <script src="../js/lucide.min.js"></script>
   <script src="../js/api/client.js"></script>
   <script src="../js/utils/helpers.js"></script>
   <script src="../js/utils/sidebar.js"></script>
@@ -717,7 +718,8 @@
     function renderTrendChart(trends) {
       const wrap = document.getElementById('trend-chart');
       if (!trends || !trends.length) {
-        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No Trend Data Recorded Yet</div><div class="empty-state-desc">Daily trend averages will appear once inspections are logged.</div></div>';
+        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="bar-chart-2" class="icon-3xl"></i></div><div class="empty-state-title">No Trend Data Recorded Yet</div><div class="empty-state-desc">Daily trend averages will appear once inspections are logged.</div></div>';
+        if (window.lucide) lucide.createIcons({ root: wrap });
         return;
       }
       const maxScore = 100;
@@ -748,15 +750,16 @@
       const total = totalInspections || ((dist.excellent||0) + (dist.good||0) + (dist.needsImprovement||0) + (dist.poor||0));
 
       if (!total) {
-        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🥧</div><div class="empty-state-title">No Audit Submissions Yet</div></div>';
+        wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="pie-chart" class="icon-3xl"></i></div><div class="empty-state-title">No Audit Submissions Yet</div></div>';
+        if (window.lucide) lucide.createIcons({ root: wrap });
         return;
       }
 
       const rows = [
-        { label: '⭐ Excellent (80–100)', count: dist.excellent || 0, color: '#2ECC71' },
-        { label: '👍 Good (60–79)',       count: dist.good || 0,      color: '#00BFFF' },
-        { label: '🔸 Needs Imp. (40–59)', count: dist.needsImprovement || 0, color: '#F39C12' },
-        { label: '❗ Poor (0–39)',        count: dist.poor || 0,      color: '#E74C3C' },
+        { label: 'Excellent (80–100)', count: dist.excellent || 0, color: '#2ECC71' },
+        { label: 'Good (60–79)',       count: dist.good || 0,      color: '#00BFFF' },
+        { label: 'Needs Imp. (40–59)', count: dist.needsImprovement || 0, color: '#F39C12' },
+        { label: 'Poor (0–39)',        count: dist.poor || 0,      color: '#E74C3C' },
       ];
 
       wrap.innerHTML = rows.map(r => {
@@ -829,7 +832,8 @@
 
       badgeCount.textContent = `${filtered.length} flagged unit(s)`;
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No Urgent Unit Alerts</div><div class="empty-state-desc">All inspected rooms meet acceptable compliance thresholds.</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="check-circle-2" class="icon-3xl" style="color:var(--color-success);"></i></div><div class="empty-state-title">No Urgent Unit Alerts</div><div class="empty-state-desc">All inspected rooms meet acceptable compliance thresholds.</div></div></td></tr>`;
+      if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
@@ -857,7 +861,8 @@
     function renderRecentInspections(list) {
       const tbody = document.getElementById('recent-tbody');
       if (!list || !list.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No Inspections Recorded Yet</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-check" class="icon-3xl text-muted"></i></div><div class="empty-state-title">No Inspections Recorded Yet</div></div></td></tr>`;
+      if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
       tbody.innerHTML = list.slice(0, 10).map(i => `
@@ -898,6 +903,10 @@
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
       }).addTo(dashMap);
+
+      dashMap.on('popupopen', (e) => {
+        if (window.lucide) lucide.createIcons({ root: e.popup.getElement() });
+      });
 
       dashMarkersLayer = L.featureGroup().addTo(dashMap);
       dashHotspotLayer = L.featureGroup().addTo(dashMap);
@@ -1080,8 +1089,8 @@
                 <span class="${b.openViolations > 0 ? 'text-warning font-bold' : 'text-muted'}">${b.openViolations || 0}</span>
               </div>
               <div class="popup-actions">
-                <a href="./areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;">🔍 Details</a>
-                <a href="./inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">📋 Audits</a>
+                <a href="./areas.html" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i data-lucide="eye" class="icon-xs"></i> Details</a>
+                <a href="./inspections.html" class="btn btn-primary btn-sm" style="flex:1;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i data-lucide="clipboard-check" class="icon-xs"></i> Audits</a>
               </div>
             </div>
           `;
@@ -1155,7 +1164,7 @@
             <div style="font-size:0.7rem;color:var(--text-muted);display:flex;justify-content:space-between;">
               <span>${h.totalBuildings} bldgs · ${h.openViolations} viol.</span>
               <span style="color:${isHot ? 'var(--color-danger)' : 'var(--color-success)'}">
-                ${isHot ? '🚨 ' + h.hotspotSeverity : '✓ Healthy'}
+                ${isHot ? '<span style="display:inline-flex;align-items:center;gap:3px;"><i data-lucide="flame" class="icon-xs" style="color:var(--color-danger);"></i> ' + h.hotspotSeverity + '</span>' : '<span style="display:inline-flex;align-items:center;gap:3px;"><i data-lucide="check" class="icon-xs" style="color:var(--color-success);"></i> Healthy</span>'}
               </span>
             </div>
           </div>
@@ -1179,7 +1188,8 @@
       if (!listEl) return;
 
       if (!unmapped.length) {
-        listEl.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:10px 0;">✅ All buildings mapped.</div>';
+        listEl.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:10px 0;display:flex;align-items:center;justify-content:center;gap:4px;"><i data-lucide="check-circle-2" class="icon-xs" style="color:var(--color-success);"></i> All buildings mapped.</div>';
+        if (window.lucide) lucide.createIcons({ root: listEl });
         return;
       }
 

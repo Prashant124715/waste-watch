@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WasteWatch — Indian Civic-Tech Waste Segregation Monitoring</title>
   <meta name="description" content="WasteWatch — The intelligent waste-segregation monitoring and civic compliance platform for Indian housing societies and municipal corporations."/>
   <link rel="icon" type="image/png" href="./assets/favicon.png"/>
   <link rel="stylesheet" href="./css/variables.css"/>
   <link rel="stylesheet" href="./css/base.css"/>
   <link rel="stylesheet" href="./css/components.css"/>
+  <script src="./js/lucide.min.js"></script>
   <style>
     body {
       min-height: 100vh;
@@ -291,6 +293,12 @@
       object-fit: contain;
     }
 
+    .login-logo-wrap .lucide {
+      width: 32px;
+      height: 32px;
+      stroke: var(--color-primary);
+    }
+
     .login-title {
       font-size: 1.75rem;
       font-weight: 800;
@@ -409,7 +417,10 @@
       margin-bottom: 18px;
       text-align: left;
     }
-    .error-msg.visible { display: block; }
+
+    .error-msg.visible {
+      display: block;
+    }
 
     .volunteer-register-box {
       margin-top: 24px;
@@ -487,15 +498,21 @@
     .btn-spinner {
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(255,255,255,0.4);
+      border: 2px solid rgba(255, 255, 255, 0.4);
       border-top-color: #FFFFFF;
       border-radius: 50%;
       animation: spin 0.75s linear infinite;
       display: none;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
+
 <body>
   <!-- Opening Intro Animation Overlay -->
   <div id="ww-intro-overlay" class="intro-overlay" aria-hidden="true" title="Click anywhere to enter">
@@ -533,19 +550,20 @@
         <div class="form-group">
           <label class="form-label" for="username">Username or Email</label>
           <div class="input-wrap">
-            <span class="input-icon">👤</span>
-            <input type="text" id="username" name="username" class="form-control"
-              placeholder="e.g. admin or volunteer" autocomplete="username" required/>
+            <span class="input-icon"><i data-lucide="user"></i></span>
+            <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin or volunteer"
+              autocomplete="username" required />
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
-            <input type="password" id="password" name="password" class="form-control"
-              placeholder="Enter your password" autocomplete="current-password" required/>
-            <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password visibility">👁️</button>
+            <span class="input-icon"><i data-lucide="lock"></i></span>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password"
+              autocomplete="current-password" required />
+            <button type="button" class="input-toggle" id="toggle-pwd"
+              aria-label="Toggle password visibility"><i data-lucide="eye"></i></button>
           </div>
         </div>
 
@@ -558,7 +576,7 @@
       <div class="volunteer-register-box">
         <p class="volunteer-register-prompt">Want to conduct housing society inspections?</p>
         <a href="./register.html" class="btn-register-link" id="link-register-volunteer">
-          <span>🤝</span>
+          <span><i data-lucide="user-plus" class="icon-sm"></i></span>
           <span>Register as Volunteer</span>
         </a>
       </div>
@@ -566,8 +584,8 @@
       <div class="login-footer">
         <p class="login-footer-text">Quick-fill demonstration accounts:</p>
         <div class="role-chips">
-          <button type="button" class="role-chip" id="chip-admin" title="Fill municipal admin credentials">🔑 Admin</button>
-          <button type="button" class="role-chip" id="chip-volunteer" title="Fill volunteer credentials">👷 Volunteer</button>
+          <button type="button" class="role-chip" id="chip-admin" title="Fill municipal admin credentials"><i data-lucide="key" class="icon-xs"></i> Admin</button>
+          <button type="button" class="role-chip" id="chip-volunteer" title="Fill volunteer credentials"><i data-lucide="hard-hat" class="icon-xs"></i> Volunteer</button>
         </div>
       </div>
     </div>
@@ -624,16 +642,16 @@
       }
     }
 
-    const form    = document.getElementById('login-form');
-    const errMsg  = document.getElementById('error-msg');
-    const btn     = document.getElementById('login-btn');
+    const form = document.getElementById('login-form');
+    const errMsg = document.getElementById('error-msg');
+    const btn = document.getElementById('login-btn');
     const btnText = document.getElementById('btn-text');
     const spinner = document.getElementById('btn-spinner');
 
     function setLoading(v) {
-      btn.disabled   = v;
+      btn.disabled = v;
       spinner.style.display = v ? 'block' : 'none';
-      btnText.textContent   = v ? 'Signing in…' : 'Sign In';
+      btnText.textContent = v ? 'Signing in…' : 'Sign In';
     }
 
     function showError(msg) {
@@ -680,8 +698,11 @@
     // Toggle password visibility
     document.getElementById('toggle-pwd').addEventListener('click', () => {
       const pwd = document.getElementById('password');
-      pwd.type = pwd.type === 'password' ? 'text' : 'password';
-      document.getElementById('toggle-pwd').textContent = pwd.type === 'password' ? '👁️' : '🙈';
+      const isPwd = pwd.type === 'password';
+      pwd.type = isPwd ? 'text' : 'password';
+      const btn = document.getElementById('toggle-pwd');
+      btn.innerHTML = isPwd ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      if (window.lucide) lucide.createIcons({ root: btn });
     });
 
     // Quick fill chips
@@ -693,6 +714,12 @@
       document.getElementById('username').value = 'volunteer';
       document.getElementById('password').value = 'volunteer123';
     });
+
+    // Initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   </script>
 </body>
+
 </html>

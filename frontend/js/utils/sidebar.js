@@ -24,39 +24,39 @@ function buildAdminSidebar() {
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Overview</div>
       <a class="nav-item ${isActive('dashboard')}" href="./dashboard.html">
-        <span class="nav-icon">📊</span> Dashboard
+        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> Dashboard
       </a>
       <a class="nav-item ${isActive('analytics')}" href="./analytics.html">
-        <span class="nav-icon">📈</span> Analytics Engine
+        <span class="nav-icon"><i data-lucide="line-chart"></i></span> Analytics Engine
       </a>
       <a class="nav-item ${isActive('map')}" href="./map.html">
-        <span class="nav-icon">🗺️</span> Live Map
+        <span class="nav-icon"><i data-lucide="map"></i></span> Live Map
       </a>
 
       <div class="sidebar-section-label">Operations</div>
       <a class="nav-item ${isActive('areas')}" href="./areas.html">
-        <span class="nav-icon">🏙️</span> Areas & Buildings
+        <span class="nav-icon"><i data-lucide="building-2"></i></span> Areas & Buildings
       </a>
       <a class="nav-item ${isActive('inspections')}" href="./inspections.html">
-        <span class="nav-icon">📋</span> Inspections
+        <span class="nav-icon"><i data-lucide="clipboard-check"></i></span> Inspections
       </a>
       <a class="nav-item ${isActive('violations')}" href="./violations.html">
-        <span class="nav-icon">⚠️</span> Violations
+        <span class="nav-icon"><i data-lucide="triangle-alert"></i></span> Violations
         <span class="nav-badge" id="open-viol-count" style="display:none"></span>
       </a>
 
       <div class="sidebar-section-label">People</div>
       <a class="nav-item ${isActive('volunteers')}" href="./volunteers.html">
-        <span class="nav-icon">🤝</span> Volunteer Verification
+        <span class="nav-icon"><i data-lucide="user-check"></i></span> Volunteer Verification
         <span class="nav-badge" id="pending-vol-count" style="display:none; background:var(--color-warning);"></span>
       </a>
 
       <div class="sidebar-section-label">Governance</div>
       <a class="nav-item ${isActive('reports')}" href="./reports.html">
-        <span class="nav-icon">📑</span> Reports & Exports
+        <span class="nav-icon"><i data-lucide="file-text"></i></span> Reports & Exports
       </a>
       <a class="nav-item ${isActive('audit-logs')}" href="./audit-logs.html">
-        <span class="nav-icon">🛡️</span> Audit Logs
+        <span class="nav-icon"><i data-lucide="shield-check"></i></span> Audit Logs
       </a>
     </nav>
 
@@ -67,7 +67,7 @@ function buildAdminSidebar() {
           <div class="user-name" id="user-name">Loading…</div>
           <div class="user-role" id="user-role">ADMIN</div>
         </div>
-        <button class="logout-btn" onclick="Auth.logout()" title="Sign out">🚪</button>
+        <button class="logout-btn" onclick="Auth.logout()" title="Sign out" aria-label="Sign out"><i data-lucide="log-out"></i></button>
       </div>
     </div>
   </aside>`;
@@ -92,10 +92,10 @@ function buildVolunteerSidebar() {
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Inspect</div>
       <a class="nav-item ${isActive('inspect')}" href="./inspect.html">
-        <span class="nav-icon">📝</span> New Inspection
+        <span class="nav-icon"><i data-lucide="clipboard-pen"></i></span> New Inspection
       </a>
       <a class="nav-item ${isActive('history')}" href="./history.html">
-        <span class="nav-icon">🕐</span> My History
+        <span class="nav-icon"><i data-lucide="clock-3"></i></span> My History
       </a>
     </nav>
 
@@ -106,7 +106,7 @@ function buildVolunteerSidebar() {
           <div class="user-name" id="user-name">Loading…</div>
           <div class="user-role" id="user-role">VOLUNTEER</div>
         </div>
-        <button class="logout-btn" onclick="Auth.logout()" title="Sign out">🚪</button>
+        <button class="logout-btn" onclick="Auth.logout()" title="Sign out" aria-label="Sign out"><i data-lucide="log-out"></i></button>
       </div>
     </div>
   </aside>`;
@@ -116,6 +116,11 @@ function injectSidebar(role) {
   const html = role === 'ADMIN' ? buildAdminSidebar() : buildVolunteerSidebar();
   document.body.insertAdjacentHTML('afterbegin', html);
   renderUserCard();
+
+  const sidebarEl = document.getElementById('sidebar');
+  if (sidebarEl && typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons({ root: sidebarEl });
+  }
 
   // Load open violations & pending volunteer count for admin badges
   if (role === 'ADMIN') {

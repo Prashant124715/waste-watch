@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
   <style>
     .filter-bar {
       display: flex;
@@ -31,7 +32,7 @@
     <div class="page-content">
       <div class="filter-bar">
         <div class="search-box" style="flex:1;min-width:220px;">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i data-lucide="search"></i></span>
           <input type="text" class="search-input" id="search-input" placeholder="Search room, building, area…"/>
         </div>
 
@@ -51,8 +52,8 @@
           <option value="LOW">Low</option>
         </select>
 
-        <button class="btn btn-primary btn-sm" id="btn-apply">Filter</button>
-        <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh</button>
+        <button class="btn btn-primary btn-sm" id="btn-apply"><i data-lucide="filter"></i> Filter</button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh</button>
       </div>
 
       <div class="table-wrap">
@@ -83,7 +84,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="modal-title">Violation Management</h2>
-        <button class="modal-close" onclick="closeModal('update-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('update-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <form id="update-form">
         <input type="hidden" id="viol-id"/>
@@ -156,7 +157,8 @@
 
       const tbody = document.getElementById('violations-tbody');
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No violations found</div><div class="empty-state-desc">All units are compliant or match the filter parameters.</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="check-circle-2" class="icon-3xl"></i></div><div class="empty-state-title">No violations found</div><div class="empty-state-desc">All units are compliant or match the filter parameters.</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
@@ -174,12 +176,16 @@
         else if (v.status === 'ACTION_REQUIRED') statClass = 'warning';
         else if (v.status === 'RESOLVED') statClass = 'excellent';
 
+        const locTitle = v.roomNumber
+          ? `${v.roomNumber} · F${v.floorNumber || '?'}`
+          : '<span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="building-2" class="icon-sm"></i> Building Audit</span>';
+
         return `
           <tr>
             <td class="font-mono text-muted">#${v.id}</td>
             <td class="td-primary">
-              ${v.roomNumber ? `${v.roomNumber} · F${v.floorNumber || '?'}` : '🏢 Building Audit'}
-              ${v.roomPersistentNonCompliance ? `<br><span class="badge badge-poor" style="font-size:0.65rem;margin-top:2px;">⚠️ PERSISTENT</span>` : ''}
+              ${locTitle}
+              ${v.roomPersistentNonCompliance ? `<br><span class="badge badge-poor" style="font-size:0.65rem;margin-top:2px;"><i data-lucide="triangle-alert" class="icon-xs"></i> PERSISTENT</span>` : ''}
             </td>
             <td>
               <div style="font-weight:600;">${v.buildingName||'—'}</div>
@@ -192,15 +198,16 @@
             <td style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">${Fmt.date(v.createdAt)}</td>
             <td>
               <div style="display:flex;gap:6px;">
-                <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${v.id})">🔍 Details / Edit</button>
+                <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${v.id})"><i data-lucide="file-pen"></i> Details / Edit</button>
                 ${!isResolved ? `
-                  <button class="btn btn-primary btn-sm" onclick="quickResolve(${v.id})">✅ Resolve</button>
+                  <button class="btn btn-primary btn-sm" onclick="quickResolve(${v.id})"><i data-lucide="check"></i> Resolve</button>
                 ` : ''}
               </div>
             </td>
           </tr>
         `;
       }).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     function openUpdateModal(id) {
@@ -286,6 +293,7 @@
     window.loadViolations = loadViolations;
 
     loadViolations();
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>

@@ -52,6 +52,12 @@
   object-fit: contain;
 }
 
+.sidebar-logo .lucide {
+  width: 20px;
+  height: 20px;
+  stroke: var(--color-primary);
+}
+
 .sidebar-brand {
   font-weight: 800;
   font-size: var(--text-lg);
@@ -124,6 +130,11 @@
   flex-shrink: 0;
 }
 
+.nav-item .nav-icon .lucide {
+  width: 18px;
+  height: 18px;
+}
+
 .nav-item .nav-badge {
   margin-left: auto;
   background: var(--color-danger);
@@ -179,10 +190,16 @@
   border-radius: var(--radius-sm);
   font-size: 1rem;
   transition: color var(--transition-fast);
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+}
+.logout-btn .lucide {
+  width: 17px;
+  height: 17px;
 }
 .logout-btn:hover { color: var(--color-danger); }
+
 
 /* ── Main Content ── */
 .main-content {

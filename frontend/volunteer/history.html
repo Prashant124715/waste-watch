@@ -35,7 +35,7 @@
         <div class="topbar-title">My History</div>
         <div class="topbar-subtitle">Your inspection records and performance</div>
       </div>
-      <a href="./inspect.html" class="btn btn-primary btn-sm">📝 New Inspection</a>
+      <a href="./inspect.html" class="btn btn-primary btn-sm"><i data-lucide="clipboard-pen" class="icon-sm"></i> New Inspection</a>
     </header>
     <div class="page-content">
 
@@ -50,7 +50,7 @@
       <!-- Filters -->
       <div class="toolbar">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i data-lucide="search" class="icon-sm"></i></span>
           <input type="text" class="search-input" id="search-input" placeholder="Search by room, building…"/>
         </div>
         <select class="form-control form-control-sm" id="filter-class" style="max-width:190px;">
@@ -61,9 +61,9 @@
           <option value="POOR">Poor</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV">📥 CSV</button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-pdf" title="Export to PDF">📄 PDF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV"><i data-lucide="file-spreadsheet" class="icon-sm"></i> CSV</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-pdf" title="Export to PDF"><i data-lucide="file-text" class="icon-sm"></i> PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh history"><i data-lucide="refresh-cw" class="icon-sm"></i></button>
         </div>
       </div>
 
@@ -91,6 +91,7 @@
   </div>
 
   <div id="toast-container"></div>
+  <script src="../js/lucide.min.js"></script>
   <script src="../js/api/client.js"></script>
   <script src="../js/utils/helpers.js"></script>
   <script src="../js/utils/sidebar.js"></script>
@@ -138,7 +139,8 @@
 
       const tbody = document.getElementById('hist-tbody');
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No inspections yet</div><div class="empty-state-desc">Start by conducting your first inspection!</div></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-check" class="icon-3xl text-muted"></i></div><div class="empty-state-title">No inspections yet</div><div class="empty-state-desc">Start by conducting your first inspection!</div></div></td></tr>`;
+      if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
@@ -156,7 +158,7 @@
             </div>
           </td>
           <td><span class="badge badge-${Fmt.classifyBadge(i.classification)}">${Fmt.classify(i.classification)}</span></td>
-          <td>${i.violationCreated ? '<span class="badge badge-danger">⚠️ Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
+          <td>${i.violationCreated ? '<span class="badge badge-danger" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="triangle-alert" class="icon-xs"></i> Yes</span>' : '<span class="badge badge-neutral">—</span>'}</td>
           <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
         </tr>
       `).join('');
@@ -217,7 +219,7 @@
           .footer { margin-top: 40px; font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 16px; }
         </style>
       </head><body>
-        <h1>♻️ WasteWatch Inspection Report</h1>
+        <h1>WasteWatch Inspection Report</h1>
         <p class="subtitle">Volunteer: <strong>${vol}</strong> · Generated: ${new Date().toLocaleString('en-IN')}</p>
         <div class="summary">
           <div class="summary-item"><div class="summary-val">${total}</div><div class="summary-label">Inspections</div></div>
@@ -226,7 +228,7 @@
         <table><thead><tr><th>ID</th><th>Room</th><th>Building</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead>
         <tbody>${tableRows}</tbody></table>
         <div class="footer">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div>
-      </body></html>`;
+      <' + '/body><' + '/html>`;
 
       const win = window.open('', '_blank');
       win.document.write(html);

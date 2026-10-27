@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
   <style>
     .hierarchy-tabs {
       display: flex;
@@ -143,16 +144,16 @@
     <div class="page-content">
 
       <div class="hierarchy-tabs">
-        <button class="hierarchy-tab active" data-panel="areas">🏙️ Areas</button>
-        <button class="hierarchy-tab" data-panel="buildings">🏢 Buildings</button>
-        <button class="hierarchy-tab" data-panel="rooms">🚪 Rooms</button>
+        <button class="hierarchy-tab active" data-panel="areas"><i data-lucide="map-pin" class="icon-sm"></i> Areas</button>
+        <button class="hierarchy-tab" data-panel="buildings"><i data-lucide="building-2" class="icon-sm"></i> Buildings</button>
+        <button class="hierarchy-tab" data-panel="rooms"><i data-lucide="door-open" class="icon-sm"></i> Rooms</button>
       </div>
 
       <!-- AREAS -->
       <div class="panel active" id="panel-areas">
         <div class="toolbar">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><i data-lucide="search"></i></span>
             <input type="text" class="search-input" id="search-areas" placeholder="Search areas…"/>
           </div>
           <div style="margin-left:auto;">
@@ -171,7 +172,7 @@
       <div class="panel" id="panel-buildings">
         <div class="toolbar">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><i data-lucide="search"></i></span>
             <input type="text" class="search-input" id="search-buildings" placeholder="Search buildings…"/>
           </div>
           <select class="form-control form-control-sm" id="filter-area" style="max-width:200px;"><option value="">All Areas</option></select>
@@ -191,7 +192,7 @@
       <div class="panel" id="panel-rooms">
         <div class="toolbar">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><i data-lucide="search"></i></span>
             <input type="text" class="search-input" id="search-rooms" placeholder="Search rooms…"/>
           </div>
           <select class="form-control form-control-sm" id="filter-building" style="max-width:220px;"><option value="">All Buildings</option></select>
@@ -214,7 +215,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="area-modal-title">Add Area</h2>
-        <button class="modal-close" onclick="closeModal('area-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('area-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <form id="area-form">
         <input type="hidden" id="area-id"/>
@@ -255,7 +256,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="building-modal-title">Add Building</h2>
-        <button class="modal-close" onclick="closeModal('building-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('building-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <form id="building-form">
         <input type="hidden" id="building-id"/>
@@ -317,7 +318,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="room-modal-title">Add Room</h2>
-        <button class="modal-close" onclick="closeModal('room-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('room-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <form id="room-form">
         <input type="hidden" id="room-id"/>
@@ -365,12 +366,12 @@
     <div class="modal" style="max-width: 460px;">
       <div class="modal-header">
         <h2 class="modal-title" id="qr-modal-title">Room QR Code Badge</h2>
-        <button class="modal-close" onclick="closeModal('qr-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('qr-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <div style="padding: var(--space-3) 0;">
         <div class="qr-badge-card" id="printable-qr-badge">
           <div class="qr-badge-header">
-            <span style="font-size:1.2rem;">♻️</span>
+            <span style="display:inline-flex;align-items:center;color:var(--color-primary);"><i data-lucide="recycle" class="icon-md"></i></span>
             <span class="qr-badge-brand">WASTEWATCH AUDIT BADGE</span>
           </div>
           <div class="qr-badge-room" id="qr-badge-room">Room 101</div>
@@ -386,10 +387,10 @@
         </div>
       </div>
       <div class="modal-footer" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-        <button type="button" class="btn btn-secondary btn-sm" id="btn-regen-qr" onclick="regenerateCurrentRoomQr()">🔄 Regenerate</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-regen-qr" onclick="regenerateCurrentRoomQr()"><i data-lucide="refresh-cw"></i> Regenerate</button>
         <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQrImage()">⬇️ Download PNG</button>
-          <button type="button" class="btn btn-primary btn-sm" onclick="printQrBadge()">🖨️ Print Badge</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQrImage()"><i data-lucide="download"></i> Download PNG</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="printQrBadge()"><i data-lucide="printer"></i> Print Badge</button>
         </div>
       </div>
     </div>
@@ -430,7 +431,11 @@
         [a.areaCode, a.name, a.city].some(f => f && f.toLowerCase().includes(search))
       );
       const tbody = document.getElementById('areas-tbody');
-      if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🏙️</div><div class="empty-state-title">No areas found</div></div></td></tr>`; return; }
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="map-pin" class="icon-3xl"></i></div><div class="empty-state-title">No areas found</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
+        return;
+      }
       tbody.innerHTML = filtered.map(a => `
         <tr>
           <td class="font-mono">${a.areaCode}</td>
@@ -438,11 +443,12 @@
           <td>${a.city}</td>
           <td class="font-mono">${a.pincode}</td>
           <td style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="editArea(${a.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteArea(${a.id})">🗑️</button>
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="editArea(${a.id})" title="Edit Area" aria-label="Edit Area"><i data-lucide="pencil" class="icon-sm"></i></button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteArea(${a.id})" title="Delete Area" aria-label="Delete Area"><i data-lucide="trash-2" class="icon-sm"></i></button>
           </td>
         </tr>
       `).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     function populateAreaFilters() {
@@ -524,7 +530,11 @@
         return match && area;
       });
       const tbody = document.getElementById('buildings-tbody');
-      if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-title">No buildings found</div></div></td></tr>`; return; }
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="building-2" class="icon-3xl"></i></div><div class="empty-state-title">No buildings found</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
+        return;
+      }
       tbody.innerHTML = filtered.map(b => `
         <tr>
           <td class="font-mono">${b.buildingCode}</td>
@@ -533,11 +543,12 @@
           <td><span class="badge badge-neutral">${Fmt.buildingType(b.buildingType)}</span></td>
           <td>${b.totalFloors}</td>
           <td style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="editBuilding(${b.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteBuilding(${b.id})">🗑️</button>
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="editBuilding(${b.id})" title="Edit Building" aria-label="Edit Building"><i data-lucide="pencil" class="icon-sm"></i></button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteBuilding(${b.id})" title="Delete Building" aria-label="Delete Building"><i data-lucide="trash-2" class="icon-sm"></i></button>
           </td>
         </tr>
       `).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     function populateBuildingFilter() {
@@ -625,7 +636,11 @@
         return match && bld;
       });
       const tbody = document.getElementById('rooms-tbody');
-      if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🚪</div><div class="empty-state-title">No rooms found</div></div></td></tr>`; return; }
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="door-open" class="icon-3xl"></i></div><div class="empty-state-title">No rooms found</div></div></td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
+        return;
+      }
       tbody.innerHTML = filtered.map(r => `
         <tr>
           <td class="font-mono" style="font-size:0.8rem;">${r.qrCodeToken || '—'}</td>
@@ -635,12 +650,13 @@
           <td>${r.occupantName || '—'}</td>
           <td><span class="badge badge-${r.status === 'ACTIVE' ? 'excellent' : 'neutral'}">${r.status}</span></td>
           <td style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="showQrModal(${r.id})" title="View Room QR Badge">📱 QR</button>
-            <button class="btn btn-secondary btn-sm" onclick="editRoom(${r.id})">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteRoom(${r.id})">🗑️</button>
+            <button class="btn btn-secondary btn-sm" onclick="showQrModal(${r.id})" title="View Room QR Badge"><i data-lucide="qr-code" class="icon-sm"></i> QR</button>
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="editRoom(${r.id})" title="Edit Room" aria-label="Edit Room"><i data-lucide="pencil" class="icon-sm"></i></button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteRoom(${r.id})" title="Delete Room" aria-label="Delete Room"><i data-lucide="trash-2" class="icon-sm"></i></button>
           </td>
         </tr>
       `).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     document.getElementById('search-rooms').addEventListener('input', renderRooms);
@@ -768,7 +784,7 @@
         Toast.error('Regeneration Failed', e.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = '🔄 Regenerate';
+        btn.innerHTML = '<i data-lucide="refresh-cw"></i> Regenerate'; if (window.lucide) lucide.createIcons({ root: btn });
       }
     }
 

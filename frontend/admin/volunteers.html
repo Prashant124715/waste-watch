@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
   <style>
     /* Tab bar */
     .tab-nav {
@@ -231,29 +232,29 @@
           <span class="tab-count" id="count-all">0</span>
         </button>
         <button class="tab-btn" data-status="PENDING" onclick="setTab('PENDING')">
-          <span>⏳ Pending Verification</span>
+          <span><i data-lucide="clock-3" class="icon-sm"></i> Pending Verification</span>
           <span class="tab-count" id="count-pending" style="background:var(--color-warning-light);color:var(--color-warning);">0</span>
         </button>
         <button class="tab-btn" data-status="ACTIVE" onclick="setTab('ACTIVE')">
-          <span>✓ Approved / Active</span>
+          <span><i data-lucide="check-circle-2" class="icon-sm"></i> Approved / Active</span>
           <span class="tab-count" id="count-approved">0</span>
         </button>
         <button class="tab-btn" data-status="REJECTED" onclick="setTab('REJECTED')">
-          <span>✕ Rejected</span>
+          <span><i data-lucide="x-circle" class="icon-sm"></i> Rejected</span>
           <span class="tab-count" id="count-rejected">0</span>
         </button>
       </div>
 
       <div class="toolbar">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i data-lucide="search"></i></span>
           <input type="text" class="search-input" id="search-input" placeholder="Search applicant by name, email, phone, city…"/>
         </div>
         <select class="form-control form-control-sm" id="city-filter" style="max-width:180px;">
           <option value="">All Cities</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Refresh List</button>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh List</button>
         </div>
       </div>
 
@@ -270,7 +271,7 @@
     <div class="modal modal-lg">
       <div class="modal-header">
         <h2 class="modal-title" id="detail-modal-title">Volunteer Application Details</h2>
-        <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('detail-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <div id="detail-body" style="color:var(--text-secondary);padding:var(--space-2) 0;"></div>
     </div>
@@ -281,7 +282,7 @@
     <div class="modal modal-lg">
       <div class="modal-header">
         <h2 class="modal-title" id="perf-modal-title">Volunteer Performance & Audit Analytics</h2>
-        <button class="modal-close" onclick="closeModal('perf-modal')">✕</button>
+        <button class="modal-close" onclick="closeModal('perf-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
       </div>
       <div id="perf-body" style="color:var(--text-secondary);padding:var(--space-2) 0;"></div>
     </div>
@@ -315,12 +316,14 @@
         renderVolunteers();
       } catch(e) {
         Toast.error('Error', e.message || 'Failed to load volunteers');
-        document.getElementById('vol-grid').innerHTML = `
+        const grid = document.getElementById('vol-grid');
+        grid.innerHTML = `
           <div class="empty-state" style="grid-column:1/-1;">
-            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-icon"><i data-lucide="triangle-alert" class="icon-3xl"></i></div>
             <div class="empty-state-title">Failed to load volunteer records</div>
             <p>${e.message}</p>
           </div>`;
+        if (window.lucide) lucide.createIcons({ root: grid });
       }
     }
 
@@ -371,12 +374,13 @@
       if (!filtered.length) {
         grid.innerHTML = `
           <div class="empty-state" style="grid-column:1/-1;">
-            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-icon"><i data-lucide="users" class="icon-3xl"></i></div>
             <div class="empty-state-title">No volunteer applications found</div>
             <p style="color:var(--text-muted);font-size:0.875rem;">
               ${currentTab === 'PENDING' ? 'There are no pending volunteer registrations requiring verification.' : 'Try adjusting your search query or tab filters.'}
             </p>
           </div>`;
+        if (window.lucide) lucide.createIcons({ root: grid });
         return;
       }
 
@@ -442,35 +446,36 @@
 
           <div class="vol-card-actions">
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openDetails(${v.id})">
-              👁️ Details
+              <i data-lucide="eye" class="icon-sm"></i> Details
             </button>
             <button class="btn btn-secondary btn-sm" onclick="openPerf(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-              📈 Stats
+              <i data-lucide="bar-chart-2" class="icon-sm"></i> Stats
             </button>
             ${isPending ? `
               <button class="btn-approve" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-                ✓ Approve
+                <i data-lucide="check" class="icon-sm"></i> Approve
               </button>
               <button class="btn-reject" onclick="rejectVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-                ✕ Reject
+                <i data-lucide="x" class="icon-sm"></i> Reject
               </button>
             ` : isRejected ? `
               <button class="btn-approve" onclick="approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-                ✓ Re-Approve
+                <i data-lucide="check" class="icon-sm"></i> Re-Approve
               </button>
             ` : isActive ? `
               <button class="btn btn-danger btn-sm" onclick="toggleStatus(${v.id}, 'INACTIVE', '${escapeHtml(v.fullName || v.username)}')">
-                ⏸️ Deactivate
+                <i data-lucide="pause" class="icon-sm"></i> Deactivate
               </button>
             ` : `
               <button class="btn btn-primary btn-sm" onclick="toggleStatus(${v.id}, 'ACTIVE', '${escapeHtml(v.fullName || v.username)}')">
-                ▶️ Activate
+                <i data-lucide="play" class="icon-sm"></i> Activate
               </button>
             `}
           </div>
         </div>
         `;
       }).join('');
+      if (window.lucide) lucide.createIcons({ root: grid });
     }
 
     function escapeHtml(str) {
@@ -489,6 +494,7 @@
         await api.approveVolunteer(id);
         Toast.success('Application Approved', `Volunteer "${displayName}" is now approved and active.`);
         await loadVolunteers();
+        if (window.lucide) lucide.createIcons({ root: body });
       } catch(err) {
         Toast.error('Approval Failed', err.message || 'Could not approve applicant');
       }
@@ -583,20 +589,21 @@
           <button class="btn btn-secondary btn-sm" onclick="closeModal('detail-modal')">Close</button>
           ${isPending ? `
             <button class="btn-reject" onclick="closeModal('detail-modal'); rejectVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-              ✕ Reject Application
+              <i data-lucide="x" class="icon-sm"></i> Reject Application
             </button>
             <button class="btn-approve" onclick="closeModal('detail-modal'); approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-              ✓ Approve & Authorize
+              <i data-lucide="check" class="icon-sm"></i> Approve & Authorize
             </button>
           ` : isRejected ? `
             <button class="btn-approve" onclick="closeModal('detail-modal'); approveVolunteer(${v.id}, '${escapeHtml(v.fullName || v.username)}')">
-              ✓ Re-Approve Application
+              <i data-lucide="check" class="icon-sm"></i> Re-Approve Application
             </button>
           ` : ''}
         </div>
       `;
 
       openModal('detail-modal');
+      if (window.lucide) lucide.createIcons({ root: document.getElementById('detail-body') });
     }
 
     async function openPerf(id, name) {
@@ -620,7 +627,7 @@
               ['Status',              p.status || 'ACTIVE', 'kpi-icon-blue'],
             ].map(([label, val, cls]) => `
               <div class="kpi-card" style="padding:16px;">
-                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;">${label[0]}</div>
+                <div class="kpi-icon ${cls}" style="width:36px;height:36px;font-size:1rem;margin-bottom:8px;"><i data-lucide="${label.includes('Audits') ? 'clipboard-check' : label.includes('Score') ? 'award' : label.includes('Violations') ? 'triangle-alert' : label.includes('Rooms') ? 'door-open' : label.includes('Buildings') ? 'building-2' : 'shield-check'}" class="icon-sm"></i></div>
                 <div class="kpi-value" style="font-size:1.4rem;">${val}</div>
                 <div class="kpi-label" style="font-size:0.75rem;">${label}</div>
               </div>
@@ -654,6 +661,7 @@
     window.loadVolunteers = loadVolunteers;
 
     loadVolunteers();
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>

@@ -111,7 +111,8 @@ erDiagram
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique inspection ID |
-  | `room_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `ROOMS(id)` |
+  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (optional for building-level audits) |
+  | `building_id`| `BIGINT` | `NULLABLE, FOREIGN KEY` | References `BUILDINGS(id)` (required for building-level audits) |
   | `volunteer_id`| `BIGINT` | `NOT NULL, FOREIGN KEY` | References `APP_USERS(id)` |
   | `inspection_date`| `TIMESTAMP` | `NOT NULL` | Audit timestamp |
   | `wet_waste_separated` | `BOOLEAN` | `NOT NULL` | Criteria 1 (25 pts) |
@@ -134,7 +135,8 @@ erDiagram
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique violation ID |
   | `inspection_id`| `BIGINT` | `NOT NULL, UNIQUE, FOREIGN KEY`| References `INSPECTIONS(id)` |
-  | `room_id` | `BIGINT` | `NOT NULL, FOREIGN KEY` | References `ROOMS(id)` |
+  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (optional for building-level violations) |
+  | `building_id`| `BIGINT` | `NULLABLE, FOREIGN KEY` | References `BUILDINGS(id)` (associated building) |
   | `severity` | `VARCHAR(20)` | `NOT NULL` | Enum: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` |
   | `status` | `VARCHAR(20)` | `NOT NULL, DEFAULT 'OPEN'` | Enum: `OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED` |
   | `description` | `TEXT` | `NOT NULL` | Violation reason or auto-flag details |

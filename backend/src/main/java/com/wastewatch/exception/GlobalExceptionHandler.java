@@ -132,10 +132,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
         log.warn("Data integrity constraint violation at {}: {}", request.getRequestURI(), ex.getMessage());
+        String message = "Database constraint violation: resource is in use or duplicate entry exists";
+        String detail = ex.getMessage();
+        Throwable root = ex.getRootCause();
+        if (root != null && root.getMessage() != null) {
+            detail = root.getMessage();
+        }
+        if (detail != null) {
+            String lower = detail.toLowerCase();
+            if (lower.contains("username") || lower.contains("app_users(username") || (lower.contains("uk_") && lower.contains("user"))) {
+                message = "Username already exists";
+            } else if (lower.contains("email") || lower.contains("app_users(email")) {
+                message = "Email already exists";
+            } else if (lower.contains("phone") || lower.contains("phone_number") || lower.contains("app_users(phone")) {
+                message = "Mobile number already exists";
+            }
+        }
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
-                "Database constraint violation: resource is in use or duplicate entry exists",
+                message,
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);

@@ -603,36 +603,43 @@ class ApiClient {
   // Analytics Engine
   // ==================================================
 
-  getAnalyticsOverview() {
-    return this.get('/analytics/overview');
+  async getAnalyticsOverview() {
+    const res = await this.get('/analytics/overview');
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsAreas() {
-    return this.get('/analytics/areas');
+  async getAnalyticsAreas() {
+    const res = await this.get('/analytics/areas');
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsBuildings() {
-    return this.get('/analytics/buildings');
+  async getAnalyticsBuildings() {
+    const res = await this.get('/analytics/buildings');
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsTrends(period, days) {
-    return this.get(
+  async getAnalyticsTrends(period, days) {
+    const res = await this.get(
       `/analytics/trends?period=${encodeURIComponent(period || 'daily')}&days=${encodeURIComponent(days || 30)}`
     );
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsImprovements(days) {
-    return this.get(
+  async getAnalyticsImprovements(days) {
+    const res = await this.get(
       `/analytics/improvements?days=${encodeURIComponent(days || 14)}`
     );
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsHotspots() {
-    return this.get('/analytics/hotspots');
+  async getAnalyticsHotspots() {
+    const res = await this.get('/analytics/hotspots');
+    return res && res.data !== undefined ? res.data : res;
   }
 
-  getAnalyticsVolunteers() {
-    return this.get('/analytics/volunteers');
+  async getAnalyticsVolunteers() {
+    const res = await this.get('/analytics/volunteers');
+    return res && res.data !== undefined ? res.data : res;
   }
 
   // ==================================================

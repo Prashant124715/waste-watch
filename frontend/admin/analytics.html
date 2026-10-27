@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <script src="../js/lucide.min.js"></script>
   <style>
     .analytics-nav {
       display: flex;
@@ -160,7 +161,7 @@
         <div class="topbar-subtitle">Backend-computed intelligence, Area Health Scores & chronic problem detection</div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadAllAnalytics()">🔄 Refresh</button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" onclick="loadAllAnalytics()"><i data-lucide="refresh-cw"></i> Refresh</button>
       </div>
     </header>
 
@@ -168,19 +169,19 @@
 
       <!-- Navigation Tabs -->
       <div class="analytics-nav">
-        <div class="analytics-tab active" onclick="switchTab('overview')">📊 Overview & Health</div>
-        <div class="analytics-tab" onclick="switchTab('areas')">🏙️ Area Health Index</div>
-        <div class="analytics-tab" onclick="switchTab('buildings')">🏢 Building Matrix</div>
-        <div class="analytics-tab" onclick="switchTab('trends')">📈 Time-Series Trends</div>
-        <div class="analytics-tab" onclick="switchTab('improvements')">🚀 Most Improved Areas</div>
-        <div class="analytics-tab" onclick="switchTab('hotspots')">🚨 Hotspots & Repeat Offenders</div>
-        <div class="analytics-tab" onclick="switchTab('volunteers')">👷 Volunteer Productivity</div>
+        <div class="analytics-tab active" onclick="switchTab('overview')"><i data-lucide="layout-dashboard" class="icon-sm"></i> Overview & Health</div>
+        <div class="analytics-tab" onclick="switchTab('areas')"><i data-lucide="map-pin" class="icon-sm"></i> Area Health Index</div>
+        <div class="analytics-tab" onclick="switchTab('buildings')"><i data-lucide="building-2" class="icon-sm"></i> Building Matrix</div>
+        <div class="analytics-tab" onclick="switchTab('trends')"><i data-lucide="line-chart" class="icon-sm"></i> Time-Series Trends</div>
+        <div class="analytics-tab" onclick="switchTab('improvements')"><i data-lucide="trending-up" class="icon-sm"></i> Most Improved Areas</div>
+        <div class="analytics-tab" onclick="switchTab('hotspots')"><i data-lucide="flame" class="icon-sm"></i> Hotspots & Repeat Offenders</div>
+        <div class="analytics-tab" onclick="switchTab('volunteers')"><i data-lucide="user-check" class="icon-sm"></i> Volunteer Productivity</div>
       </div>
 
       <!-- Formula Banner -->
       <div class="formula-banner">
         <div>
-          <div class="formula-title">💡 Standardized Area Health Score Formula</div>
+          <div class="formula-title"><i data-lucide="lightbulb" class="icon-sm"></i> Standardized Area Health Score Formula</div>
           <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:2px;">
             Weighted model preventing false-confidence from high compliance on low coverage.
           </div>
@@ -196,7 +197,7 @@
           <div class="stat-card">
             <div class="stat-card-header">
               <span class="stat-card-title">System Health Score</span>
-              <span class="stat-card-icon">🌟</span>
+              <span class="stat-card-icon"><i data-lucide="award"></i></span>
             </div>
             <div class="stat-card-value" id="ov-health" style="color:var(--color-primary-light);">—</div>
             <div class="stat-card-change" id="ov-health-note">Weighted operational index</div>
@@ -205,7 +206,7 @@
           <div class="stat-card">
             <div class="stat-card-header">
               <span class="stat-card-title">Overall Compliance</span>
-              <span class="stat-card-icon">♻️</span>
+              <span class="stat-card-icon"><i data-lucide="recycle"></i></span>
             </div>
             <div class="stat-card-value" id="ov-comp" style="color:var(--color-accent);">—</div>
             <div class="stat-card-change" id="ov-comp-note">Avg across valid audits</div>
@@ -214,7 +215,7 @@
           <div class="stat-card">
             <div class="stat-card-header">
               <span class="stat-card-title">Inspection Coverage</span>
-              <span class="stat-card-icon">🎯</span>
+              <span class="stat-card-icon"><i data-lucide="target"></i></span>
             </div>
             <div class="stat-card-value" id="ov-cov" style="color:#2ECC71;">—</div>
             <div class="stat-card-change" id="ov-cov-note">Rooms inspected / Total</div>
@@ -223,7 +224,7 @@
           <div class="stat-card">
             <div class="stat-card-header">
               <span class="stat-card-title">Violation Resolution</span>
-              <span class="stat-card-icon">✅</span>
+              <span class="stat-card-icon"><i data-lucide="check-circle-2"></i></span>
             </div>
             <div class="stat-card-value" id="ov-res" style="color:#00BFFF;">—</div>
             <div class="stat-card-change" id="ov-res-note">Resolved / Total Violations</div>
@@ -233,7 +234,7 @@
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">⚠️ Compliance vs. Coverage Confidence Rule</h2>
+              <h2 class="card-title"><i data-lucide="triangle-alert" class="icon-md"></i> Compliance vs. Coverage Confidence Rule</h2>
             </div>
             <div style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;">
               <p style="margin-bottom:10px;">
@@ -372,7 +373,7 @@
           <!-- Repeat Offender Rooms -->
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">🚨 Repeat Offender Rooms (Chronic Non-Compliance)</h2>
+              <h2 class="card-title"><i data-lucide="alert-triangle" class="icon-md"></i> Repeat Offender Rooms (Chronic Non-Compliance)</h2>
             </div>
             <div class="table-wrap">
               <table class="data-table">
@@ -396,7 +397,7 @@
           <!-- Problem Buildings -->
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">🏢 Problem Buildings (Low Score / High Poor Rate)</h2>
+              <h2 class="card-title"><i data-lucide="building-2" class="icon-md"></i> Problem Buildings (Low Score / High Poor Rate)</h2>
             </div>
             <div class="table-wrap">
               <table class="data-table">
@@ -633,7 +634,7 @@ Violations: ${p.violationsCount}`;
         const buildings = data.problemBuildings || [];
 
         if (!rooms.length) {
-          rTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center">🎉 No chronic repeat offender rooms found!</td></tr>`;
+          rTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center" style="padding:24px;"><span style="display:inline-flex;align-items:center;gap:6px;color:var(--color-success);"><i data-lucide="check-circle-2" class="icon-sm"></i> No chronic repeat offender rooms found!</span></td></tr>`; if (window.lucide) lucide.createIcons({ root: rTbody });
         } else {
           rTbody.innerHTML = rooms.map(r => `
             <tr>
@@ -648,7 +649,7 @@ Violations: ${p.violationsCount}`;
         }
 
         if (!buildings.length) {
-          pTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center">🎉 No problem buildings identified!</td></tr>`;
+          pTbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center" style="padding:24px;"><span style="display:inline-flex;align-items:center;gap:6px;color:var(--color-success);"><i data-lucide="check-circle-2" class="icon-sm"></i> No problem buildings identified!</span></td></tr>`; if (window.lucide) lucide.createIcons({ root: pTbody });
         } else {
           pTbody.innerHTML = buildings.map(b => `
             <tr>
@@ -701,6 +702,7 @@ Violations: ${p.violationsCount}`;
     }
 
     loadAllAnalytics();
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>
