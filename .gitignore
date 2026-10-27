@@ -20,3 +20,4 @@ Thumbs.db
 
 # Local H2 database
 backend/data/
+frontend/node_modules/

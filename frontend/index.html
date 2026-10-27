@@ -5,21 +5,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WasteWatch — Indian Civic-Tech Waste Segregation Monitoring</title>
-  <meta name="description" content="WasteWatch — The intelligent waste-segregation monitoring and civic compliance platform for Indian housing societies and municipal corporations."/>
-  <link rel="icon" type="image/png" href="./assets/favicon.png"/>
-  <link rel="stylesheet" href="./css/variables.css"/>
-  <link rel="stylesheet" href="./css/base.css"/>
-  <link rel="stylesheet" href="./css/components.css"/>
+  <meta name="description"
+    content="WasteWatch — The intelligent waste-segregation monitoring and civic compliance platform for Indian housing societies and municipal corporations." />
+  <link rel="icon" type="image/png" href="./assets/favicon.png" />
+  <link rel="stylesheet" href="./css/variables.css" />
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/components.css" />
   <script src="./js/lucide.min.js"></script>
   <style>
+    /* ── Full-Page Layout ── */
     body {
       min-height: 100vh;
+      margin: 0;
+      padding: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(180deg, #FFF9F5 0%, #F8FAF8 100%);
+      background: #FDF6EC;
       position: relative;
-      padding: var(--space-6) var(--space-4);
+      overflow: hidden;
       color: var(--text-primary);
     }
 
@@ -35,11 +40,10 @@
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
       user-select: none;
-      /* CSS Fallback: automatically dismiss if JS is disabled or blocked */
       animation: introAutoDismiss 0.5s ease 2.2s forwards;
     }
 
@@ -70,8 +74,15 @@
     }
 
     @keyframes introGlowPulse {
-      0% { transform: scale(0.9); opacity: 0.7; }
-      100% { transform: scale(1.18); opacity: 1; }
+      0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+      }
+
+      100% {
+        transform: scale(1.18);
+        opacity: 1;
+      }
     }
 
     .intro-content {
@@ -91,6 +102,7 @@
         opacity: 0;
         transform: translateY(22px) scale(0.92);
       }
+
       100% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -124,13 +136,25 @@
     }
 
     @keyframes introRotateRing {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes introPulseHalo {
-      0% { transform: scale(0.94); opacity: 0.6; }
-      100% { transform: scale(1.12); opacity: 1; }
+      0% {
+        transform: scale(0.94);
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: scale(1.12);
+        opacity: 1;
+      }
     }
 
     .intro-logo-img {
@@ -147,10 +171,12 @@
         transform: scale(0.3) rotate(-18deg);
         opacity: 0;
       }
+
       70% {
         transform: scale(1.08) rotate(3deg);
         opacity: 1;
       }
+
       100% {
         transform: scale(1) rotate(0deg);
         opacity: 1;
@@ -208,9 +234,17 @@
     }
 
     @keyframes introBarFill {
-      0% { width: 0%; }
-      50% { width: 68%; }
-      100% { width: 100%; }
+      0% {
+        width: 0%;
+      }
+
+      50% {
+        width: 68%;
+      }
+
+      100% {
+        width: 100%;
+      }
     }
 
     .intro-status {
@@ -229,41 +263,198 @@
       opacity: 0.75;
       transition: opacity 0.2s;
     }
+
     .intro-overlay:hover .intro-skip-hint {
       opacity: 1;
     }
 
-    /* ── Login Card Styling ── */
+    /* ═══════════════════════════════════════════════════
+       GREEN-THEMED LOGIN PAGE — Matching Reference Design
+    ═══════════════════════════════════════════════════ */
+
+    /* ── Decorative Background Elements ── */
+    .login-page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Bottom green rolling hill */
+    .bg-hill {
+      position: absolute;
+      bottom: 0;
+      left: -5%;
+      width: 110%;
+      height: 28%;
+      background: #1B5E20;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      z-index: 1;
+    }
+
+    .bg-hill-inner {
+      position: absolute;
+      bottom: 0;
+      left: -5%;
+      width: 110%;
+      height: 22%;
+      background: #2E7D32;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      z-index: 2;
+    }
+
+    /* Decorative stickers around the page */
+    .deco-sticker {
+      position: absolute;
+      z-index: 3;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.16));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+      pointer-events: auto;
+      user-select: none;
+    }
+
+    .deco-sticker:hover {
+      transform: scale(1.1) rotate(-3deg);
+      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.24));
+    }
+
+    /* Dustbin at bottom-left sitting on hill */
+    .deco-dustbin {
+      left: 2%;
+      bottom: 4%;
+      width: 250px;
+      height: 250px;
+      animation: decoFloat1 4.5s ease-in-out infinite alternate;
+    }
+
+    /* Garbage truck at bottom-right sitting on hill */
+    .deco-truck {
+      right: 2%;
+      bottom: 4%;
+      width: 280px;
+      height: 280px;
+      animation: decoFloat2 4.2s ease-in-out infinite alternate;
+    }
+
+    /* Earth sticker at top-right */
+    .deco-earth {
+      right: 4%;
+      top: 3%;
+      width: 175px;
+      height: 175px;
+      animation: decoFloat3 5s ease-in-out infinite alternate;
+    }
+
+    /* Recycle arrows sticker at top-left */
+    .deco-recycle-arrows {
+      left: 4%;
+      top: 4%;
+      width: 160px;
+      height: 160px;
+      animation: decoFloat1 4.8s ease-in-out infinite alternate-reverse;
+    }
+
+    /* Plant seedling sticker */
+    .deco-plant {
+      left: 17%;
+      top: 50%;
+      width: 95px;
+      height: 95px;
+      animation: decoFloat2 3.8s ease-in-out infinite alternate;
+    }
+
+    /* Inspector worker sticker */
+    .deco-worker {
+      right: 17%;
+      top: 40%;
+      width: 135px;
+      height: 175px;
+      animation: decoFloat3 4.2s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes decoFloat1 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      100% {
+        transform: translateY(-12px) rotate(3deg);
+      }
+    }
+
+    @keyframes decoFloat2 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      100% {
+        transform: translateY(-10px) rotate(-2deg);
+      }
+    }
+
+    @keyframes decoFloat3 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      100% {
+        transform: translateY(-8px) rotate(2deg);
+      }
+    }
+
+    /* ── Login Card — Dark Green Design ── */
     .login-container {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       position: relative;
-      z-index: 1;
+      z-index: 10;
       animation: loginCardFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+      padding: 0 20px;
     }
 
     @keyframes loginCardFadeIn {
       from {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(24px) scale(0.96);
       }
+
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
 
     .login-card {
-      background: #FFFFFF;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 40px 36px;
-      box-shadow: 0 10px 30px rgba(28, 37, 33, 0.08), 0 1px 3px rgba(28, 37, 33, 0.04);
+      background: linear-gradient(165deg, #1B5E20 0%, #2E7D32 40%, #1B5E20 100%);
+      border-radius: 24px;
+      padding: 48px 36px 40px;
+      box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.25),
+        0 8px 24px rgba(27, 94, 32, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle inner glow */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%);
+      pointer-events: none;
     }
 
     .login-header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
     }
 
     .login-logo-wrap {
@@ -274,129 +465,187 @@
       align-items: center;
       justify-content: center;
       background: #FFFFFF;
-      border: 1.5px solid var(--border-subtle);
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(149, 197, 61, 0.18), 0 2px 6px rgba(0, 0, 0, 0.04);
-      padding: 10px;
+      border: 3px solid rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      padding: 12px;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
 
     .login-logo-wrap:hover {
-      transform: translateY(-2px) scale(1.06);
-      border-color: rgba(149, 197, 61, 0.45);
-      box-shadow: 0 12px 28px rgba(149, 197, 61, 0.28);
+      transform: translateY(-3px) scale(1.08);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
     }
 
     .login-logo-img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-    }
-
-    .login-logo-wrap .lucide {
-      width: 32px;
-      height: 32px;
-      stroke: var(--color-primary);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
     }
 
     .login-title {
-      font-size: 1.75rem;
+      font-size: 2rem;
       font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.03em;
+      color: #FFFFFF;
+      letter-spacing: -0.02em;
       margin-bottom: 4px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .login-subtitle {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
       line-height: 1.4;
+      font-weight: 500;
     }
 
-    .civic-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--color-primary-pale);
-      color: var(--color-primary-dark);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: var(--radius-full);
-      margin-top: 10px;
-      border: 1px solid rgba(232, 117, 36, 0.2);
-    }
-
+    /* ── Form Styling ── */
     .form-group {
       margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
     }
 
     .form-label {
-      display: block;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 6px;
+      display: none;
+      /* Labels are hidden, placeholders + icons serve as labels */
     }
 
     .input-wrap {
       position: relative;
     }
 
+    .input-wrap .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      padding: 15px 52px 15px 22px;
+      color: #FFFFFF;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .input-wrap .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+    }
+
+    .input-wrap .form-control:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Icons inside input — positioned on the right like the reference */
     .input-icon {
       position: absolute;
-      left: 14px;
+      right: 18px;
+      left: auto;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.1rem;
       pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .input-wrap .form-control {
-      padding-left: 42px;
+    .input-icon .lucide {
+      width: 20px;
+      height: 20px;
     }
 
+    /* Password toggle next to the lock icon */
     .input-toggle {
       position: absolute;
-      right: 14px;
+      right: 18px;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: rgba(255, 255, 255, 0.7);
       cursor: pointer;
-      font-size: 1rem;
-      padding: 2px;
+      font-size: 1.1rem;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease;
+    }
+
+    .input-toggle .lucide {
+      width: 20px;
+      height: 20px;
     }
 
     .input-toggle:hover {
-      color: var(--text-primary);
+      color: #FFFFFF;
     }
 
+    /* When toggle is present, hide the static icon */
+    .has-toggle .input-icon {
+      display: none;
+    }
+
+    /* ── Forgot Password Link ── */
+    .forgot-password {
+      text-align: left;
+      margin-top: 6px;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .forgot-password a {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.825rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .forgot-password a:hover {
+      color: #FFFFFF;
+      text-decoration: underline;
+    }
+
+    /* ── Login Button — White Pill ── */
     .btn-login {
       width: 100%;
-      padding: 13px;
-      background: var(--color-primary);
-      color: #FFFFFF;
+      padding: 15px;
+      background: #FFFFFF;
+      color: #1B5E20;
       border: none;
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      font-weight: 700;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 800;
       cursor: pointer;
-      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-      margin-top: 8px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px var(--color-primary-glow);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.02em;
     }
 
     .btn-login:hover:not(:disabled) {
-      background: var(--color-primary-dark);
-      box-shadow: 0 6px 18px rgba(200, 91, 22, 0.35);
-      transform: translateY(-1px);
+      background: #F1F8E9;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-login:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .btn-login:disabled {
@@ -405,34 +654,57 @@
       transform: none;
     }
 
+    .btn-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(27, 94, 32, 0.3);
+      border-top-color: #1B5E20;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── Error Message ── */
     .error-msg {
       display: none;
-      background: var(--color-danger-light);
-      border: 1px solid rgba(220, 38, 38, 0.3);
-      border-radius: var(--radius-md);
-      padding: 10px 14px;
-      color: var(--color-danger);
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      border-radius: 14px;
+      padding: 12px 16px;
+      color: #FFCDD2;
       font-size: 0.85rem;
       font-weight: 500;
       margin-bottom: 18px;
       text-align: left;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(4px);
     }
 
     .error-msg.visible {
       display: block;
     }
 
+    /* ── Volunteer Registration ── */
     .volunteer-register-box {
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border-subtle);
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
       text-align: center;
+      position: relative;
+      z-index: 1;
     }
 
     .volunteer-register-prompt {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
+      font-size: 0.825rem;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 10px;
     }
 
     .btn-register-link {
@@ -441,34 +713,42 @@
       justify-content: center;
       gap: 6px;
       width: 100%;
-      padding: 11px 16px;
-      background: #FFFFFF;
-      border: 1.5px solid var(--color-primary);
-      border-radius: var(--radius-md);
-      color: var(--color-primary-dark);
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      color: #FFFFFF;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       text-decoration: none;
-      transition: all var(--transition-fast);
+      transition: all 0.25s ease;
+      backdrop-filter: blur(4px);
     }
 
     .btn-register-link:hover {
-      background: var(--color-primary-pale);
-      color: var(--color-primary-dark);
-      border-color: var(--color-primary-dark);
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
 
+    /* ── Demo Role Chips ── */
     .login-footer {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 18px;
       padding-top: 16px;
-      border-top: 1px dashed var(--border-subtle);
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      position: relative;
+      z-index: 1;
     }
 
     .login-footer-text {
-      font-size: 0.775rem;
-      color: var(--text-muted);
+      font-size: 0.725rem;
+      color: rgba(255, 255, 255, 0.5);
       margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
     }
 
     .role-chips {
@@ -478,36 +758,115 @@
     }
 
     .role-chip {
-      padding: 4px 12px;
-      background: var(--bg-surface-2);
-      border: 1px solid var(--border-default);
-      border-radius: var(--radius-full);
+      padding: 5px 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--text-secondary);
+      color: rgba(255, 255, 255, 0.8);
       cursor: pointer;
-      transition: all var(--transition-fast);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .role-chip:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary-dark);
-      background: var(--color-primary-pale);
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
 
-    .btn-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      border-top-color: #FFFFFF;
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      display: none;
+    /* ══════════════════════════════════════════
+       RESPONSIVE ADJUSTMENTS
+    ══════════════════════════════════════════ */
+    @media (max-width: 1200px) {
+
+      .deco-plant,
+      .deco-worker {
+        display: none;
+      }
+
+      .deco-dustbin {
+        width: 190px;
+        height: 190px;
+      }
+
+      .deco-truck {
+        width: 210px;
+        height: 210px;
+      }
+
+      .deco-earth,
+      .deco-recycle-arrows {
+        width: 130px;
+        height: 130px;
+      }
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
+    @media (max-width: 768px) {
+      .deco-dustbin {
+        width: 130px;
+        height: 130px;
+        left: -1%;
+        bottom: 8%;
+      }
+
+      .deco-truck {
+        width: 140px;
+        height: 140px;
+        right: -1%;
+        bottom: 8%;
+      }
+
+      .deco-earth {
+        width: 100px;
+        height: 100px;
+        right: 2%;
+        top: 2%;
+      }
+
+      .deco-recycle-arrows {
+        width: 90px;
+        height: 90px;
+        left: 2%;
+        top: 2%;
+      }
+
+      .deco-plant,
+      .deco-worker {
+        display: none;
+      }
+
+      .login-card {
+        padding: 36px 24px 32px;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .deco-dustbin,
+      .deco-truck {
+        width: 90px;
+        height: 90px;
+      }
+
+      .deco-earth,
+      .deco-recycle-arrows,
+      .deco-plant,
+      .deco-worker {
+        display: none;
+      }
+
+      .login-card {
+        padding: 32px 20px 28px;
+        border-radius: 20px;
+      }
+
+      .login-title {
+        font-size: 1.65rem;
       }
     }
   </style>
@@ -521,7 +880,7 @@
       <div class="intro-logo-wrap">
         <div class="intro-halo-ring"></div>
         <div class="intro-halo-glow"></div>
-        <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="intro-logo-img"/>
+        <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="intro-logo-img" />
       </div>
       <div class="intro-title">Waste<span>Watch</span></div>
       <div class="intro-tagline">APP • Empowering Clean Cities</div>
@@ -533,15 +892,31 @@
     <div class="intro-skip-hint">Click anywhere or press Esc to enter</div>
   </div>
 
+  <!-- Decorative Background Elements -->
+  <div class="login-page-bg">
+    <!-- Rolling green hills at the bottom -->
+    <div class="bg-hill"></div>
+    <div class="bg-hill-inner"></div>
+
+    <!-- Decorative waste-management themed stickers (transparent PNGs) -->
+    <img src="./assets/sticker-dustbin.png" alt="Clean Dustbin" class="deco-sticker deco-dustbin" aria-hidden="true" />
+    <img src="./assets/sticker-truck.png" alt="Garbage Truck" class="deco-sticker deco-truck" aria-hidden="true" />
+    <img src="./assets/sticker-earth.png" alt="Eco Earth" class="deco-sticker deco-earth" aria-hidden="true" />
+    <img src="./assets/sticker-recycle-arrows.png" alt="Recycle Symbol" class="deco-sticker deco-recycle-arrows"
+      aria-hidden="true" />
+    <img src="./assets/sticker-plant.png" alt="Plant Seedling" class="deco-sticker deco-plant" aria-hidden="true" />
+    <img src="./assets/sticker-worker.png" alt="Waste Inspector" class="deco-sticker deco-worker" aria-hidden="true" />
+  </div>
+
+  <!-- Login Card -->
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
         <div class="login-logo-wrap">
-          <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="login-logo-img"/>
+          <img src="./assets/logo-icon.png" alt="WasteWatch Logo" class="login-logo-img" />
         </div>
-        <h1 class="login-title">WasteWatch</h1>
+        <h1 class="login-title">Login</h1>
         <p class="login-subtitle">Civic Waste Segregation & Compliance Portal</p>
-        <span class="civic-badge">🇮🇳 Indian Municipal & Housing Society Platform</span>
       </div>
 
       <div class="error-msg" id="error-msg" role="alert"></div>
@@ -550,26 +925,30 @@
         <div class="form-group">
           <label class="form-label" for="username">Username or Email</label>
           <div class="input-wrap">
-            <span class="input-icon"><i data-lucide="user"></i></span>
-            <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin or volunteer"
+            <input type="text" id="username" name="username" class="form-control" placeholder="Username"
               autocomplete="username" required />
+            <span class="input-icon"><i data-lucide="user"></i></span>
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <div class="input-wrap">
-            <span class="input-icon"><i data-lucide="lock"></i></span>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password"
+          <div class="input-wrap has-toggle">
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password"
               autocomplete="current-password" required />
-            <button type="button" class="input-toggle" id="toggle-pwd"
-              aria-label="Toggle password visibility"><i data-lucide="eye"></i></button>
+            <span class="input-icon"><i data-lucide="lock"></i></span>
+            <button type="button" class="input-toggle" id="toggle-pwd" aria-label="Toggle password visibility"><i
+                data-lucide="eye"></i></button>
           </div>
+        </div>
+
+        <div class="forgot-password">
+          <a href="#" id="forgot-password-link">Forgot Password?</a>
         </div>
 
         <button type="submit" class="btn-login" id="login-btn">
           <span class="btn-spinner" id="btn-spinner"></span>
-          <span id="btn-text">Sign In</span>
+          <span id="btn-text">Login</span>
         </button>
       </form>
 
@@ -584,8 +963,10 @@
       <div class="login-footer">
         <p class="login-footer-text">Quick-fill demonstration accounts:</p>
         <div class="role-chips">
-          <button type="button" class="role-chip" id="chip-admin" title="Fill municipal admin credentials"><i data-lucide="key" class="icon-xs"></i> Admin</button>
-          <button type="button" class="role-chip" id="chip-volunteer" title="Fill volunteer credentials"><i data-lucide="hard-hat" class="icon-xs"></i> Volunteer</button>
+          <button type="button" class="role-chip" id="chip-admin" title="Fill municipal admin credentials"><i
+              data-lucide="key" class="icon-xs"></i> Admin</button>
+          <button type="button" class="role-chip" id="chip-volunteer" title="Fill volunteer credentials"><i
+              data-lucide="hard-hat" class="icon-xs"></i> Volunteer</button>
         </div>
       </div>
     </div>
@@ -651,7 +1032,7 @@
     function setLoading(v) {
       btn.disabled = v;
       spinner.style.display = v ? 'block' : 'none';
-      btnText.textContent = v ? 'Signing in…' : 'Sign In';
+      btnText.textContent = v ? 'Signing in…' : 'Login';
     }
 
     function showError(msg) {
