@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/volunteer-inspect.css"/>
   <style>
     .stats-row {
       display: grid;
@@ -18,76 +19,224 @@
       margin-bottom: 24px;
     }
     .stats-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--vw-green-border-sub, #E2ECE5);
+      border-radius: 16px;
       padding: 20px;
       text-align: center;
+      box-shadow: 0 4px 16px rgba(20, 40, 28, 0.04);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     }
-    .stats-val { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; }
-    .stats-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .stats-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(20, 40, 28, 0.07);
+    }
+    .stats-val {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .stats-label {
+      font-size: 0.75rem;
+      color: var(--vw-text-muted, #6C8577);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .history-main-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--vw-green-border-sub, #E2ECE5);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px rgba(22, 45, 32, 0.06), 0 2px 6px rgba(22, 45, 32, 0.02);
+      padding: 24px;
+      margin-bottom: 60px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .history-main-card .toolbar {
+      margin-bottom: 20px;
+    }
+
+    .history-main-card .search-box {
+      background: #FFFFFF;
+      border: 1.5px solid var(--vw-green-border, #D2E4D8);
+      border-radius: 10px;
+      transition: all var(--transition-fast);
+    }
+    .history-main-card .search-box:focus-within {
+      border-color: var(--vw-green-accent, #34A853);
+      box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.12);
+    }
+
+    .history-main-card .form-control {
+      border: 1.5px solid var(--vw-green-border, #D2E4D8);
+      border-radius: 10px;
+      background: #FFFFFF;
+      color: var(--vw-text-dark, #163A29);
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+    .history-main-card .form-control:focus {
+      border-color: var(--vw-green-accent, #34A853);
+      box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.12);
+      outline: none;
+    }
+
+    .history-main-card .table-wrap {
+      background: #FFFFFF;
+      border: 1px solid var(--vw-green-border-sub, #E2ECE5);
+      border-radius: 14px;
+      overflow-x: auto;
+    }
+
+    .history-main-card .data-table thead th {
+      background: #F4F8F5;
+      color: var(--vw-text-secondary, #4B6355);
+      border-bottom: 1px solid var(--vw-green-border-sub, #E2ECE5);
+      font-weight: 700;
+      font-size: 0.76rem;
+      letter-spacing: 0.07em;
+    }
+
+    .history-main-card .data-table tbody tr {
+      border-bottom: 1px solid #F0F4F1;
+      transition: background var(--transition-fast);
+    }
+    .history-main-card .data-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    .history-main-card .data-table tbody tr:hover {
+      background: var(--vw-green-mint-light, #EFF7F2);
+    }
+
+    @media (max-width: 768px) {
+      .volunteer-content-area {
+        padding: 20px 14px 60px;
+      }
+      .history-main-card {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .stats-card {
+        padding: 14px;
+      }
+      .stats-val {
+        font-size: 1.5rem;
+      }
+    }
   </style>
 </head>
-<body>
-  <div class="main-content">
-    <header class="topbar">
-      <div>
-        <div class="topbar-title">My History</div>
-        <div class="topbar-subtitle">Your inspection records and performance</div>
+<body class="volunteer-inspect-body">
+
+  <!-- Scenic Environmental Background Scene (Trees, Skyline, 3 Segregation Bins) -->
+  <div class="inspect-bg-scene" aria-hidden="true">
+    <img src="../assets/inspect-bg-scene.svg" class="inspect-bg-svg" alt=""/>
+  </div>
+
+  <!-- Main Content Wrap -->
+  <div class="volunteer-main-wrap main-content">
+
+    <!-- Topbar Header matching Reference Design -->
+    <header class="volunteer-topbar">
+      <div class="topbar-brand-left">
+        <button class="mobile-sidebar-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">
+          <i data-lucide="menu" style="width:22px;height:22px;"></i>
+        </button>
+        <div class="topbar-icon-badge">
+          <i data-lucide="clock-3" style="width:22px;height:22px;"></i>
+        </div>
+        <div class="topbar-titles">
+          <div class="topbar-heading">My History</div>
+          <div class="topbar-subheading">Your inspection records and performance</div>
+        </div>
       </div>
-      <a href="./inspect.html" class="btn btn-primary btn-sm"><i data-lucide="clipboard-pen" class="icon-sm"></i> New Inspection</a>
+
+      <div class="topbar-actions-right">
+        <a href="./inspect.html" class="btn btn-primary btn-sm" style="border-radius:9999px;padding:8px 18px;display:inline-flex;align-items:center;gap:6px;font-weight:600;">
+          <i data-lucide="clipboard-pen" style="width:16px;height:16px;"></i>
+          <span>New Inspection</span>
+        </a>
+      </div>
     </header>
-    <div class="page-content">
+
+    <!-- Main Content Area -->
+    <main class="volunteer-content-area page-content" style="align-items:stretch;max-width:1240px;margin:0 auto;width:100%;">
 
       <!-- My stats -->
       <div class="stats-row" id="my-stats">
-        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-total" style="color:var(--color-primary-light);">—</div><div class="stats-label">Inspections</div></div>
-        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-avg" style="color:var(--color-accent);">—</div><div class="stats-label">Avg Score</div></div>
-        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-exc" style="color:#2ECC71;">—</div><div class="stats-label">Excellent</div></div>
-        <div class="stats-card animate-pulse"><div class="stats-val" id="ms-poor" style="color:#E74C3C;">—</div><div class="stats-label">Poor</div></div>
-      </div>
-
-      <!-- Filters -->
-      <div class="toolbar">
-        <div class="search-box">
-          <span class="search-icon"><i data-lucide="search" class="icon-sm"></i></span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search by room, building…"/>
+        <div class="stats-card animate-pulse">
+          <div class="stats-val" id="ms-total" style="color:var(--vw-green-emerald, #287A4F);">—</div>
+          <div class="stats-label">Inspections</div>
         </div>
-        <select class="form-control form-control-sm" id="filter-class" style="max-width:190px;">
-          <option value="">All Classifications</option>
-          <option value="EXCELLENT">Excellent</option>
-          <option value="GOOD">Good</option>
-          <option value="NEEDS_IMPROVEMENT">Needs Improvement</option>
-          <option value="POOR">Poor</option>
-        </select>
-        <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV"><i data-lucide="file-spreadsheet" class="icon-sm"></i> CSV</button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-pdf" title="Export to PDF"><i data-lucide="file-text" class="icon-sm"></i> PDF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh history"><i data-lucide="refresh-cw" class="icon-sm"></i></button>
+        <div class="stats-card animate-pulse">
+          <div class="stats-val" id="ms-avg" style="color:var(--color-accent, #2B6CB0);">—</div>
+          <div class="stats-label">Avg Score</div>
+        </div>
+        <div class="stats-card animate-pulse">
+          <div class="stats-val" id="ms-exc" style="color:#168048;">—</div>
+          <div class="stats-label">Excellent</div>
+        </div>
+        <div class="stats-card animate-pulse">
+          <div class="stats-val" id="ms-poor" style="color:#DC2626;">—</div>
+          <div class="stats-label">Poor</div>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Room</th>
-              <th>Building</th>
-              <th>Score</th>
-              <th>Classification</th>
-              <th>Violation</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="hist-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Main History Card Container -->
+      <section class="history-main-card" aria-label="Inspection History Table">
+        <!-- Filters -->
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon"><i data-lucide="search" class="icon-sm"></i></span>
+            <input type="text" class="search-input" id="search-input" placeholder="Search by room, building…"/>
+          </div>
+          <select class="form-control form-control-sm" id="filter-class" style="max-width:190px;">
+            <option value="">All Classifications</option>
+            <option value="EXCELLENT">Excellent</option>
+            <option value="GOOD">Good</option>
+            <option value="NEEDS_IMPROVEMENT">Needs Improvement</option>
+            <option value="POOR">Poor</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV"><i data-lucide="file-spreadsheet" class="icon-sm"></i> CSV</button>
+            <button class="btn btn-secondary btn-sm" id="btn-export-pdf" title="Export to PDF"><i data-lucide="file-text" class="icon-sm"></i> PDF</button>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh history"><i data-lucide="refresh-cw" class="icon-sm"></i></button>
+          </div>
+        </div>
 
-    </div>
+        <!-- Table -->
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Room</th>
+                <th>Building</th>
+                <th>Score</th>
+                <th>Classification</th>
+                <th>Violation</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="hist-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
   </div>
 
   <div id="toast-container"></div>
@@ -98,6 +247,15 @@
   <script>
     if (!Auth.requireLogin()) throw new Error();
     injectSidebar('VOLUNTEER');
+
+    // Mobile sidebar toggle
+    const toggleSidebarBtn = document.getElementById('btn-toggle-sidebar');
+    if (toggleSidebarBtn) {
+      toggleSidebarBtn.addEventListener('click', () => {
+        const sb = document.getElementById('sidebar');
+        if (sb) sb.classList.toggle('open');
+      });
+    }
 
     const user = Auth.getUser();
     let inspections = [];
@@ -140,7 +298,7 @@
       const tbody = document.getElementById('hist-tbody');
       if (!filtered.length) {
         tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-check" class="icon-3xl text-muted"></i></div><div class="empty-state-title">No inspections yet</div><div class="empty-state-desc">Start by conducting your first inspection!</div></div></td></tr>`;
-      if (window.lucide) lucide.createIcons({ root: tbody });
+        if (window.lucide) lucide.createIcons({ root: tbody });
         return;
       }
 
@@ -162,6 +320,7 @@
           <td style="font-size:0.8rem;color:var(--text-muted)">${Fmt.datetime(i.inspectionDate)}</td>
         </tr>
       `).join('');
+      if (window.lucide) lucide.createIcons({ root: tbody });
     }
 
     // ══════ CSV Export ══════
@@ -252,6 +411,7 @@
     document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
     document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
 
+    if (window.lucide) lucide.createIcons();
     loadHistory();
   </script>
 </body>

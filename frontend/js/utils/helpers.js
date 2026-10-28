@@ -209,9 +209,13 @@ function renderUserCard() {
   const avatar = document.getElementById('user-avatar');
   const name   = document.getElementById('user-name');
   const role   = document.getElementById('user-role');
+  const statusBadge = document.getElementById('user-status-badge');
   if (avatar) avatar.textContent = Fmt.avatar(user.fullName || user.username);
   if (name)   name.textContent   = user.fullName || user.username;
-  if (role)   role.textContent   = user.role;
+  if (role)   role.textContent   = user.role === 'VOLUNTEER' ? 'Volunteer' : user.role;
+  if (statusBadge) {
+    statusBadge.textContent = (user.status || 'ACTIVE').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+  }
 }
 
 // ── Generic modal open/close ──

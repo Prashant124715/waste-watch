@@ -79,6 +79,9 @@
 .sidebar-nav {
   flex: 1;
   padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .sidebar-section-label {
@@ -95,6 +98,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
+  box-sizing: border-box;
   padding: var(--space-3) var(--space-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
@@ -105,6 +110,8 @@
   margin-bottom: 2px;
   border: 1px solid transparent;
   text-decoration: none;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -145,6 +152,15 @@
   border-radius: var(--radius-full);
   min-width: 18px;
   text-align: center;
+}
+
+.nav-item > span:not(.nav-icon):not(.nav-badge),
+.nav-item .nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Sidebar footer ── */

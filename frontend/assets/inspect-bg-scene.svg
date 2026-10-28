@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <!-- Sky & Background Gradients -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FCFDFB"/>
+      <stop offset="60%" stop-color="#F5F8F1"/>
+      <stop offset="100%" stop-color="#EDF4E7"/>
+    </linearGradient>
+
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFBEA" stop-opacity="1"/>
+      <stop offset="45%" stop-color="#FDF3CF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FAF5E6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Bin Gradients -->
+    <linearGradient id="wetBinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2D7A42"/>
+      <stop offset="35%" stop-color="#3FA15C"/>
+      <stop offset="80%" stop-color="#266E39"/>
+      <stop offset="100%" stop-color="#1B552B"/>
+    </linearGradient>
+    <linearGradient id="wetLidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#46AE64"/>
+      <stop offset="100%" stop-color="#2B743E"/>
+    </linearGradient>
+
+    <linearGradient id="dryBinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1973B8"/>
+      <stop offset="35%" stop-color="#2A92E0"/>
+      <stop offset="80%" stop-color="#13609D"/>
+      <stop offset="100%" stop-color="#0E4A7B"/>
+    </linearGradient>
+    <linearGradient id="dryLidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34A1F2"/>
+      <stop offset="100%" stop-color="#186EB0"/>
+    </linearGradient>
+
+    <linearGradient id="sanBinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#BA2626"/>
+      <stop offset="35%" stop-color="#DE3B3B"/>
+      <stop offset="80%" stop-color="#9C1B1B"/>
+      <stop offset="100%" stop-color="#7B1414"/>
+    </linearGradient>
+    <linearGradient id="sanLidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EA4A4A"/>
+      <stop offset="100%" stop-color="#AC1F1F"/>
+    </linearGradient>
+
+    <!-- Subtle Shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1B3B26" flood-opacity="0.12"/>
+    </filter>
+    <filter id="binGroundShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- 1. Background Fill -->
+  <rect width="1440" height="900" fill="url(#skyGrad)"/>
+
+  <!-- 2. Warm Sun & Halo (Top Right) -->
+  <circle cx="1370" cy="110" r="110" fill="url(#sunGlow)"/>
+  <circle cx="1370" cy="110" r="42" fill="#FFFDF2"/>
+
+  <!-- 3. Floating Drifting Leaves (Upper Right) -->
+  <g class="drifting-leaves" opacity="0.65">
+    <path d="M 1395 195 C 1395 195 1420 185 1425 210 C 1425 210 1405 225 1395 195 Z" fill="#6EA582"/>
+    <path d="M 1340 240 C 1340 240 1360 228 1370 250 C 1370 250 1350 265 1340 240 Z" fill="#88B89A"/>
+    <path d="M 1415 285 C 1415 285 1432 278 1438 295 C 1438 295 1422 308 1415 285 Z" fill="#588D6E"/>
+  </g>
+
+  <!-- 4. Left City Skyline Silhouette (Distant, Muted Sage) -->
+  <g class="city-skyline" fill="#D2E1D6" opacity="0.45">
+    <rect x="230" y="440" width="42" height="260" rx="3"/>
+    <rect x="240" y="460" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="254" y="460" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="240" y="480" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="254" y="480" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="240" y="500" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="254" y="500" width="6" height="8" fill="#E6EFE9"/>
+
+    <rect x="278" y="400" width="54" height="300" rx="4"/>
+    <rect x="290" y="420" width="8" height="12" fill="#E6EFE9"/>
+    <rect x="308" y="420" width="8" height="12" fill="#E6EFE9"/>
+    <rect x="290" y="445" width="8" height="12" fill="#E6EFE9"/>
+    <rect x="308" y="445" width="8" height="12" fill="#E6EFE9"/>
+    <rect x="290" y="470" width="8" height="12" fill="#E6EFE9"/>
+    <rect x="308" y="470" width="8" height="12" fill="#E6EFE9"/>
+
+    <rect x="338" y="470" width="38" height="230" rx="3"/>
+    <rect x="348" y="490" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="360" y="490" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="348" y="510" width="6" height="8" fill="#E6EFE9"/>
+    <rect x="360" y="510" width="6" height="8" fill="#E6EFE9"/>
+
+    <rect x="382" y="520" width="32" height="180" rx="2"/>
+  </g>
+
+  <!-- 5. Left Trees & Organic Foliage -->
+  <g class="left-trees" filter="url(#softShadow)">
+    <!-- Tree 1 (Back, Pale Green) -->
+    <path d="M 235 560 C 200 560 170 595 170 635 C 170 680 205 715 250 715 C 295 715 330 680 330 635 C 330 595 295 560 250 560 Z" fill="#88B298"/>
+    <!-- Tree 2 (Mid, Emerald Sage) -->
+    <path d="M 305 520 C 265 520 230 555 230 600 C 230 650 270 690 320 690 C 370 690 410 650 410 600 C 410 555 375 520 320 520 Z" fill="#5F8E72"/>
+    <!-- Tree 3 (Front, Deep Forest Green) -->
+    <path d="M 245 610 C 210 610 180 645 180 690 C 180 735 220 770 265 770 C 310 770 350 735 350 690 C 350 645 315 610 265 610 Z" fill="#3D6B50"/>
+
+    <!-- Botanical Leaves & Foliage (Leftmost border) -->
+    <path d="M 140 730 C 120 700 130 660 160 645 C 160 675 160 705 140 730 Z" fill="#699A7A" opacity="0.8"/>
+    <path d="M 155 750 C 125 740 120 710 145 690 C 155 710 165 730 155 750 Z" fill="#4E7E60" opacity="0.85"/>
+    <path d="M 190 770 C 160 770 145 745 170 725 C 185 745 195 760 190 770 Z" fill="#386448" opacity="0.9"/>
+  </g>
+
+  <!-- 6. Ground Contours / Soft Rolling Hills -->
+  <g class="ground-hills">
+    <!-- Back Ground Layer -->
+    <path d="M 0 780 Q 220 750 480 790 L 520 900 L 0 900 Z" fill="#E2EEE0"/>
+    <path d="M 960 790 Q 1200 755 1440 775 L 1440 900 L 960 900 Z" fill="#E2EEE0"/>
+
+    <!-- Front Ground Layer (Gentle Sand/Green Slope) -->
+    <path d="M 0 815 Q 260 780 580 835 L 580 900 L 0 900 Z" fill="#D7E7D4"/>
+    <path d="M 900 835 Q 1180 785 1440 810 L 1440 900 L 900 900 Z" fill="#D7E7D4"/>
+  </g>
+
+  <!-- 7. Right Foliage & Lush Trees (Surrounding the bins) -->
+  <g class="right-trees" filter="url(#softShadow)">
+    <!-- Tall back tree -->
+    <path d="M 1370 540 C 1320 540 1280 585 1280 640 C 1280 700 1330 750 1390 750 C 1450 750 1500 700 1500 640 C 1500 585 1450 540 1390 540 Z" fill="#75A486"/>
+    <!-- Foreground deep tree -->
+    <path d="M 1410 600 C 1370 600 1340 640 1340 690 C 1340 745 1380 790 1430 790 C 1480 790 1520 745 1520 690 C 1520 640 1480 600 1430 600 Z" fill="#4B7A5C"/>
+    <!-- Lush grass blades / leafy accents -->
+    <path d="M 1170 820 C 1165 790 1180 770 1200 785 C 1195 805 1185 818 1170 820 Z" fill="#5F9171"/>
+    <path d="M 1435 830 C 1425 800 1445 780 1460 795 C 1455 815 1448 825 1435 830 Z" fill="#477558"/>
+  </g>
+
+  <!-- 8. Three Municipal Segregation Bins (WET, DRY, SANITARY) -->
+  <!-- Ground contact shadow for all 3 bins -->
+  <ellipse cx="1215" cy="880" rx="36" ry="7" fill="#1A3824" opacity="0.32" filter="url(#binGroundShadow)"/>
+  <ellipse cx="1290" cy="880" rx="36" ry="7" fill="#1A3824" opacity="0.32" filter="url(#binGroundShadow)"/>
+  <ellipse cx="1365" cy="880" rx="36" ry="7" fill="#1A3824" opacity="0.32" filter="url(#binGroundShadow)"/>
+
+  <!-- ── 8A. GREEN WET WASTE BIN ── -->
+  <g class="bin-wet" id="bin-wet">
+    <!-- Wheel Base -->
+    <circle cx="1186" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1186" cy="874" r="5" fill="#84948C"/>
+    <circle cx="1242" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1242" cy="874" r="5" fill="#84948C"/>
+
+    <!-- Bin Body (Tapered) -->
+    <path d="M 1183 740 L 1247 740 L 1241 868 C 1241 872 1237 875 1233 875 L 1197 875 C 1193 875 1189 872 1189 868 Z" fill="url(#wetBinGrad)"/>
+    <!-- Front Panel Ribbing -->
+    <path d="M 1190 748 L 1240 748 L 1236 864 L 1194 864 Z" fill="#256937" opacity="0.4"/>
+    <path d="M 1193 752 L 1237 752 L 1233 860 L 1197 860 Z" fill="url(#wetBinGrad)"/>
+
+    <!-- Bin Lid -->
+    <path d="M 1178 727 C 1178 723 1182 720 1186 720 L 1244 720 C 1248 720 1252 723 1252 727 L 1254 740 L 1176 740 Z" fill="url(#wetLidGrad)"/>
+    <!-- Lid Lip & Handle -->
+    <rect x="1175" y="736" width="80" height="6" rx="2" fill="#1F5A2F"/>
+    <rect x="1204" y="716" width="22" height="5" rx="2" fill="#296D3B"/>
+
+    <!-- Crisp White Leaf Icon -->
+    <g class="wet-icon" fill="#FFFFFF" transform="translate(1204, 780)">
+      <path d="M 11 0 C 4 3 0 10 0 17 C 0 23 4.5 27 11 27 C 17.5 27 22 23 22 17 C 22 9 16 2 11 0 Z M 11 25 C 6 25 2.5 21.5 2.5 17 C 2.5 12 6 6 10 2.5 C 9.5 8 10 14 11 25 Z"/>
+    </g>
+
+    <!-- WET Label -->
+    <text x="1215" y="836" fill="#FFFFFF" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="11.5" letter-spacing="1.2" text-anchor="middle">WET</text>
+  </g>
+
+  <!-- ── 8B. BLUE DRY WASTE BIN ── -->
+  <g class="bin-dry" id="bin-dry">
+    <!-- Wheel Base -->
+    <circle cx="1261" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1261" cy="874" r="5" fill="#84948C"/>
+    <circle cx="1317" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1317" cy="874" r="5" fill="#84948C"/>
+
+    <!-- Bin Body -->
+    <path d="M 1258 740 L 1322 740 L 1316 868 C 1316 872 1312 875 1308 875 L 1272 875 C 1268 875 1264 872 1264 868 Z" fill="url(#dryBinGrad)"/>
+    <!-- Front Panel Ribbing -->
+    <path d="M 1265 748 L 1315 748 L 1311 864 L 1269 864 Z" fill="#10578E" opacity="0.4"/>
+    <path d="M 1268 752 L 1312 752 L 1308 860 L 1272 860 Z" fill="url(#dryBinGrad)"/>
+
+    <!-- Bin Lid -->
+    <path d="M 1253 727 C 1253 723 1257 720 1261 720 L 1319 720 C 1323 720 1327 723 1327 727 L 1329 740 L 1251 740 Z" fill="url(#dryLidGrad)"/>
+    <rect x="1250" y="736" width="80" height="6" rx="2" fill="#125184"/>
+    <rect x="1279" y="716" width="22" height="5" rx="2" fill="#16639F"/>
+
+    <!-- Crisp White Recycling 3-Arrows Symbol -->
+    <g class="dry-icon" fill="#FFFFFF" transform="translate(1279, 780)">
+      <path d="M 11 0 L 15 6 L 12.5 6 C 16 6 19 9 19 13 C 19 14.5 18.5 16 17.5 17 L 19 18.5 C 20.5 17 21.5 15 21.5 13 C 21.5 8 17.5 4 12.5 4 L 15 1 Z"/>
+      <path d="M 4.5 18.5 L 0.5 17 C 2 13 6 10.5 10.5 10.5 L 10.5 13 C 7 13 4 15 3 18 L 6 18 Z"/>
+      <path d="M 7.5 21 L 5 23.5 C 6.5 25 8.5 26 11 26 C 14.5 26 17.5 24 19 21 L 16.5 21 C 15 23 13 24 11 24 C 9 24 7.5 23 6 22 L 8 20 Z"/>
+    </g>
+
+    <!-- DRY Label -->
+    <text x="1290" y="836" fill="#FFFFFF" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="11.5" letter-spacing="1.2" text-anchor="middle">DRY</text>
+  </g>
+
+  <!-- ── 8C. RED SANITARY WASTE BIN ── -->
+  <g class="bin-sanitary" id="bin-sanitary">
+    <!-- Wheel Base -->
+    <circle cx="1336" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1336" cy="874" r="5" fill="#84948C"/>
+    <circle cx="1392" cy="874" r="11" fill="#1C2420"/>
+    <circle cx="1392" cy="874" r="5" fill="#84948C"/>
+
+    <!-- Bin Body -->
+    <path d="M 1333 740 L 1397 740 L 1391 868 C 1391 872 1387 875 1383 875 L 1347 875 C 1343 875 1339 872 1339 868 Z" fill="url(#sanBinGrad)"/>
+    <!-- Front Panel Ribbing -->
+    <path d="M 1340 748 L 1390 748 L 1386 864 L 1344 864 Z" fill="#911818" opacity="0.4"/>
+    <path d="M 1343 752 L 1387 752 L 1383 860 L 1347 860 Z" fill="url(#sanBinGrad)"/>
+
+    <!-- Bin Lid -->
+    <path d="M 1328 727 C 1328 723 1332 720 1336 720 L 1394 720 C 1398 720 1402 723 1402 727 L 1404 740 L 1326 740 Z" fill="url(#sanLidGrad)"/>
+    <rect x="1325" y="736" width="80" height="6" rx="2" fill="#881515"/>
+    <rect x="1354" y="716" width="22" height="5" rx="2" fill="#A81B1B"/>
+
+    <!-- Crisp White Biohazard Symbol -->
+    <g class="san-icon" fill="none" stroke="#FFFFFF" stroke-width="2.2" transform="translate(1354, 780)">
+      <circle cx="11" cy="7" r="5"/>
+      <circle cx="6" cy="16" r="5"/>
+      <circle cx="16" cy="16" r="5"/>
+      <circle cx="11" cy="12" r="2.5" fill="#FFFFFF"/>
+    </g>
+
+    <!-- SANITARY Label -->
+    <text x="1365" y="836" fill="#FFFFFF" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="8.8" letter-spacing="0.8" text-anchor="middle">SANITARY</text>
+  </g>
+</svg>

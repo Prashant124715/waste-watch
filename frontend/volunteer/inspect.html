@@ -3,409 +3,393 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WasteWatch — Building Inspection</title>
-  <meta name="description" content="Field inspection form for WasteWatch volunteers — audit building waste segregation compliance."/>
+  <title>WasteWatch — Building Waste Inspection</title>
+  <meta name="description" content="Conduct building-level waste segregation compliance audit with WasteWatch Field App."/>
   <link rel="icon" type="image/png" href="../assets/favicon.png"/>
   <link rel="stylesheet" href="../css/variables.css"/>
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
-  <style>
-    /* Stepper */
-    .stepper {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      margin-bottom: var(--space-8);
-    }
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-    }
-    .step-num {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: var(--text-sm);
-      border: 2px solid var(--border-default);
-      color: var(--text-muted);
-      background: var(--bg-surface-2);
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-    }
-    .step-label { font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); transition: color 0.3s; }
-    .step.active .step-num {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-      border-color: var(--color-primary);
-      color: #fff;
-      box-shadow: 0 0 16px var(--color-primary-glow);
-    }
-    .step.active .step-label { color: var(--text-primary); }
-    .step.done .step-num {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-      color: #fff;
-    }
-    .step.done .step-label { color: var(--color-primary-light); }
-    .step-line {
-      flex: 1; height: 2px; background: var(--border-default); margin: 0 12px; min-width: 40px;
-      transition: background 0.3s;
-    }
-    .step-line.done { background: var(--color-primary); }
-
-    /* Panels */
-    .step-panel { display: none; animation: fadeIn 0.35s ease; }
-    .step-panel.active { display: block; }
-
-    /* Building selection section */
-    .building-select-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: var(--space-8) 0;
-      gap: var(--space-5);
-    }
-    .building-hero-icon {
-      width: 88px; height: 88px;
-      border-radius: var(--radius-xl);
-      background: linear-gradient(135deg, hsla(154,72%,37%,0.15), hsla(196,90%,56%,0.1));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2.8rem;
-      border: 2px solid var(--border-primary);
-    }
-
-    .building-preview-card {
-      background: var(--bg-surface-2);
-      border: 1px solid var(--border-primary);
-      border-radius: var(--radius-lg);
-      padding: var(--space-5);
-      width: 100%;
-      max-width: 480px;
-      display: none;
-      box-shadow: var(--shadow-sm);
-    }
-    .building-preview-card.visible { display: block; }
-    .preview-row {
-      display: flex; justify-content: space-between;
-      padding: 8px 0; font-size: var(--text-sm);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .preview-row:last-child { border-bottom: none; }
-    .preview-label { color: var(--text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
-    .preview-value { color: var(--text-primary); font-weight: 600; text-align: right; }
-
-    .quick-chips-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 10px;
-    }
-    .quick-chip {
-      background: var(--bg-surface-2);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
-      padding: 6px 14px;
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .quick-chip:hover {
-      background: var(--bg-surface-3);
-      border-color: var(--color-primary);
-      color: var(--text-primary);
-      transform: translateY(-1px);
-    }
-    .quick-chip.selected {
-      background: var(--color-primary-bg, hsla(154,72%,37%,0.15));
-      border-color: var(--color-primary);
-      color: var(--color-primary-light);
-    }
-
-    /* Checklist layout */
-    .checklist-section { max-width: 620px; }
-    .live-score-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-6);
-      background: var(--bg-surface-2);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      position: sticky;
-      top: 80px;
-    }
-
-    /* Result card */
-    .result-card {
-      max-width: 520px;
-      margin: 0 auto;
-      text-align: center;
-      padding: var(--space-8);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-    }
-    .result-emoji { font-size: 4rem; margin-bottom: var(--space-4); }
-    .result-score {
-      font-size: var(--text-4xl);
-      font-weight: 900;
-      letter-spacing: -0.05em;
-      margin-bottom: var(--space-1);
-    }
-    .result-msg { font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-6); }
-
-    .inspect-grid {
-      display: grid;
-      grid-template-columns: 1fr 260px;
-      gap: var(--space-6);
-      align-items: flex-start;
-    }
-    @media (max-width: 768px) {
-      .inspect-grid { grid-template-columns: 1fr; }
-      .live-score-wrap { position: static; }
-    }
-
-    /* Optional Room Accordion */
-    .room-opt-box {
-      margin-top: var(--space-4);
-      padding: var(--space-4);
-      background: var(--bg-surface-3);
-      border: 1px dashed var(--border-default);
-      border-radius: var(--radius-md);
-      font-size: var(--text-sm);
-    }
-  </style>
+  <link rel="stylesheet" href="../css/volunteer-inspect.css"/>
 </head>
-<body>
-  <div class="main-content">
-    <header class="topbar">
-      <div>
-        <div class="topbar-title">Building Waste Inspection</div>
-        <div class="topbar-subtitle">Conduct building-level waste segregation compliance audit</div>
-      </div>
-      <a href="./history.html" class="btn btn-secondary btn-sm"><i data-lucide="clock-3" class="icon-sm"></i> My History</a>
-    </header>
-    <div class="page-content">
+<body class="volunteer-inspect-body">
 
-      <!-- Verification Status Alerts -->
-      <div id="verification-banner" style="display:none;background:var(--color-warning-light);border:1.5px solid var(--color-warning);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;align-items:flex-start;gap:16px;">
-        <div style="display:flex;align-items:center;justify-content:center;color:var(--color-warning);"><i data-lucide="clock-3" class="icon-3xl"></i></div>
+  <!-- Scenic Environmental Background Scene (Trees, Skyline, 3 Segregation Bins) -->
+  <div class="inspect-bg-scene" aria-hidden="true">
+    <img src="../assets/inspect-bg-scene.svg" class="inspect-bg-svg" alt=""/>
+  </div>
+
+  <!-- Main Content Wrap -->
+  <div class="volunteer-main-wrap">
+    
+    <!-- Topbar Header matching Reference Design -->
+    <header class="volunteer-topbar">
+      <div class="topbar-brand-left">
+        <button class="mobile-sidebar-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">
+          <i data-lucide="menu" style="width:22px;height:22px;"></i>
+        </button>
+        <div class="topbar-icon-badge">
+          <i data-lucide="building-2" style="width:22px;height:22px;"></i>
+        </div>
+        <div class="topbar-titles">
+          <div class="topbar-heading">Building Waste Inspection</div>
+          <div class="topbar-subheading">Conduct building-level waste segregation compliance audit</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions-right">
+        <button class="topbar-notification-btn" type="button" title="Notifications" aria-label="Notifications">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+        </button>
+
+        <div class="topbar-user-chip" id="topbar-user-chip" title="Field Volunteer Profile">
+          <div class="topbar-user-avatar" id="header-user-avatar">FV</div>
+          <span class="topbar-user-name" id="header-user-name">Field Volunteer</span>
+          <i data-lucide="chevron-down" style="width:15px;height:15px;color:var(--vw-text-muted);"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="volunteer-content-area">
+
+      <!-- Verification Status Alerts (Pending / Rejected) -->
+      <div id="verification-banner" style="display:none;width:100%;max-width:860px;background:#FFFBEB;border:1.5px solid #F59E0B;border-radius:16px;padding:22px 24px;margin-bottom:24px;align-items:flex-start;gap:16px;box-shadow:0 4px 14px rgba(245,158,11,0.08);">
+        <div style="display:flex;align-items:center;justify-content:center;color:#D97706;flex-shrink:0;">
+          <i data-lucide="clock-3" style="width:32px;height:32px;"></i>
+        </div>
         <div>
-          <h3 style="font-size:1.2rem;font-weight:700;color:var(--color-warning);margin-bottom:6px;">Your account is awaiting admin verification.</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);margin:0;line-height:1.5;">
+          <h3 style="font-size:1.15rem;font-weight:700;color:#B45309;margin:0 0 6px;">Your account is awaiting admin verification.</h3>
+          <p style="font-size:0.88rem;color:#78350F;margin:0;line-height:1.5;">
             Your volunteer application has been submitted successfully and is currently under municipal review. You can submit inspection complaints after an administrator verifies and approves your account.
           </p>
           <div style="margin-top:14px;">
-            <a href="/volunteer/history.html" class="btn btn-secondary btn-sm">View Audit History</a>
+            <a href="./history.html" class="btn btn-secondary btn-sm" style="border-radius:8px;">View Audit History</a>
           </div>
         </div>
       </div>
 
-      <div id="rejected-banner" style="display:none;background:var(--color-danger-light);border:1.5px solid var(--color-danger);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;align-items:flex-start;gap:16px;">
-        <div style="display:flex;align-items:center;justify-content:center;color:var(--color-danger);"><i data-lucide="ban" class="icon-3xl"></i></div>
+      <div id="rejected-banner" style="display:none;width:100%;max-width:860px;background:#FEF2F2;border:1.5px solid #EF4444;border-radius:16px;padding:22px 24px;margin-bottom:24px;align-items:flex-start;gap:16px;box-shadow:0 4px 14px rgba(239,68,68,0.08);">
+        <div style="display:flex;align-items:center;justify-content:center;color:#DC2626;flex-shrink:0;">
+          <i data-lucide="ban" style="width:32px;height:32px;"></i>
+        </div>
         <div>
-          <h3 style="font-size:1.2rem;font-weight:700;color:var(--color-danger);margin-bottom:6px;">Volunteer Application Not Approved</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);margin:0;line-height:1.5;">
+          <h3 style="font-size:1.15rem;font-weight:700;color:#B91C1C;margin:0 0 6px;">Volunteer Application Not Approved</h3>
+          <p style="font-size:0.88rem;color:#7F1D1D;margin:0;line-height:1.5;">
             Your volunteer registration application was not approved by the municipal administration. You cannot submit inspection complaints or field reports.
           </p>
         </div>
       </div>
 
-      <!-- Stepper -->
-      <div class="stepper" id="stepper">
-        <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-label">Select Building</div></div>
-        <div class="step-line"></div>
-        <div class="step active-next" data-step="2"><div class="step-num">2</div><div class="step-label">Checklist</div></div>
-        <div class="step-line"></div>
-        <div class="step" data-step="3"><div class="step-num">3</div><div class="step-label">Result</div></div>
-      </div>
+      <!-- Main Inspection Card (Centered Floating White Card) -->
+      <section class="inspect-main-card" id="inspect-card" aria-label="Inspection Workflow">
 
-      <!-- Step 1 — Building Selection -->
-      <div class="step-panel active" id="panel-1">
-        <div class="building-select-section">
-          <div class="building-hero-icon" style="display:flex;align-items:center;justify-content:center;"><i data-lucide="building-2" class="icon-3xl" style="color:var(--color-primary);"></i></div>
-          <h3 style="color:var(--text-primary);margin:0;">Select Housing Society / Building</h3>
-          <p style="color:var(--text-muted);font-size:var(--text-sm);max-width:480px;text-align:center;margin:0;">
+        <!-- Three-Step Progress Indicator at Card Top -->
+        <div class="inspect-card-stepper" id="stepper" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="3">
+          <div class="stepper-step active" data-step="1" id="step-node-1">
+            <div class="stepper-circle">1</div>
+            <span class="stepper-label">Select Building</span>
+          </div>
+          <div class="stepper-divider" id="step-line-1"></div>
+          <div class="stepper-step" data-step="2" id="step-node-2">
+            <div class="stepper-circle">2</div>
+            <span class="stepper-label">Checklist</span>
+          </div>
+          <div class="stepper-divider" id="step-line-2"></div>
+          <div class="stepper-step" data-step="3" id="step-node-3">
+            <div class="stepper-circle">3</div>
+            <span class="stepper-label">Result</span>
+          </div>
+        </div>
+
+        <!-- ═════════ STEP 1: Building Selection ═════════ -->
+        <div class="inspect-step-panel active" id="panel-1">
+          
+          <!-- Hero Pale-Green Circular Building Badge -->
+          <div class="inspect-hero-badge" aria-hidden="true">
+            <i data-lucide="building-2"></i>
+          </div>
+
+          <!-- Card Headings -->
+          <h1 class="inspect-card-heading">Select Housing Society / Building</h1>
+          <p class="inspect-card-desc">
             Choose a residential CHS, apartment complex, or commercial building to audit waste segregation compliance.
           </p>
 
-          <div style="width:100%;max-width:480px;">
-            <div class="form-group">
-              <label class="form-label">Search or Select Building</label>
-              <div style="display:flex;gap:8px;margin-bottom:8px;">
-                <input type="text" class="form-control" id="building-search" placeholder="Search building by name or code (e.g. BLD-NW-101)…"/>
-                <button class="btn btn-secondary" id="btn-search-bld" type="button" title="Search building"><i data-lucide="search" class="icon-sm"></i></button>
-              </div>
-              <select class="form-control" id="sel-building">
-                <option value="">— Choose building from list —</option>
-              </select>
-            </div>
+          <!-- Form Controls Centered -->
+          <div class="inspect-form-wrap">
+            <label class="inspect-form-label" for="building-search">Search or Select Building</label>
 
-            <div class="quick-chips-wrap" id="building-chips">
-              <!-- Dynamically populated chips -->
-            </div>
-
-            <!-- Optional Specific Room (Preserved for legacy / room-specific audit) -->
-            <div class="room-opt-box">
-              <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="toggle-room-opt">
-                <span style="font-weight:600;color:var(--text-secondary);display:inline-flex;align-items:center;gap:6px;"><i data-lucide="door-open" class="icon-sm"></i> Specific Room (Optional)</span>
-                <span id="room-opt-arrow" style="display:inline-flex;align-items:center;color:var(--text-muted);"><i data-lucide="chevron-down" class="icon-xs"></i></span>
-              </div>
-              <div id="room-opt-content" style="display:none;margin-top:10px;">
-                <p style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:8px;">
-                  Leave unselected for standard <strong>Building-Level</strong> inspection, or select a room if auditing a specific flat/unit.
-                </p>
-                <select class="form-control form-control-sm" id="sel-room" disabled>
-                  <option value="">— Entire Building (Default) —</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Identified Building Card -->
-          <div class="building-preview-card" id="building-preview">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <div style="font-weight:700;color:var(--text-primary);font-size:var(--text-base);display:flex;align-items:center;gap:6px;">
-                <span style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="building-2" class="icon-sm" style="color:var(--color-primary);"></i> Building Selected</span>
-              </div>
-              <span class="badge badge-excellent" id="bp-status-badge">READY FOR AUDIT</span>
-            </div>
-            <div class="preview-row"><span class="preview-label">Building Name</span><span class="preview-value" id="bp-name">—</span></div>
-            <div class="preview-row"><span class="preview-label">Building Code</span><span class="preview-value font-mono" id="bp-code">—</span></div>
-            <div class="preview-row"><span class="preview-label">Area</span><span class="preview-value" id="bp-area">—</span></div>
-            <div class="preview-row"><span class="preview-label">Address</span><span class="preview-value" id="bp-address">—</span></div>
-            <div class="preview-row"><span class="preview-label">Floors</span><span class="preview-value" id="bp-floors">—</span></div>
-            <div class="preview-row" id="row-specific-room" style="display:none;"><span class="preview-label">Specific Room</span><span class="preview-value font-mono" id="bp-room">—</span></div>
-          </div>
-
-          <button class="btn btn-primary btn-lg" id="btn-to-step2" disabled style="min-width:240px;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-            Continue to Checklist <i data-lucide="arrow-right" class="icon-sm"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2 — Checklist -->
-      <div class="step-panel" id="panel-2">
-        <div class="inspect-grid">
-          <div class="checklist-section">
-            <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:var(--space-5);display:flex;align-items:center;justify-content:space-between;">
-              <div>
-                <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;">Auditing Location:</span>
-                <div style="font-weight:700;color:var(--text-primary);" id="cl-target-name">—</div>
-              </div>
-              <span class="badge badge-info" id="cl-badge-type">Building-Level</span>
-            </div>
-
-            <h3 style="margin-bottom:var(--space-4);color:var(--text-primary);">Segregation Compliance Checklist</h3>
-
-            <label class="checklist-item" data-key="wetWasteSeparated">
-              <input type="checkbox" id="chk-wet"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">Wet Waste Separated</div>
-                <div class="checklist-desc">Food scraps, kitchen organic waste in dedicated green bin</div>
-              </div>
-              <span class="checklist-weight">25 pts</span>
-            </label>
-
-            <label class="checklist-item" data-key="dryWasteSeparated">
-              <input type="checkbox" id="chk-dry"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">Dry Waste Separated</div>
-                <div class="checklist-desc">Paper, plastic, cardboard, glass in recyclable blue bin</div>
-              </div>
-              <span class="checklist-weight">25 pts</span>
-            </label>
-
-            <label class="checklist-item" data-key="sanitaryWasteSeparated">
-              <input type="checkbox" id="chk-sanitary"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">Sanitary Waste Separated</div>
-                <div class="checklist-desc">Diapers, napkins, medical waste in separate red bin</div>
-              </div>
-              <span class="checklist-weight">20 pts</span>
-            </label>
-
-            <label class="checklist-item" data-key="correctBinsUsed">
-              <input type="checkbox" id="chk-bins"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">Correct Standard Bins Used</div>
-                <div class="checklist-desc">Color-coded municipal compliant bins present</div>
-              </div>
-              <span class="checklist-weight">15 pts</span>
-            </label>
-
-            <label class="checklist-item" data-key="binsLabelled">
-              <input type="checkbox" id="chk-label"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">Bins Clearly Labelled</div>
-                <div class="checklist-desc">Visible labels/stickers identifying waste types</div>
-              </div>
-              <span class="checklist-weight">10 pts</span>
-            </label>
-
-            <label class="checklist-item" data-key="noMixedWaste">
-              <input type="checkbox" id="chk-nomix"/>
-              <div class="checklist-label-group">
-                <div class="checklist-label">No Mixed Contamination</div>
-                <div class="checklist-desc">No cross-contamination or overflow between waste bins</div>
-              </div>
-              <span class="checklist-weight">5 pts</span>
-            </label>
-
-            <div class="form-group" style="margin-top:var(--space-5);">
-              <label class="form-label">Evidence Photo URL (Optional)</label>
-              <input type="text" class="form-control" id="evidence-url" placeholder="https://example.com/evidence-photo.jpg"/>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Inspection Remarks / Observations</label>
-              <textarea class="form-control" id="remarks" rows="3" placeholder="Optional notes on bin placement, contamination, or building housekeeping…"></textarea>
-            </div>
-
-            <div style="display:flex;gap:12px;margin-top:var(--space-5);">
-              <button class="btn btn-secondary" id="btn-back-step1" style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="arrow-left" class="icon-sm"></i> Change Building</button>
-              <button class="btn btn-primary btn-lg" id="btn-submit" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-                Submit Inspection <i data-lucide="check" class="icon-sm"></i>
+            <!-- Search Input with Search Icon -->
+            <div class="inspect-search-box">
+              <input
+                type="text"
+                class="inspect-search-input"
+                id="building-search"
+                placeholder="Search building by name or code (e.g. BLD-NW-101)..."
+                autocomplete="off"
+              />
+              <button class="inspect-search-btn" id="btn-search-bld" type="button" title="Search building" aria-label="Search building">
+                <i data-lucide="search" style="width:18px;height:18px;"></i>
               </button>
             </div>
-          </div>
 
-          <!-- Live score sidebar -->
-          <div class="live-score-wrap" id="live-score">
-            <div style="font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">Audit Score</div>
-            <div id="live-ring"></div>
-            <div id="live-classification" style="font-size:var(--text-xs);font-weight:700;">POOR</div>
+            <!-- Building Dropdown List -->
+            <div class="inspect-select-wrap">
+              <select class="inspect-select" id="sel-building" aria-label="Select housing society or building">
+                <option value="">-- Choose building from list --</option>
+              </select>
+              <span class="inspect-select-arrow" aria-hidden="true">
+                <i data-lucide="chevron-down" style="width:18px;height:18px;"></i>
+              </span>
+            </div>
+
+            <!-- Quick-Select Chips -->
+            <div class="inspect-quick-label">Quick Select:</div>
+            <div class="inspect-chips-group" id="building-chips">
+              <!-- Dynamically populated chips from backend buildings -->
+            </div>
+
+            <!-- Optional Specific Room Selector (Accordion) -->
+            <div class="inspect-room-box">
+              <div class="inspect-room-header" id="toggle-room-opt" role="button" tabindex="0" aria-expanded="false">
+                <span class="inspect-room-title">
+                  <i data-lucide="door-open" style="width:18px;height:18px;color:var(--vw-green-forest);"></i>
+                  Specific Room (Optional)
+                </span>
+                <span class="inspect-room-arrow" id="room-opt-arrow" aria-hidden="true">
+                  <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
+                </span>
+              </div>
+              <div class="inspect-room-content" id="room-opt-content" style="display:none;">
+                <p style="font-size:0.78rem;color:var(--vw-text-muted);margin:0 0 10px;line-height:1.4;">
+                  Leave unselected for standard <strong>Building-Level</strong> inspection, or select a flat/unit to audit a specific room.
+                </p>
+                <div class="inspect-select-wrap">
+                  <select class="inspect-select" id="sel-room" disabled style="height:42px;font-size:0.86rem;" aria-label="Optional room selection">
+                    <option value="">-- Entire Building (Default) --</option>
+                  </select>
+                  <span class="inspect-select-arrow" aria-hidden="true">
+                    <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Building Preview Card (Populated when a building is selected) -->
+            <div class="inspect-building-preview" id="building-preview">
+              <div class="preview-top-row">
+                <div style="font-weight:700;color:var(--vw-text-dark);font-size:0.92rem;display:flex;align-items:center;gap:8px;">
+                  <i data-lucide="check-circle-2" style="width:18px;height:18px;color:var(--vw-green-forest);"></i>
+                  <span>Building Identified</span>
+                </div>
+                <span class="preview-badge-status" id="bp-status-badge">READY FOR AUDIT</span>
+              </div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-label">Building Name</span>
+                <span class="preview-meta-val" id="bp-name">—</span>
+              </div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-label">Building Code</span>
+                <span class="preview-meta-val font-mono" id="bp-code">—</span>
+              </div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-label">Zone / Area</span>
+                <span class="preview-meta-val" id="bp-area">—</span>
+              </div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-label">Address</span>
+                <span class="preview-meta-val" id="bp-address">—</span>
+              </div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-label">Total Floors</span>
+                <span class="preview-meta-val" id="bp-floors">—</span>
+              </div>
+              <div class="preview-meta-row" id="row-specific-room" style="display:none;">
+                <span class="preview-meta-label">Specific Room</span>
+                <span class="preview-meta-val font-mono" id="bp-room">—</span>
+              </div>
+            </div>
+
+            <!-- Prominent Continue to Checklist Button -->
+            <div class="btn-center-wrap">
+              <button class="inspect-btn-continue" id="btn-to-step2" disabled type="button">
+                <span>Continue to Checklist</span>
+                <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
 
-      <!-- Step 3 — Result -->
-      <div class="step-panel" id="panel-3">
-        <div class="result-card" id="result-card">
-          <!-- Populated by JS -->
+        <!-- ═════════ STEP 2: Compliance Checklist ═════════ -->
+        <div class="inspect-step-panel" id="panel-2">
+          
+          <!-- Auditing Location Banner -->
+          <div class="checklist-target-banner">
+            <div>
+              <div class="target-banner-label">Auditing Location</div>
+              <div class="target-banner-val" id="cl-target-name">—</div>
+            </div>
+            <span class="target-badge" id="cl-badge-type">Building-Level</span>
+          </div>
+
+          <div class="inspect-grid">
+            <div class="checklist-section">
+              <h2 style="font-size:1.2rem;font-weight:800;color:var(--vw-text-dark);margin:0 0 16px;">
+                Segregation Compliance Checklist
+              </h2>
+
+              <!-- 6 Criteria Checkboxes -->
+              <label class="inspect-checklist-item" data-key="wetWasteSeparated">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-wet"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">Wet Waste Separated</div>
+                  <div class="inspect-checklist-desc">Food scraps, kitchen organic waste in dedicated green bin</div>
+                </div>
+                <span class="inspect-checklist-pts">25 pts</span>
+              </label>
+
+              <label class="inspect-checklist-item" data-key="dryWasteSeparated">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-dry"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">Dry Waste Separated</div>
+                  <div class="inspect-checklist-desc">Paper, plastic, cardboard, glass in recyclable blue bin</div>
+                </div>
+                <span class="inspect-checklist-pts">25 pts</span>
+              </label>
+
+              <label class="inspect-checklist-item" data-key="sanitaryWasteSeparated">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-sanitary"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">Sanitary Waste Separated</div>
+                  <div class="inspect-checklist-desc">Diapers, sanitary napkins, medical waste in separate red bin</div>
+                </div>
+                <span class="inspect-checklist-pts">20 pts</span>
+              </label>
+
+              <label class="inspect-checklist-item" data-key="correctBinsUsed">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-bins"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">Correct Standard Bins Used</div>
+                  <div class="inspect-checklist-desc">Color-coded municipal compliant bins present at waste stations</div>
+                </div>
+                <span class="inspect-checklist-pts">15 pts</span>
+              </label>
+
+              <label class="inspect-checklist-item" data-key="binsLabelled">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-label"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">Bins Clearly Labelled</div>
+                  <div class="inspect-checklist-desc">Visible signage/stickers identifying WET, DRY, and SANITARY</div>
+                </div>
+                <span class="inspect-checklist-pts">10 pts</span>
+              </label>
+
+              <label class="inspect-checklist-item" data-key="noMixedWaste">
+                <input type="checkbox" class="inspect-checklist-checkbox" id="chk-nomix"/>
+                <div class="inspect-checklist-meta">
+                  <div class="inspect-checklist-title">No Mixed Contamination</div>
+                  <div class="inspect-checklist-desc">No cross-contamination or overflow observed between waste bins</div>
+                </div>
+                <span class="inspect-checklist-pts">5 pts</span>
+              </label>
+
+              <!-- Optional Evidence URL -->
+              <div class="form-group" style="margin-top:20px;">
+                <label class="inspect-form-label" for="evidence-url">Evidence Photo URL (Optional)</label>
+                <input
+                  type="text"
+                  class="inspect-search-input"
+                  id="evidence-url"
+                  placeholder="https://example.com/evidence-photo.jpg"
+                  style="padding-right:16px;"
+                />
+              </div>
+
+              <!-- Observations / Remarks -->
+              <div class="form-group">
+                <label class="inspect-form-label" for="remarks">Inspection Remarks / Observations</label>
+                <textarea
+                  class="form-control"
+                  id="remarks"
+                  rows="3"
+                  placeholder="Optional field notes on bin placement, contamination level, or building housekeeping…"
+                  style="border:1.5px solid #D5E1D9;border-radius:12px;padding:12px;font-size:0.9rem;"
+                ></textarea>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
+                <button class="btn btn-secondary" id="btn-back-step1" type="button" style="border-radius:9999px;padding:12px 22px;display:inline-flex;align-items:center;gap:6px;">
+                  <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                  <span>Change Building</span>
+                </button>
+                <button class="inspect-btn-continue" id="btn-submit" type="button" style="flex:1;margin:0;">
+                  <span>Submit Inspection</span>
+                  <i data-lucide="check" style="width:18px;height:18px;"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Score Gauge Sidebar -->
+            <div class="inspect-score-box" id="live-score">
+              <div style="font-size:0.74rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--vw-text-muted);">
+                Live Audit Score
+              </div>
+              <div id="live-ring"></div>
+              <div id="live-classification" style="font-size:0.85rem;font-weight:800;">
+                POOR
+              </div>
+              <div style="font-size:0.75rem;color:var(--vw-text-muted);line-height:1.4;">
+                Score updates in real time based on checklist criteria.
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <!-- ═════════ STEP 3: Result Summary ═════════ -->
+        <div class="inspect-step-panel" id="panel-3">
+          <div class="inspect-result-wrap" id="result-card">
+            <!-- Dynamically populated upon submission -->
+          </div>
+        </div>
+
+      </section>
+    </main>
   </div>
 
   <div id="toast-container"></div>
+
+  <!-- Scripts -->
   <script src="../js/lucide.min.js"></script>
   <script src="../js/api/client.js"></script>
   <script src="../js/utils/helpers.js"></script>
   <script src="../js/utils/sidebar.js"></script>
   <script>
-    if (!Auth.requireLogin()) throw new Error();
+    // 1. Authenticate user
+    if (!Auth.requireLogin()) throw new Error('Authentication required');
+
+    // 2. Inject redesigned volunteer sidebar
     injectSidebar('VOLUNTEER');
+
+    // 3. Populate Header User Info
+    const currentUser = Auth.getUser();
+    if (currentUser) {
+      const topAvatar = document.getElementById('header-user-avatar');
+      const topName   = document.getElementById('header-user-name');
+      if (topAvatar) topAvatar.textContent = Fmt.avatar(currentUser.fullName || currentUser.username);
+      if (topName)   topName.textContent   = currentUser.fullName || currentUser.username;
+    }
+
+    // 4. Mobile sidebar toggle
+    const toggleSidebarBtn = document.getElementById('btn-toggle-sidebar');
+    if (toggleSidebarBtn) {
+      toggleSidebarBtn.addEventListener('click', () => {
+        const sb = document.getElementById('sidebar');
+        if (sb) sb.classList.toggle('open');
+      });
+    }
 
     let allBuildings = [];
     let selectedBuildingId = null;
@@ -413,21 +397,29 @@
     let selectedRoomId = null;
     let selectedRoom = null;
 
-    // ══════ Step navigation ══════
+    // ══════ Step Navigation ══════
     function goToStep(n) {
-      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById('panel-' + n).classList.add('active');
+      document.querySelectorAll('.inspect-step-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById('panel-' + n);
+      if (activePanel) activePanel.classList.add('active');
 
-      document.querySelectorAll('.step').forEach((s, i) => {
+      // Update stepper numbers & labels
+      document.querySelectorAll('.stepper-step').forEach((s, i) => {
         const idx = i + 1;
         s.classList.remove('active', 'done');
         if (idx < n)  s.classList.add('done');
         if (idx === n) s.classList.add('active');
       });
 
-      document.querySelectorAll('.step-line').forEach((l, i) => {
-        l.classList.toggle('done', i < n - 1);
-      });
+      // Update connecting divider lines
+      const line1 = document.getElementById('step-line-1');
+      const line2 = document.getElementById('step-line-2');
+      if (line1) line1.classList.toggle('done', n > 1);
+      if (line2) line2.classList.toggle('done', n > 2);
+
+      // Scroll smoothly to top of card
+      const card = document.getElementById('inspect-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // ══════ Step 1: Building Selection ══════
@@ -437,13 +429,13 @@
         renderBuildingSelect(allBuildings);
         renderBuildingChips(allBuildings);
       } catch (e) {
-        Toast.error('Error', e.message);
+        Toast.error('Error Loading Buildings', e.message);
       }
     }
 
     function renderBuildingSelect(buildings) {
       const sel = document.getElementById('sel-building');
-      sel.innerHTML = '<option value="">— Choose building from list —</option>' +
+      sel.innerHTML = '<option value="">-- Choose building from list --</option>' +
         buildings.map(b => `<option value="${b.id}">${b.name} (${b.buildingCode || 'No Code'}) — ${b.area?.name || b.areaName || 'Campus'}</option>`).join('');
       if (selectedBuildingId) {
         sel.value = selectedBuildingId;
@@ -452,9 +444,19 @@
 
     function renderBuildingChips(buildings) {
       const container = document.getElementById('building-chips');
-      const topList = buildings.slice(0, 5);
-      container.innerHTML = '<span style="font-size: var(--text-xs); color: var(--text-muted); width: 100%; text-align: center;">Quick Select:</span>' +
-        topList.map(b => `<button type="button" class="quick-chip ${selectedBuildingId == b.id ? 'selected' : ''}" onclick="selectBuildingById(${b.id})" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="building-2" class="icon-xs"></i> ${escapeHtml(b.name)}</button>`).join('');
+      if (!container) return;
+      // Show top 4 seeded buildings matching reference
+      const topList = buildings.slice(0, 4);
+      container.innerHTML = topList.map(b => `
+        <button
+          type="button"
+          class="inspect-chip ${selectedBuildingId == b.id ? 'selected' : ''}"
+          onclick="selectBuildingById(${b.id})"
+        >
+          <i data-lucide="building-2" style="width:14px;height:14px;"></i>
+          <span>${escapeHtml(b.name)}</span>
+        </button>
+      `).join('');
       if (window.lucide) lucide.createIcons({ root: container });
     }
 
@@ -527,34 +529,39 @@
       selectedRoom = null;
       document.getElementById('building-preview').classList.remove('visible');
       document.getElementById('btn-to-step2').disabled = true;
-      document.getElementById('sel-room').innerHTML = '<option value="">— Entire Building (Default) —</option>';
+      document.getElementById('sel-room').innerHTML = '<option value="">-- Entire Building (Default) --</option>';
       document.getElementById('sel-room').disabled = true;
       renderBuildingChips(allBuildings);
     }
 
     // ── Optional Room Toggle & Loading ──
-    document.getElementById('toggle-room-opt').addEventListener('click', () => {
+    const toggleRoomOpt = document.getElementById('toggle-room-opt');
+    toggleRoomOpt.addEventListener('click', () => {
       const box = document.getElementById('room-opt-content');
       const arrow = document.getElementById('room-opt-arrow');
-      if (box.style.display === 'none') {
+      const isExpanded = box.style.display !== 'none';
+      if (!isExpanded) {
         box.style.display = 'block';
-        arrow.innerHTML = '<i data-lucide="chevron-up" class="icon-xs"></i>'; if (window.lucide) lucide.createIcons({ root: arrow });
+        toggleRoomOpt.setAttribute('aria-expanded', 'true');
+        arrow.innerHTML = '<i data-lucide="chevron-up" style="width:16px;height:16px;"></i>';
       } else {
         box.style.display = 'none';
-        arrow.innerHTML = '<i data-lucide="chevron-down" class="icon-xs"></i>'; if (window.lucide) lucide.createIcons({ root: arrow });
+        toggleRoomOpt.setAttribute('aria-expanded', 'false');
+        arrow.innerHTML = '<i data-lucide="chevron-down" style="width:16px;height:16px;"></i>';
       }
+      if (window.lucide) lucide.createIcons({ root: arrow });
     });
 
     async function loadRoomsForBuilding(buildingId) {
       const roomSel = document.getElementById('sel-room');
-      roomSel.innerHTML = '<option value="">— Entire Building (Default) —</option>';
+      roomSel.innerHTML = '<option value="">-- Entire Building (Default) --</option>';
       roomSel.disabled = true;
       selectedRoomId = null;
       selectedRoom = null;
       try {
         const rooms = await api.getRooms(buildingId);
         if (rooms && rooms.length > 0) {
-          roomSel.innerHTML = '<option value="">— Entire Building (Default) —</option>' +
+          roomSel.innerHTML = '<option value="">-- Entire Building (Default) --</option>' +
             rooms.map(r => `<option value="${r.id}" data-room='${JSON.stringify(r)}'>Room ${r.roomNumber} · Floor ${r.floorNumber} ${r.occupantName ? '(' + r.occupantName + ')' : ''}</option>`).join('');
           roomSel.disabled = false;
         }
@@ -607,10 +614,10 @@
     }
 
     function getClassification(score) {
-      if (score >= 85) return { label: 'EXCELLENT', color: '#2ECC71' };
-      if (score >= 65) return { label: 'GOOD', color: '#00BFFF' };
-      if (score >= 40) return { label: 'NEEDS_IMPROVEMENT', color: '#F39C12' };
-      return { label: 'POOR', color: '#E74C3C' };
+      if (score >= 85) return { label: 'EXCELLENT', color: '#168048' };
+      if (score >= 65) return { label: 'GOOD', color: '#2563EB' };
+      if (score >= 40) return { label: 'NEEDS_IMPROVEMENT', color: '#D97706' };
+      return { label: 'POOR', color: '#DC2626' };
     }
 
     function updateLiveScore() {
@@ -622,9 +629,9 @@
       lbl.style.color = cls.color;
     }
 
-    document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(chk => {
+    document.querySelectorAll('.inspect-checklist-item input[type="checkbox"]').forEach(chk => {
       chk.addEventListener('change', () => {
-        chk.closest('.checklist-item').classList.toggle('checked', chk.checked);
+        chk.closest('.inspect-checklist-item').classList.toggle('checked', chk.checked);
         updateLiveScore();
       });
     });
@@ -634,7 +641,7 @@
     document.getElementById('btn-submit').addEventListener('click', async () => {
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;
-      btn.textContent = 'Submitting Inspection…';
+      btn.innerHTML = 'Submitting Inspection…';
 
       const body = {
         buildingId: selectedBuildingId,
@@ -659,7 +666,8 @@
         Toast.error('Submission Failed', e.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Submit Inspection <i data-lucide="check" class="icon-sm"></i>'; if (window.lucide) lucide.createIcons({ root: btn });
+        btn.innerHTML = '<span>Submit Inspection</span> <i data-lucide="check" style="width:18px;height:18px;"></i>';
+        if (window.lucide) lucide.createIcons({ root: btn });
       }
     });
 
@@ -668,7 +676,7 @@
       const score = r.totalScore;
       const cls   = r.classification;
       const icons = { EXCELLENT: 'award', GOOD: 'thumbs-up', NEEDS_IMPROVEMENT: 'alert-circle', POOR: 'triangle-alert' };
-      const colors = { EXCELLENT: '#2ECC71', GOOD: '#00BFFF', NEEDS_IMPROVEMENT: '#F39C12', POOR: '#E74C3C' };
+      const colors = { EXCELLENT: '#168048', GOOD: '#2563EB', NEEDS_IMPROVEMENT: '#D97706', POOR: '#DC2626' };
       const msgs   = {
         EXCELLENT: 'Outstanding waste segregation! Building meets gold municipal standards.',
         GOOD: 'Good segregation compliance. Consistent monitoring will maintain high hygiene.',
@@ -682,27 +690,41 @@
 
       const resultCardEl = document.getElementById('result-card');
       resultCardEl.innerHTML = `
-        <div class="result-emoji" style="display:flex;align-items:center;justify-content:center;color:${colors[cls]};margin-bottom:12px;">
-          <i data-lucide="${icons[cls] || 'clipboard-check'}" style="width:52px;height:52px;stroke-width:2;"></i>
+        <div style="width:72px;height:72px;border-radius:50%;background:#F2F8F4;border:2px solid ${colors[cls]}33;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:${colors[cls]};">
+          <i data-lucide="${icons[cls] || 'clipboard-check'}" style="width:40px;height:40px;stroke-width:2;"></i>
         </div>
-        <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--vw-text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">
           ${locationLabel}
         </div>
-        <div class="result-score" style="color:${colors[cls]}">${score}<span style="font-size:1.5rem;color:var(--text-muted)">/100</span></div>
-        <div style="margin-bottom:12px;">
-          <span class="badge badge-${Fmt.classifyBadge(cls)}" style="font-size:1rem;padding:6px 16px;">${Fmt.classify(cls)}</span>
+        <div style="font-size:3.5rem;font-weight:900;letter-spacing:-0.05em;color:${colors[cls]};line-height:1;margin-bottom:12px;">
+          ${score}<span style="font-size:1.4rem;font-weight:600;color:var(--vw-text-muted);">/100</span>
         </div>
-        <div class="result-msg">${msgs[cls] || ''}</div>
+        <div style="margin-bottom:16px;">
+          <span class="badge badge-${Fmt.classifyBadge(cls)}" style="font-size:0.95rem;padding:6px 18px;border-radius:9999px;">
+            ${Fmt.classify(cls)}
+          </span>
+        </div>
+        <p style="font-size:0.92rem;color:var(--vw-text-secondary);max-width:440px;margin:0 auto 20px;line-height:1.5;">
+          ${msgs[cls] || ''}
+        </p>
 
         ${r.violationCreated ? `
-        <div style="background:hsla(0,78%,58%,0.08);border:1px solid hsla(0,78%,58%,0.3);border-radius:12px;padding:16px;margin-top:16px;font-size:0.9rem;color:hsl(0,78%,70%);text-align:left;display:flex;align-items:flex-start;gap:10px;">
-          <i data-lucide="triangle-alert" class="icon-sm" style="flex-shrink:0;margin-top:2px;"></i>
-          <div><strong>Violation #${r.violationId || ''} Auto-Raised:</strong> Marked for administrative review and remediation.</div>
+        <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:16px;margin:16px auto;max-width:480px;text-align:left;display:flex;align-items:flex-start;gap:12px;">
+          <i data-lucide="triangle-alert" style="width:20px;height:20px;color:#DC2626;flex-shrink:0;margin-top:2px;"></i>
+          <div style="font-size:0.88rem;color:#991B1B;line-height:1.4;">
+            <strong>Violation #${r.violationId || ''} Auto-Raised:</strong> Marked for municipal administrative review and remediation.
+          </div>
         </div>` : ''}
 
-        <div style="display:flex;gap:12px;margin-top:var(--space-8);justify-content:center;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-lg" onclick="resetForm()" style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="refresh-cw" class="icon-sm"></i> New Inspection</button>
-          <a href="./history.html" class="btn btn-secondary btn-lg" style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="clock-3" class="icon-sm"></i> View History</a>
+        <div style="display:flex;gap:14px;margin-top:28px;justify-content:center;flex-wrap:wrap;">
+          <button class="inspect-btn-continue" onclick="resetForm()" type="button" style="margin:0;min-width:180px;">
+            <i data-lucide="refresh-cw" style="width:16px;height:16px;"></i>
+            <span>New Inspection</span>
+          </button>
+          <a href="./history.html" class="btn btn-secondary" style="border-radius:9999px;padding:12px 26px;display:inline-flex;align-items:center;gap:6px;font-weight:700;">
+            <i data-lucide="clock-3" style="width:16px;height:16px;"></i>
+            <span>View History</span>
+          </a>
         </div>
       `;
       if (window.lucide) lucide.createIcons({ root: resultCardEl });
@@ -711,8 +733,8 @@
     function resetForm() {
       clearBuildingSelection();
       document.getElementById('building-search').value = '';
-      document.querySelectorAll('.checklist-item input').forEach(c => { c.checked = false; });
-      document.querySelectorAll('.checklist-item').forEach(c => c.classList.remove('checked'));
+      document.querySelectorAll('.inspect-checklist-item input').forEach(c => { c.checked = false; });
+      document.querySelectorAll('.inspect-checklist-item').forEach(c => c.classList.remove('checked'));
       document.getElementById('remarks').value = '';
       document.getElementById('evidence-url').value = '';
       goToStep(1);
@@ -724,12 +746,12 @@
         if (user && user.status === 'PENDING') {
           document.getElementById('verification-banner').style.display = 'flex';
           document.getElementById('stepper').style.display = 'none';
-          document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
+          document.querySelectorAll('.inspect-step-panel').forEach(p => p.style.display = 'none');
           return false;
         } else if (user && user.status === 'REJECTED') {
           document.getElementById('rejected-banner').style.display = 'flex';
           document.getElementById('stepper').style.display = 'none';
-          document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
+          document.querySelectorAll('.inspect-step-panel').forEach(p => p.style.display = 'none');
           return false;
         }
         return true;
@@ -741,6 +763,7 @@
 
     // ── Init ──
     (async () => {
+      if (window.lucide) lucide.createIcons();
       const isApproved = await checkVolunteerStatus();
       if (isApproved) {
         updateLiveScore();

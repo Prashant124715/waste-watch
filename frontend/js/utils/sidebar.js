@@ -78,35 +78,43 @@ function buildVolunteerSidebar() {
   const assetPrefix = (loc.includes('/admin/') || loc.includes('/volunteer/')) ? '../' : './';
   function isActive(href) { return loc.includes(href) ? 'active' : ''; }
   return `
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar volunteer-sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <img src="${assetPrefix}assets/logo-icon.png" alt="WasteWatch" class="sidebar-logo-img"/>
       </div>
-      <div>
-        <div class="sidebar-brand">Waste<span>Watch</span></div>
-        <div class="sidebar-role-badge">Field App</div>
+      <div class="sidebar-brand-group">
+        <div class="sidebar-brand sidebar-brand-name">Waste<span>Watch</span></div>
+        <div class="sidebar-role-badge sidebar-app-tag">FIELD APP</div>
       </div>
     </div>
 
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Inspect</div>
-      <a class="nav-item ${isActive('inspect')}" href="./inspect.html">
-        <span class="nav-icon"><i data-lucide="clipboard-pen"></i></span> New Inspection
+      <div class="sidebar-section-label sidebar-section-title">INSPECT</div>
+      <a class="nav-item sidebar-nav-item ${isActive('inspect')}" href="./inspect.html">
+        <span class="nav-icon nav-item-icon"><i data-lucide="clipboard-pen"></i></span>
+        <span>New Inspection</span>
       </a>
-      <a class="nav-item ${isActive('history')}" href="./history.html">
-        <span class="nav-icon"><i data-lucide="clock-3"></i></span> My History
+      <a class="nav-item sidebar-nav-item ${isActive('history')}" href="./history.html">
+        <span class="nav-icon nav-item-icon"><i data-lucide="clock-3"></i></span>
+        <span>My History</span>
       </a>
     </nav>
 
+    <!-- Subtle botanical leaf accent at bottom-left corner -->
+    <img src="${assetPrefix}assets/sidebar-leaves.svg" alt="" class="sidebar-botanical-bg" aria-hidden="true"/>
+
     <div class="sidebar-footer">
-      <div class="user-card">
-        <div class="user-avatar" id="user-avatar">VL</div>
-        <div class="user-info">
-          <div class="user-name" id="user-name">Loading…</div>
-          <div class="user-role" id="user-role">VOLUNTEER</div>
+      <div class="user-card volunteer-profile-card">
+        <div class="user-avatar volunteer-profile-avatar" id="user-avatar">FV</div>
+        <div class="user-info volunteer-profile-meta">
+          <div class="user-name volunteer-profile-name" id="user-name">Field Inspector</div>
+          <div class="user-role volunteer-profile-sub" id="user-role">Volunteer</div>
+          <span class="volunteer-profile-status" id="user-status-badge">Active</span>
         </div>
-        <button class="logout-btn" onclick="Auth.logout()" title="Sign out" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+        <button class="volunteer-profile-logout logout-btn" onclick="Auth.logout()" title="Sign out" aria-label="Sign out">
+          <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+        </button>
       </div>
     </div>
   </aside>`;
