@@ -69,10 +69,10 @@ The end-to-end flow is strictly unidirectional:
 * **Entities**:
   - `AppUser`: Authenticated users with roles (`ADMIN`, `VOLUNTEER`) and status (`ACTIVE`, `INACTIVE`).
   - `Area`: Administrative wards and municipal sectors.
-  - `Building`: Structures with geographic coordinates and room counts.
-  - `Room`: Audit targets with floor level and unique QR code tokens (`qrCodeToken`).
-  - `Inspection`: Field audit submissions with 6 segregation booleans, score, classification, and status.
-  - `Violation`: Non-compliance incidents with severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and lifecycle status (`OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`).
+  - `Building`: Structures with geographic coordinates and audit target for inspections.
+  - `Room`: Deprecated; retained solely for database compatibility and reading legacy records.
+  - `Inspection`: Field audit submissions tied to `Building` with 6 segregation booleans, score, classification, and status. `room` field is optional/deprecated.
+  - `Violation`: Non-compliance incidents tied to `Building` with severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and lifecycle status (`OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`).
   - `Notification`: User notifications with type (`VIOLATION_ALERT`, `REPEAT_VIOLATION`, `COVERAGE_DEFICIT`, `SYSTEM`).
   - `AuditLog`: Immutable audit trail recording actions, entity types, IDs, and metadata.
 

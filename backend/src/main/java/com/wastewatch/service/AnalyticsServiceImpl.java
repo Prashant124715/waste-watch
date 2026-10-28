@@ -47,11 +47,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Transactional(readOnly = true)
     public OverviewAnalyticsDto getOverviewAnalytics() {
         long totalInspections = inspectionRepository.count();
-        long totalRooms = roomRepository.count();
-        Long inspectedRoomsVal = inspectionRepository.countDistinctInspectedRooms();
-        long inspectedRooms = inspectedRoomsVal != null ? inspectedRoomsVal : 0L;
-        long totalAreas = areaRepository.count();
         long totalBuildings = buildingRepository.count();
+        Long inspectedBuildingsVal = inspectionRepository.countDistinctInspectedBuildings();
+        long inspectedBuildings = inspectedBuildingsVal != null ? inspectedBuildingsVal : 0L;
+        long totalAreas = areaRepository.count();
 
         List<AppUser> volunteers = userRepository.findByRole(UserRole.VOLUNTEER);
         long totalVolunteers = volunteers.size();
@@ -59,8 +58,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Double avgScoreVal = inspectionRepository.getOverallAverageScore();
         double overallComplianceRate = round(avgScoreVal != null ? avgScoreVal : 0.0);
 
-        double overallInspectionCoverage = totalRooms > 0
-                ? round(((double) inspectedRooms / totalRooms) * 100.0)
+        double overallInspectionCoverage = totalBuildings > 0
+                ? round(((double) inspectedBuildings / totalBuildings) * 100.0)
                 : 0.0;
 
         long openViolations = violationRepository.countByStatusIn(
@@ -95,8 +94,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return new OverviewAnalyticsDto(
                 totalInspections,
-                totalRooms,
-                inspectedRooms,
+                totalBuildings,
+                inspectedBuildings,
                 totalAreas,
                 totalBuildings,
                 totalVolunteers,
@@ -119,17 +118,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         for (Area area : areas) {
             Long areaId = area.getId();
             long totalBuildings = buildingRepository.countByAreaId(areaId);
-            Long totalRoomsVal = roomRepository.countByAreaId(areaId);
-            long totalRooms = totalRoomsVal != null ? totalRoomsVal : 0L;
-
-            Long inspectedRoomsVal = inspectionRepository.countDistinctInspectedRoomsByAreaId(areaId);
-            long inspectedRooms = inspectedRoomsVal != null ? inspectedRoomsVal : 0L;
+            Long inspectedBuildingsVal = inspectionRepository.countDistinctInspectedBuildingsByAreaId(areaId);
+            long inspectedBuildings = inspectedBuildingsVal != null ? inspectedBuildingsVal : 0L;
 
             Long totalInspectionsVal = inspectionRepository.countByAreaId(areaId);
             long totalInspections = totalInspectionsVal != null ? totalInspectionsVal : 0L;
 
-            double inspectionCoverage = totalRooms > 0
-                    ? round(((double) inspectedRooms / totalRooms) * 100.0)
+            double inspectionCoverage = totalBuildings > 0
+                    ? round(((double) inspectedBuildings / totalBuildings) * 100.0)
                     : 0.0;
 
             Double avgScoreVal = inspectionRepository.getAverageScoreByAreaId(areaId);
@@ -157,8 +153,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             String confidenceRating = inspectionCoverage >= 75.0 ? "HIGH"
                     : inspectionCoverage >= 40.0 ? "MEDIUM" : "LOW";
 
-            // Count poor rooms (rooms in this area whose latest inspection is POOR < 40)
-            long poorRoomCount = countPoorRoomsInArea(areaId);
+            long poorBuildingCount = countPoorBuildingsInArea(areaId);
 
             AreaAnalyticsDto dto = new AreaAnalyticsDto();
             dto.setAreaId(areaId);
@@ -166,13 +161,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             dto.setAreaCode(area.getAreaCode());
             dto.setDescription(area.getDescription());
             dto.setTotalBuildings(totalBuildings);
-            dto.setTotalRooms(totalRooms);
-            dto.setInspectedRooms(inspectedRooms);
+            dto.setTotalRooms(totalBuildings);
+            dto.setInspectedRooms(inspectedBuildings);
             dto.setTotalInspections(totalInspections);
             dto.setInspectionCoverage(inspectionCoverage);
             dto.setAverageCompliance(avgScore);
             dto.setComplianceStatus(status);
-            dto.setPoorRoomCount(poorRoomCount);
+            dto.setPoorRoomCount(poorBuildingCount);
             dto.setTotalViolations(totalViolations);
             dto.setOpenViolations(openViolations);
             dto.setResolvedViolations(resolvedViolations);
@@ -194,17 +189,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         for (Building building : buildings) {
             Long buildingId = building.getId();
-            long totalRooms = roomRepository.countByBuildingId(buildingId);
-
-            Long inspectedRoomsVal = inspectionRepository.countDistinctInspectedRoomsByBuildingId(buildingId);
-            long inspectedRooms = inspectedRoomsVal != null ? inspectedRoomsVal : 0L;
-
             Long totalInspectionsVal = inspectionRepository.countByBuildingId(buildingId);
             long totalInspections = totalInspectionsVal != null ? totalInspectionsVal : 0L;
 
-            double inspectionCoverage = totalRooms > 0
-                    ? round(((double) inspectedRooms / totalRooms) * 100.0)
-                    : 0.0;
+            double inspectionCoverage = totalInspections > 0 ? 100.0 : 0.0;
 
             Double avgScoreVal = inspectionRepository.getAverageScoreByBuildingId(buildingId);
             double avgScore = round(avgScoreVal != null ? avgScoreVal : 0.0);
@@ -217,7 +205,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Long resolvedViolationsVal = violationRepository.countByBuildingIdAndStatus(buildingId, ViolationStatus.RESOLVED);
             long resolvedViolations = resolvedViolationsVal != null ? resolvedViolationsVal : 0L;
 
-            long poorRoomCount = countPoorRoomsInBuilding(buildingId);
+            long poorInspectionCount = countPoorInspectionsInBuilding(buildingId);
 
             BuildingAnalyticsDto dto = new BuildingAnalyticsDto();
             dto.setBuildingId(buildingId);
@@ -230,13 +218,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             dto.setLatitude(building.getLatitude() != null ? building.getLatitude().doubleValue() : null);
             dto.setLongitude(building.getLongitude() != null ? building.getLongitude().doubleValue() : null);
-            dto.setTotalRooms(totalRooms);
-            dto.setInspectedRooms(inspectedRooms);
+            dto.setTotalRooms(1L);
+            dto.setInspectedRooms(totalInspections > 0 ? 1L : 0L);
             dto.setTotalInspections(totalInspections);
             dto.setInspectionCoverage(inspectionCoverage);
             dto.setAverageScore(avgScore);
             dto.setComplianceStatus(status);
-            dto.setPoorRoomCount(poorRoomCount);
+            dto.setPoorRoomCount(poorInspectionCount);
             dto.setOpenViolationsCount(openViolations);
             dto.setResolvedViolationsCount(resolvedViolations);
 
@@ -376,13 +364,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         for (Area area : areas) {
             Long areaId = area.getId();
-            Long totalRoomsVal = roomRepository.countByAreaId(areaId);
-            long totalRooms = totalRoomsVal != null ? totalRoomsVal : 0L;
+            long totalBuildings = buildingRepository.countByAreaId(areaId);
 
             List<Inspection> recentInspections = inspectionRepository
-                    .findByRoomBuildingAreaIdAndInspectionDateBetween(areaId, recentStart, now);
+                    .findByEffectiveAreaIdAndInspectionDateBetween(areaId, recentStart, now);
             List<Inspection> previousInspections = inspectionRepository
-                    .findByRoomBuildingAreaIdAndInspectionDateBetween(areaId, previousStart, recentStart);
+                    .findByEffectiveAreaIdAndInspectionDateBetween(areaId, previousStart, recentStart);
 
             long recentCount = recentInspections.size();
             long previousCount = previousInspections.size();
@@ -397,23 +384,23 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             double scoreDelta = round(recentAvg - previousAvg);
 
-            long recentDistinctRooms = recentInspections.stream()
-                    .map(i -> i.getRoom() != null ? i.getRoom().getId() : null)
+            long recentDistinctBuildings = recentInspections.stream()
+                    .map(i -> i.getBuilding() != null ? i.getBuilding().getId() : (i.getRoom() != null && i.getRoom().getBuilding() != null ? i.getRoom().getBuilding().getId() : null))
                     .filter(Objects::nonNull)
                     .distinct()
                     .count();
 
-            long previousDistinctRooms = previousInspections.stream()
-                    .map(i -> i.getRoom() != null ? i.getRoom().getId() : null)
+            long previousDistinctBuildings = previousInspections.stream()
+                    .map(i -> i.getBuilding() != null ? i.getBuilding().getId() : (i.getRoom() != null && i.getRoom().getBuilding() != null ? i.getRoom().getBuilding().getId() : null))
                     .filter(Objects::nonNull)
                     .distinct()
                     .count();
 
-            double recentCoverage = totalRooms > 0
-                    ? round(((double) recentDistinctRooms / totalRooms) * 100.0)
+            double recentCoverage = totalBuildings > 0
+                    ? round(((double) recentDistinctBuildings / totalBuildings) * 100.0)
                     : 0.0;
-            double previousCoverage = totalRooms > 0
-                    ? round(((double) previousDistinctRooms / totalRooms) * 100.0)
+            double previousCoverage = totalBuildings > 0
+                    ? round(((double) previousDistinctBuildings / totalBuildings) * 100.0)
                     : 0.0;
             double coverageDelta = round(recentCoverage - previousCoverage);
 
@@ -623,7 +610,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             dto.setInspectionsCount(count);
             dto.setAverageScoreAwarded(avgScore);
             dto.setLastInspectionDate(lastInspectionDate);
-            dto.setDistinctRoomsInspected(distinctRooms);
+            dto.setDistinctRoomsInspected(distinctBuildings);
             dto.setDistinctBuildingsCovered(distinctBuildings);
             dto.setViolationsFlagged(violsFlagged);
             dto.setActivityStatus(activityStatus);
@@ -643,14 +630,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     // Helper methods
-    private long countPoorRoomsInArea(Long areaId) {
-        List<Room> rooms = roomRepository.findAll().stream()
-                .filter(r -> r.getBuilding() != null && r.getBuilding().getArea() != null && r.getBuilding().getArea().getId().equals(areaId))
-                .collect(Collectors.toList());
-
+    private long countPoorBuildingsInArea(Long areaId) {
+        List<Building> buildings = buildingRepository.findByAreaId(areaId);
         long poorCount = 0;
-        for (Room r : rooms) {
-            Optional<Inspection> latest = inspectionRepository.findFirstByRoomIdOrderByInspectionDateDesc(r.getId());
+        for (Building b : buildings) {
+            Optional<Inspection> latest = inspectionRepository.findFirstByBuildingIdOrderByInspectionDateDesc(b.getId());
+            if (latest.isEmpty()) {
+                latest = inspectionRepository.findFirstByRoomBuildingIdOrderByInspectionDateDesc(b.getId());
+            }
             if (latest.isPresent() && latest.get().getTotalScore() != null && latest.get().getTotalScore() < 40) {
                 poorCount++;
             }
@@ -658,16 +645,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return poorCount;
     }
 
-    private long countPoorRoomsInBuilding(Long buildingId) {
-        List<Room> rooms = roomRepository.findByBuildingId(buildingId);
-        long poorCount = 0;
-        for (Room r : rooms) {
-            Optional<Inspection> latest = inspectionRepository.findFirstByRoomIdOrderByInspectionDateDesc(r.getId());
-            if (latest.isPresent() && latest.get().getTotalScore() != null && latest.get().getTotalScore() < 40) {
-                poorCount++;
-            }
-        }
-        return poorCount;
+    private long countPoorInspectionsInBuilding(Long buildingId) {
+        List<Inspection> inspections = inspectionRepository.findAllByEffectiveBuildingIdOrderByInspectionDateDesc(buildingId);
+        return inspections.stream().filter(i -> i.getTotalScore() != null && i.getTotalScore() < 40).count();
     }
 
     private String determineComplianceStatus(long count, double avgScore) {

@@ -10,9 +10,11 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/admin-theme.css"/>
   <script src="../js/lucide.min.js"></script>
 </head>
-<body>
+<body class="admin-page" data-page="inspections">
+  <div class="admin-bg-layer" aria-hidden="true"></div>
   <div class="main-content">
     <header class="topbar">
       <div>
@@ -24,7 +26,7 @@
       <div class="toolbar">
         <div class="search-box">
           <span class="search-icon"><i data-lucide="search"></i></span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search room, building or inspector…"/>
+          <input type="text" class="search-input" id="search-input" placeholder="Search building, area, or inspector…"/>
         </div>
         <select class="form-control form-control-sm" id="classification-filter" style="max-width:200px;">
           <option value="">All Classifications</option>
@@ -45,8 +47,8 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Room</th>
-              <th>Building / Area</th>
+              <th>Building</th>
+              <th>Area</th>
               <th>Inspector</th>
               <th>Score</th>
               <th>Classification</th>
@@ -103,7 +105,7 @@
 
       const list = Array.isArray(inspections) ? inspections : [];
       const filtered = list.filter(i => {
-        const matchSearch = !search || [i.roomNumber, i.buildingName, i.areaName, i.volunteerName]
+        const matchSearch = !search || [i.buildingName, i.areaName, i.volunteerName]
           .some(f => f && f.toLowerCase().includes(search));
         const matchClass = !classFil || i.classification === classFil;
         return matchSearch && matchClass;
@@ -117,14 +119,11 @@
       }
 
       tbody.innerHTML = filtered.map(i => {
-        const locTitle = i.buildingLevelInspection
-          ? '<span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="building-2" class="icon-sm"></i> Building Audit</span>'
-          : `${escapeHtml(i.roomNumber || '—')} · F${i.floorNumber ?? '?'}`;
         return `
         <tr style="cursor:pointer;" onclick="openDetail(${i.id})">
           <td class="font-mono text-muted">#${i.id}</td>
-          <td class="td-primary">${locTitle}</td>
-          <td>${escapeHtml(i.buildingName || '—')}<br><span style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(i.areaName || '')}</span></td>
+          <td class="td-primary font-bold">${escapeHtml(i.buildingName || '—')}</td>
+          <td>${escapeHtml(i.areaName || '—')}</td>
           <td>${escapeHtml(i.volunteerName || '—')}</td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -160,9 +159,9 @@
         body.innerHTML = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:20px;">
             <div>
-              <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Location</div>
-              <div style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">${i.roomNumber||'—'} · Floor ${i.floorNumber||'?'}</div>
-              <div style="font-size:0.825rem;color:var(--text-secondary);">${i.buildingName||'—'} · ${i.areaName||'—'}</div>
+              <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Building Location</div>
+              <div style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">${i.buildingName||'—'}</div>
+              <div style="font-size:0.825rem;color:var(--text-secondary);">${i.areaName||'—'}</div>
             </div>
             <div>
               <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Inspector</div>
@@ -210,9 +209,9 @@
     // ── CSV Export ──
     document.getElementById('btn-export-csv').addEventListener('click', () => {
       if (!inspections.length) return Toast.warning('Export', 'No data to export.');
-      const headers = ['ID','Room','Floor','Building','Area','Inspector','Score','Classification','Status','Violation','Date'];
+      const headers = ['ID','Building','Area','Inspector','Score','Classification','Status','Violation','Date'];
       const rows = inspections.map(i => [
-        i.id, i.roomNumber, i.floorNumber, i.buildingName, i.areaName, i.volunteerName,
+        i.id, i.buildingName, i.areaName, i.volunteerName,
         i.totalScore, i.classification, i.status, i.violationCreated ? 'Yes' : 'No', i.inspectionDate
       ]);
       let csv = headers.join(',') + '\n';
@@ -232,13 +231,13 @@
       const violCount = inspections.filter(i => i.violationCreated).length;
       let tbody = '';
       inspections.forEach(i => {
-        tbody += `<tr><td>#${i.id}</td><td>${i.roomNumber||'—'}</td><td>${i.buildingName||'—'}</td><td>${i.volunteerName||'—'}</td><td style="font-weight:bold;">${i.totalScore}/100</td><td>${Fmt.classify(i.classification)}</td><td>${i.violationCreated?'Yes':'—'}</td><td>${Fmt.date(i.inspectionDate)}</td></tr>`;
+        tbody += `<tr><td>#${i.id}</td><td>${i.buildingName||'—'}</td><td>${i.areaName||'—'}</td><td>${i.volunteerName||'—'}</td><td style="font-weight:bold;">${i.totalScore}/100</td><td>${Fmt.classify(i.classification)}</td><td>${i.violationCreated?'Yes':'—'}</td><td>${Fmt.date(i.inspectionDate)}</td></tr>`;
       });
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>WasteWatch — Inspections Report</title>
         <style>body{font-family:'Segoe UI',Arial,sans-serif;padding:40px;color:#222;}h1{color:#1A9D5C;margin-bottom:4px;}.sub{color:#666;font-size:14px;margin-bottom:24px;}.sum{display:flex;gap:20px;margin-bottom:28px;}.sc{background:#f0f9f4;border-radius:8px;padding:16px 28px;text-align:center;}.sv{font-size:28px;font-weight:800;color:#1A9D5C;}.sl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}table{width:100%;border-collapse:collapse;font-size:12px;}thead th{background:#1A9D5C;color:white;padding:10px 6px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}tbody td{padding:9px 6px;border-bottom:1px solid #eee;}tbody tr:nth-child(even){background:#fafafa;}.ft{margin-top:36px;font-size:10px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:14px;}</style>
         </head><body><h1>WasteWatch — All Inspections Report</h1><p class="sub">Generated: ${new Date().toLocaleString('en-IN')}</p>
         <div class="sum"><div class="sc"><div class="sv">${total}</div><div class="sl">Inspections</div></div><div class="sc"><div class="sv">${avg}%</div><div class="sl">Avg Score</div></div><div class="sc"><div class="sv">${violCount}</div><div class="sl">Violations</div></div></div>
-        <table><thead><tr><th>ID</th><th>Room</th><th>Building</th><th>Inspector</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead><tbody>${tbody}</tbody></table>
+        <table><thead><tr><th>ID</th><th>Building</th><th>Area</th><th>Inspector</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead><tbody>${tbody}</tbody></table>
         <div class="ft">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div><' + '/body><' + '/html>`;
       const win = window.open('', '_blank');
       win.document.write(html); win.document.close(); win.focus();

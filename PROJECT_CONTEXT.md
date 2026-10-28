@@ -55,25 +55,23 @@ WasteWatch solves this by replacing ad-hoc inspections with a standardized, data
 
 ## 4. Core Domain Hierarchy
 
-WasteWatch enforces a strict parent-child structural hierarchy to represent physical environments:
+WasteWatch enforces a strict parent-child structural hierarchy to represent physical environments (scoped to Building level):
 
 ```
 City
  └── Area (Ward, Sector, Neighborhood)
       └── Building (Society, Apartment Complex, Commercial Office)
-           └── Floor
-                └── Room / Unit (Flat, Office Suite, Tenement)
-                     └── Inspection (Audit event conducted at a timestamp)
-                          └── Violation (Logged when an inspection fails compliance thresholds)
+           └── Inspection (Audit event conducted at a timestamp)
+                └── Violation (Logged when an inspection fails compliance thresholds)
 ```
 
 ### Hierarchy Rules:
 - A **City** comprises multiple administrative **Areas**.
 - An **Area** contains multiple **Buildings** (each associated with geographic coordinates).
-- A **Building** contains multiple **Floors**.
-- A **Floor** contains individual **Rooms** (the fundamental unit of inspection).
-- An **Inspection** is tied strictly to a **Room**, executed by a **Volunteer** at a specific timestamp.
-- A **Violation** is generated automatically or manually whenever an inspection score breaches minimum acceptable thresholds.
+- A **Building** is the primary audit entity and fundamental unit of inspection.
+- An **Inspection** is tied strictly to a **Building**, executed by a **Volunteer** at a specific timestamp.
+- A **Violation** is generated automatically or manually whenever a building inspection score breaches minimum acceptable thresholds (< 40 points).
+- **Scope Note on Rooms**: Room-level workflow has been intentionally removed from the active application. Volunteers inspect buildings directly without room selection or scanning. The `Room` entity and database table are retained solely for backwards database compatibility.
 
 ---
 

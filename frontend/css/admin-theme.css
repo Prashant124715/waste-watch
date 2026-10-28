@@ -1,0 +1,753 @@
+/* ====================================================
+   WasteWatch — Admin Thematic Artwork & Glass UI Integration
+   Unified Environmental Page Shell: Artwork → Shell → Frosted Sidebar/Header → Content Cards
+   ==================================================== */
+
+/* ── Page Base & Unified Shell ── */
+body.admin-page {
+  background-color: #F4F8F5;
+  color: var(--text-primary);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── Continuous Artwork Background Layer ── */
+.admin-bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: left bottom; /* Anchors the botanical/architectural left framing behind the sidebar */
+  background-repeat: no-repeat;
+  transition: opacity 0.35s ease;
+  will-change: opacity;
+}
+
+/* ── Continuous Environmental Mask Overlay ──
+   Ensures the artwork flows under the sidebar, header, and main content while
+   maintaining WCAG AAA text readability across the entire viewport. */
+.admin-bg-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    /* Horizontal gradient: Light environmental tint behind the sidebar (0..264px),
+       soft translucent wash over the central data workspace (264px..1100px),
+       revealing the rich artwork details on the right */
+    linear-gradient(
+      90deg,
+      rgba(236, 247, 241, 0.18) 0px,
+      rgba(238, 248, 243, 0.26) 264px,
+      rgba(255, 255, 255, 0.56) 330px,
+      rgba(255, 255, 255, 0.46) 65%,
+      rgba(244, 250, 246, 0.20) 100%
+    ),
+    /* Vertical gradient: luminous shelf behind the sticky header, soft depth at bottom */
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.06) 100px,
+      rgba(255, 255, 255, 0.0) 65%,
+      rgba(238, 246, 241, 0.22) 100%
+    );
+  pointer-events: none;
+}
+
+/* Right Horizon Balancing Tint */
+.admin-bg-layer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45vw;
+  height: 100vh;
+  background: radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════
+   SECTION-SPECIFIC ARTWORK MAPPINGS
+   (Dual-format WebP with PNG fallback)
+   ══════════════════════════════════════════ */
+
+/* 1. Dashboard — Executive Compliance Command Center */
+body[data-page="dashboard"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_iqggmyiqggmyiqgg.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_iqggmyiqggmyiqgg.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_iqggmyiqggmyiqgg.png') type('image/png')
+  );
+}
+
+/* 2. Analytics Engine — Predictive Analytics & Trend Intelligence */
+body[data-page="analytics"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_yt9k5kyt9k5kyt9k.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_yt9k5kyt9k5kyt9k.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_yt9k5kyt9k5kyt9k.png') type('image/png')
+  );
+}
+
+/* 3. Live Map — Geographic & Topographic Monitoring */
+body[data-page="map"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_aosngaaosngaaosn.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_aosngaaosngaaosn.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_aosngaaosngaaosn.png') type('image/png')
+  );
+}
+
+/* 4. Areas & Buildings — Urban Infrastructure & Building Blueprint */
+body[data-page="areas"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_m6zpyem6zpyem6zp.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_m6zpyem6zpyem6zp.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_m6zpyem6zpyem6zp.png') type('image/png')
+  );
+}
+
+/* 5. Inspections — Operational Field Monitoring & Audit Routes */
+body[data-page="inspections"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_r2wq9dr2wq9dr2wq.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_r2wq9dr2wq9dr2wq.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_r2wq9dr2wq9dr2wq.png') type('image/png')
+  );
+}
+
+/* 6. Violations — Compliance Monitoring & Issue Resolution */
+body[data-page="violations"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_fgzl4fgzl4fgzl4f.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_fgzl4fgzl4fgzl4f.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_fgzl4fgzl4fgzl4f.png') type('image/png')
+  );
+}
+
+/* 7. Volunteers — Civic Community & Volunteer Verification */
+body[data-page="volunteers"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_kyidikkyidikkyid.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_kyidikkyidikkyid.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_kyidikkyidikkyid.png') type('image/png')
+  );
+}
+
+/* 8. Reports & Exports — Governance Reports & Export Matrices */
+body[data-page="reports"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_icd54qicd54qicd5.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_icd54qicd54qicd5.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_icd54qicd54qicd5.png') type('image/png')
+  );
+}
+
+/* 9. Audit Logs — Tamper-evident Governance Trail & Timestamps */
+body[data-page="audit-logs"] .admin-bg-layer {
+  background-image: url('../assets/backgrounds/Gemini_Generated_Image_f3dwojf3dwojf3dw.webp');
+  background-image: image-set(
+    url('../assets/backgrounds/Gemini_Generated_Image_f3dwojf3dwojf3dw.webp') type('image/webp'),
+    url('../assets/backgrounds/Gemini_Generated_Image_f3dwojf3dwojf3dw.png') type('image/png')
+  );
+}
+
+/* ══════════════════════════════════════════
+   UNIFIED FROSTED GLASS SIDEBAR & NAVIGATION
+   Integrated environmental panel sitting inside the artwork
+   ══════════════════════════════════════════ */
+
+.admin-page .sidebar {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(244, 250, 246, 0.65) 30%,
+    rgba(236, 246, 240, 0.68) 75%,
+    rgba(242, 249, 245, 0.76) 100%
+  );
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+  border-right: 1px solid rgba(22, 128, 72, 0.16);
+  box-shadow: 4px 0 24px rgba(18, 52, 34, 0.04), inset -1px 0 0 rgba(255, 255, 255, 0.65);
+  z-index: 100;
+  transition: transform var(--transition-base), background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Sidebar Brand Header */
+.admin-page .sidebar-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid rgba(22, 128, 72, 0.12);
+  background: rgba(255, 255, 255, 0.30);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.admin-page .sidebar-logo {
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(22, 128, 72, 0.20);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 10px rgba(22, 128, 72, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.admin-page .sidebar-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-page .sidebar-brand {
+  font-weight: 800;
+  font-size: var(--text-lg);
+  letter-spacing: -0.03em;
+  color: #10241A;
+}
+
+.admin-page .sidebar-brand span {
+  color: var(--color-primary); /* Civic Orange accent */
+}
+
+.admin-page .sidebar-role-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #2F5C43;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+/* Sidebar Section Headers */
+.admin-page .sidebar-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #264B37;
+  padding: 12px 12px 4px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-page .sidebar-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(22, 128, 72, 0.18) 0%, transparent 100%);
+}
+
+/* Navigation Items: Crisp, High-Contrast & Smooth Hover */
+.admin-page .sidebar .nav-item {
+  color: #173625;
+  font-weight: 600;
+  font-size: 13.5px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: 9px 12px;
+  margin-bottom: 3px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-page .sidebar .nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  color: #35634B;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-page .sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.70);
+  color: #0E2417;
+  border-color: rgba(22, 128, 72, 0.18);
+  box-shadow: 0 2px 8px rgba(18, 52, 34, 0.04);
+  transform: translateX(3px);
+}
+
+.admin-page .sidebar .nav-item:hover .nav-icon {
+  color: var(--color-primary);
+  transform: scale(1.08);
+}
+
+/* Active Navigation Item — Signature WasteWatch Civic Orange Glow */
+.admin-page .sidebar .nav-item.active {
+  background: linear-gradient(
+    90deg,
+    rgba(232, 117, 36, 0.14) 0%,
+    rgba(255, 245, 238, 0.78) 55%,
+    rgba(255, 255, 255, 0.88) 100%
+  );
+  color: #8C3700;
+  font-weight: 700;
+  border: 1px solid rgba(232, 117, 36, 0.28);
+  box-shadow: 0 2px 10px rgba(232, 117, 36, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transform: none;
+}
+
+.admin-page .sidebar .nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3.5px;
+  background: linear-gradient(180deg, #FF7A1A 0%, #D85C0A 100%);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(232, 117, 36, 0.45);
+}
+
+.admin-page .sidebar .nav-item.active .nav-icon {
+  color: #C04E00;
+}
+
+/* Nav Badges */
+.admin-page .sidebar .nav-badge {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+/* Sidebar Footer & User Card */
+.admin-page .sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid rgba(22, 128, 72, 0.12);
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.admin-page .user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 128, 72, 0.16);
+  box-shadow: 0 2px 8px rgba(18, 52, 34, 0.04);
+}
+
+.admin-page .user-avatar {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #B84700 100%);
+  box-shadow: 0 2px 6px rgba(232, 117, 36, 0.28);
+}
+
+.admin-page .user-name {
+  color: #10241A;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.admin-page .user-role {
+  color: #35624A;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.admin-page .logout-btn {
+  color: #4A6E59;
+}
+
+.admin-page .logout-btn:hover {
+  color: #C53030;
+  background: rgba(197, 48, 48, 0.08);
+}
+
+/* ══════════════════════════════════════════
+   FROSTED GLASS HEADER / TOPBAR
+   Seamless translucent shelf across the top
+   ══════════════════════════════════════════ */
+
+.admin-page .main-content {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  min-height: 100vh;
+}
+
+.admin-page .topbar {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.74) 0%,
+    rgba(246, 251, 248, 0.70) 35%,
+    rgba(255, 255, 255, 0.66) 100%
+  );
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  border-bottom: 1px solid rgba(22, 128, 72, 0.15);
+  box-shadow: 0 2px 10px rgba(18, 52, 34, 0.03), inset 0 -1px 0 rgba(255, 255, 255, 0.60);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.admin-page .topbar-title {
+  color: #10241A;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.admin-page .topbar-subtitle {
+  color: #355A46;
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: -0.01em;
+}
+
+/* ══════════════════════════════════════════
+   READABLE CONTENT SURFACES, CARDS & TABLES
+   Preserves artwork visibility while ensuring 100% contrast
+   ══════════════════════════════════════════ */
+
+.admin-page .card,
+.admin-page .kpi-card,
+.admin-page .table-wrap,
+.admin-page .vol-card,
+.admin-page .export-box,
+.admin-page .stat-mini,
+.admin-page .area-rank-item,
+.admin-page .formula-banner {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(215, 228, 221, 0.85);
+  box-shadow: 0 2px 8px rgba(16, 32, 24, 0.04), 0 1px 2px rgba(16, 32, 24, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.admin-page .card:hover,
+.admin-page .kpi-card:hover,
+.admin-page .vol-card:hover {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(22, 128, 72, 0.32);
+  box-shadow: 0 8px 24px rgba(16, 32, 24, 0.08), 0 2px 6px rgba(16, 32, 24, 0.03);
+  transform: translateY(-2px);
+}
+
+/* Controls & Search Inputs */
+.admin-page .search-box,
+.admin-page .form-control {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(22, 128, 72, 0.18);
+  backdrop-filter: blur(8px);
+  color: #12281D;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.admin-page .search-box:focus-within,
+.admin-page .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(232, 117, 36, 0.15);
+  background: #FFFFFF;
+}
+
+/* Data Tables with Frosted Headers */
+.admin-page .table-wrap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(16, 32, 24, 0.05);
+}
+
+.admin-page .data-table {
+  background: transparent;
+}
+
+.admin-page .data-table thead th {
+  background: rgba(240, 248, 243, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #173625;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(22, 128, 72, 0.18);
+}
+
+.admin-page .data-table tbody tr {
+  border-bottom: 1px solid rgba(225, 235, 230, 0.70);
+  transition: background 0.15s ease;
+}
+
+.admin-page .data-table tbody tr:hover {
+  background: rgba(232, 117, 36, 0.05);
+}
+
+/* Modals — Completely solid white for maximum focus & accessibility */
+.admin-page .modal-dialog,
+.admin-page .modal-content,
+.admin-page .modal {
+  background: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 24px 64px rgba(16, 32, 24, 0.24) !important;
+}
+
+/* Leaflet Map Integration */
+.admin-page .dash-map-wrap,
+.admin-page #map,
+.admin-page #dash-map {
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 4px 18px rgba(16, 32, 24, 0.08);
+}
+
+.admin-page .map-sidebar {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(215, 228, 221, 0.85);
+}
+
+/* ══════════════════════════════════════════
+   PAGE-SPECIFIC SECTION THEMATIC ACCENTS
+   Harmonizes the glass shell with each section's artwork
+   ══════════════════════════════════════════ */
+
+/* 1. Dashboard */
+body[data-page="dashboard"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.18);
+}
+
+/* 2. Analytics: Technical Data Styling & Cooler Glass Tint */
+body[data-page="analytics"] .sidebar {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.74) 0%,
+    rgba(244, 248, 252, 0.65) 35%,
+    rgba(238, 245, 252, 0.70) 75%,
+    rgba(244, 249, 253, 0.76) 100%
+  );
+  border-right-color: rgba(43, 108, 176, 0.18);
+}
+
+body[data-page="analytics"] .topbar {
+  border-bottom-color: rgba(43, 108, 176, 0.16);
+}
+
+body[data-page="analytics"] .sidebar .sidebar-role-badge,
+body[data-page="analytics"] .sidebar-section-label {
+  color: #274D6E;
+}
+
+body[data-page="analytics"] .card,
+body[data-page="analytics"] .kpi-card {
+  border-color: rgba(43, 108, 176, 0.22);
+}
+
+body[data-page="analytics"] .trend-chart-card,
+body[data-page="analytics"] .chart-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(246, 250, 248, 0.88) 100%);
+  border: 1px solid rgba(43, 108, 176, 0.20);
+}
+
+/* 3. Live Map: Spatial Border & Glass Filter */
+body[data-page="map"] .sidebar {
+  border-right-color: rgba(39, 174, 96, 0.20);
+}
+
+body[data-page="map"] .topbar {
+  border-bottom-color: rgba(39, 174, 96, 0.16);
+}
+
+body[data-page="map"] .map-controls-bar {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(22, 128, 72, 0.20);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  box-shadow: 0 4px 16px rgba(16, 32, 24, 0.05);
+}
+
+/* 4. Areas & Buildings: Architectural Blueprint Precision */
+body[data-page="areas"] .sidebar {
+  border-right-color: rgba(56, 128, 92, 0.20);
+}
+
+body[data-page="areas"] .hierarchy-tabs {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 128, 92, 0.20);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+body[data-page="areas"] .card-grid-item {
+  border-color: rgba(56, 128, 92, 0.24);
+}
+
+/* 5. Inspections: Operational Field Clarity */
+body[data-page="inspections"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.18);
+}
+
+body[data-page="inspections"] .toolbar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(215, 228, 221, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+/* 6. Violations: Cohesive Action-Oriented Shell */
+body[data-page="violations"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.20);
+}
+
+body[data-page="violations"] .filter-bar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 128, 72, 0.20);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(18, 52, 34, 0.04);
+}
+
+/* 7. Volunteers: Friendly Civic Community Cards */
+body[data-page="volunteers"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.18);
+}
+
+body[data-page="volunteers"] .tab-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 128, 72, 0.18);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+body[data-page="volunteers"] .vol-card {
+  border-color: rgba(22, 128, 72, 0.18);
+}
+
+/* 8. Reports: Administrative Document Box */
+body[data-page="reports"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.18);
+}
+
+body[data-page="reports"] .export-box {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 248, 0.90) 100%);
+  border: 1px solid rgba(22, 128, 72, 0.22);
+}
+
+/* 9. Audit Logs: Tamper-Evident Governance Trail */
+body[data-page="audit-logs"] .sidebar {
+  border-right-color: rgba(22, 128, 72, 0.18);
+}
+
+body[data-page="audit-logs"] .filter-grid {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(215, 228, 221, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════
+   SEAMLESS PAGE TRANSITIONS (200ms–300ms)
+   Hardware-accelerated entry and exit
+   ══════════════════════════════════════════ */
+
+@keyframes adminPageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-page .page-content {
+  animation: adminPageEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* Exit transition state applied on navigation */
+.main-content.page-nav-exit {
+  opacity: 0 !important;
+  transform: translateY(-4px) !important;
+  transition: opacity 0.18s cubic-bezier(0.4, 0, 1, 1), transform 0.18s cubic-bezier(0.4, 0, 1, 1) !important;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVENESS & MEDIA QUERIES
+   Preserves theme continuity across all breakpoints
+   ══════════════════════════════════════════ */
+
+@media (max-width: 1200px) {
+  .admin-bg-layer {
+    background-position: left bottom;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-bg-layer {
+    background-position: center bottom;
+    background-size: cover;
+    opacity: 0.45; /* softer on smaller screens for dense tabular readability */
+  }
+  .admin-page .main-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page .sidebar {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(244, 250, 246, 0.90) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 8px 0 32px rgba(18, 52, 34, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-page .page-content,
+  .admin-bg-layer,
+  .main-content.page-nav-exit,
+  .admin-page .sidebar .nav-item {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

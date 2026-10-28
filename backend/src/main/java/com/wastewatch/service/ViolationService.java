@@ -257,8 +257,34 @@ public class ViolationService {
         if (room != null) {
             checkAndFlagPersistentNonCompliance(room);
         }
+        if (effectiveBuilding != null) {
+            checkAndNotifyPersistentNonComplianceForBuilding(effectiveBuilding);
+        }
 
         return saved;
+    }
+
+    private void checkAndNotifyPersistentNonComplianceForBuilding(com.wastewatch.entity.Building building) {
+        List<Inspection> recentInspections = inspectionRepository
+                .findTopNByEffectiveBuildingIdOrderByInspectionDateDesc(building.getId(), PERSISTENT_NON_COMPLIANCE_THRESHOLD);
+
+        if (recentInspections.size() < PERSISTENT_NON_COMPLIANCE_THRESHOLD) {
+            return;
+        }
+
+        boolean allPoor = recentInspections.stream()
+                .allMatch(i -> i.getClassification() == ComplianceClassification.POOR);
+
+        if (allPoor) {
+            String title = "⚠️ Persistent Non-Compliance — " + building.getName();
+            String message = String.format(
+                    "Building %s (%s) has had %d consecutive POOR inspections and requires immediate intervention.",
+                    building.getName(),
+                    building.getArea() != null ? building.getArea().getName() : "Unknown Area",
+                    PERSISTENT_NON_COMPLIANCE_THRESHOLD);
+
+            notificationService.notifyAllAdmins(title, message, NotificationType.PERSISTENT_NON_COMPLIANCE);
+        }
     }
 
     // -------------------------------------------------------------------------

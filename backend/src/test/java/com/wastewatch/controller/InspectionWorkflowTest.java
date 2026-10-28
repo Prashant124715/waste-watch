@@ -73,11 +73,11 @@ class InspectionWorkflowTest {
 
     @Test
     void testVolunteerSubmitsPerfectInspection() throws Exception {
-        List<Room> rooms = roomRepository.findAll();
-        Room room = rooms.get(2); // Room 201
+        List<com.wastewatch.entity.Building> buildings = buildingRepository.findAll();
+        com.wastewatch.entity.Building building = buildings.get(0);
 
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        requestDto.setRoomId(room.getId());
+        requestDto.setBuildingId(building.getId());
         requestDto.setWetWasteSeparated(true);
         requestDto.setDryWasteSeparated(true);
         requestDto.setSanitaryWasteSeparated(true);
@@ -92,6 +92,7 @@ class InspectionWorkflowTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.buildingId").value(building.getId()))
                 .andExpect(jsonPath("$.data.totalScore").value(100))
                 .andExpect(jsonPath("$.data.classification").value("EXCELLENT"))
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"))
@@ -106,16 +107,17 @@ class InspectionWorkflowTest {
         mockMvc.perform(get("/api/inspections/" + inspectionId)
                         .header("Authorization", "Bearer " + volunteerToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalScore").value(100));
+                .andExpect(jsonPath("$.totalScore").value(100))
+                .andExpect(jsonPath("$.buildingId").value(building.getId()));
     }
 
     @Test
     void testVolunteerSubmitsFailingInspectionTriggersAutoViolation() throws Exception {
-        List<Room> rooms = roomRepository.findAll();
-        Room room = rooms.get(3); // Suite 301
+        List<com.wastewatch.entity.Building> buildings = buildingRepository.findAll();
+        com.wastewatch.entity.Building building = buildings.get(1);
 
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        requestDto.setRoomId(room.getId());
+        requestDto.setBuildingId(building.getId());
         requestDto.setWetWasteSeparated(false);
         requestDto.setDryWasteSeparated(false);
         requestDto.setSanitaryWasteSeparated(false);
@@ -130,6 +132,7 @@ class InspectionWorkflowTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.buildingId").value(building.getId()))
                 .andExpect(jsonPath("$.data.totalScore").value(15))
                 .andExpect(jsonPath("$.data.classification").value("POOR"))
                 .andExpect(jsonPath("$.data.status").value("FLAGGED"))
@@ -220,9 +223,9 @@ class InspectionWorkflowTest {
     }
 
     @Test
-    void testInvalidRoomReturns404NotFound() throws Exception {
+    void testInvalidBuildingReturns404NotFound() throws Exception {
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        requestDto.setRoomId(999999L);
+        requestDto.setBuildingId(999999L);
         requestDto.setWetWasteSeparated(true);
         requestDto.setDryWasteSeparated(true);
         requestDto.setSanitaryWasteSeparated(true);
@@ -240,8 +243,9 @@ class InspectionWorkflowTest {
 
     @Test
     void testUnauthorizedRequestRejected() throws Exception {
+        com.wastewatch.entity.Building building = buildingRepository.findAll().get(0);
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        requestDto.setRoomId(testRoomId);
+        requestDto.setBuildingId(building.getId());
         requestDto.setWetWasteSeparated(true);
         requestDto.setDryWasteSeparated(true);
         requestDto.setSanitaryWasteSeparated(true);
@@ -307,11 +311,10 @@ class InspectionWorkflowTest {
 
     @Test
     void testAccidentalDuplicateSubmissionPrevention() throws Exception {
-        List<Room> rooms = roomRepository.findAll();
-        Room room = rooms.get(0); // Flat 101
+        com.wastewatch.entity.Building building = buildingRepository.findAll().get(2);
 
         InspectionRequestDto requestDto = new InspectionRequestDto();
-        requestDto.setRoomId(room.getId());
+        requestDto.setBuildingId(building.getId());
         requestDto.setWetWasteSeparated(true);
         requestDto.setDryWasteSeparated(true);
         requestDto.setSanitaryWasteSeparated(true);
@@ -327,7 +330,7 @@ class InspectionWorkflowTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated());
 
-        // Immediate second submission for the same room by the same volunteer triggers 409 Conflict
+        // Immediate second submission for the same building by the same volunteer triggers 409 Conflict
         mockMvc.perform(post("/api/inspections")
                         .header("Authorization", "Bearer " + volunteerToken)
                         .contentType(MediaType.APPLICATION_JSON)

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/admin-theme.css"/>
   <script src="../js/lucide.min.js"></script>
   <style>
     .filter-bar {
@@ -21,7 +22,8 @@
     }
   </style>
 </head>
-<body>
+<body class="admin-page" data-page="violations">
+  <div class="admin-bg-layer" aria-hidden="true"></div>
   <div class="main-content">
     <header class="topbar">
       <div>
@@ -33,7 +35,7 @@
       <div class="filter-bar">
         <div class="search-box" style="flex:1;min-width:220px;">
           <span class="search-icon"><i data-lucide="search"></i></span>
-          <input type="text" class="search-input" id="search-input" placeholder="Search room, building, area…"/>
+          <input type="text" class="search-input" id="search-input" placeholder="Search building, area…"/>
         </div>
 
         <select class="form-control form-control-sm" id="status-filter" style="width:160px;">
@@ -61,8 +63,8 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Room</th>
               <th>Building</th>
+              <th>Area</th>
               <th>Score</th>
               <th>Severity</th>
               <th>Status</th>
@@ -149,8 +151,7 @@
       const search = document.getElementById('search-input').value.toLowerCase();
       const filtered = violations.filter(v => {
         if (!search) return true;
-        return (v.roomNumber||'').toLowerCase().includes(search) ||
-               (v.buildingName||'').toLowerCase().includes(search) ||
+        return (v.buildingName||'').toLowerCase().includes(search) ||
                (v.areaName||'').toLowerCase().includes(search) ||
                (v.description||'').toLowerCase().includes(search);
       });
@@ -176,20 +177,14 @@
         else if (v.status === 'ACTION_REQUIRED') statClass = 'warning';
         else if (v.status === 'RESOLVED') statClass = 'excellent';
 
-        const locTitle = v.roomNumber
-          ? `${v.roomNumber} · F${v.floorNumber || '?'}`
-          : '<span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="building-2" class="icon-sm"></i> Building Audit</span>';
-
         return `
           <tr>
             <td class="font-mono text-muted">#${v.id}</td>
-            <td class="td-primary">
-              ${locTitle}
-              ${v.roomPersistentNonCompliance ? `<br><span class="badge badge-poor" style="font-size:0.65rem;margin-top:2px;"><i data-lucide="triangle-alert" class="icon-xs"></i> PERSISTENT</span>` : ''}
+            <td class="td-primary font-bold">
+              ${v.buildingName||'—'}
             </td>
             <td>
-              <div style="font-weight:600;">${v.buildingName||'—'}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">${v.areaName||''}</div>
+              <div>${v.areaName||'—'}</div>
             </td>
             <td><span class="font-mono" style="font-weight:700;color:${v.inspectionScore < 40 ? 'var(--color-danger)' : 'var(--text-primary)'}">${v.inspectionScore ?? '—'}/100</span></td>
             <td><span class="badge badge-${sevClass}">${v.severity||'—'}</span></td>
@@ -215,7 +210,7 @@
       if (!v) return;
 
       document.getElementById('viol-id').value = id;
-      document.getElementById('modal-title').textContent = `Violation #${v.id} — ${v.buildingName}, Room ${v.roomNumber}`;
+      document.getElementById('modal-title').textContent = `Violation #${v.id} — ${v.buildingName || 'Building'}`;
       document.getElementById('viol-status').value = v.status;
       document.getElementById('viol-notes').value = v.resolutionNotes || '';
       document.getElementById('viol-fine').value = v.fineAmount || '0.00';

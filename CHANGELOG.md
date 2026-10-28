@@ -4,6 +4,30 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Architectural Scope Reduction: Building-Level Inspection Scope] — 2026-10-27
+
+### Changed & Scope Reduced
+- **Strict Building-Level Inspection Hierarchy (`City → Area → Building → Inspection → Violation`)**:
+  - Removed room-level inspection workflow completely from the active application.
+  - Volunteers now directly select and inspect Buildings without room selection, room dropdowns, room search, or room QR scanning.
+  - UI updated to "Building Waste Inspection" (`frontend/volunteer/inspect.html`).
+- **Volunteer History & Admin Views**:
+  - `frontend/volunteer/history.html`: Table columns, details, CSV export, and PDF export display Building and Area names; room columns cleanly removed.
+  - `frontend/admin/areas.html`: Rooms tab, room list, room modals, and room QR actions removed from active view.
+  - `frontend/admin/inspections.html`: Table, search, inspection details modal, CSV, and PDF export adapted strictly to Building and Area.
+  - `frontend/admin/violations.html`: Table and status updates adapted to identify Area, Building, and Inspection without requiring Room.
+- **Backend Architecture & Entity Compatibility**:
+  - `InspectionRequestDto`: `buildingId` is now mandatory (`@NotNull`); `roomId` is deprecated.
+  - `Inspection`: `room` relationship marked `@Deprecated`; direct `building` is the authoritative audit target.
+  - `InspectionService`: Validates `buildingId`, duplicate cooldown check on `(buildingId, volunteerId)` within 30s, automatically flags violations linked to building, logs building audit trails. Added `getInspectionsByBuildingId(Long buildingId)`.
+  - `ViolationService`: Evaluates persistent non-compliance and notifies administrators at the building level.
+  - `AnalyticsServiceImpl`: Overview, area, and building compliance rates and inspection coverage computed strictly at the building level. Area Health Score preserved at Area level.
+  - `Room`, `RoomRepository`, `RoomService`, `RoomController`: Retained for backwards database compatibility against the existing H2 file, but deprecated and removed from active application workflow.
+  - `DatabaseMigration`: Startup migration ensures nullability for `INSPECTIONS.ROOM_ID` and `VIOLATIONS.ROOM_ID`, and backfills `BUILDING_ID` on legacy records.
+- **Automated Test Suite**:
+  - Added `BuildingLevelInspectionArchitectureTest` covering all 12 target architectural requirements.
+  - **161/161 automated unit, integration, and architecture tests passing (100% success)**.
+
 ## [Building-Level Inspection Simplification] — 2026-10-21
 
 ### Added & Simplified

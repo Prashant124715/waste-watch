@@ -128,21 +128,22 @@
 ## 4. Volunteer Inspection System (`/api/inspections`)
 
 ### `POST /api/inspections`
-- **Description**: Submit a new field audit. Evaluates 100-point compliance score, detects violations on low scores (<40), checks 30-second accidental cooldown, and creates audit log.
+- **Description**: Submit a new building-level field audit. Evaluates 100-point compliance score, automatically detects violations on poor scores (<40), checks 30-second duplicate cooldown per building, and creates an audit log entry.
 - **Access**: `ROLE_VOLUNTEER`
 - **Request Body**:
   ```json
   {
-    "roomId": 1,
+    "buildingId": 1,
     "wetWasteSeparated": true,
     "dryWasteSeparated": true,
     "sanitaryWasteSeparated": true,
     "correctBinsUsed": true,
     "binsLabelled": true,
     "noMixedWaste": true,
-    "remarks": "Exemplary source segregation observed."
+    "remarks": "Exemplary building source segregation observed."
   }
   ```
+  *(Note: `roomId` is optional and deprecated for backward database compatibility)*
 - **Response (201 Created)**:
   ```json
   {
@@ -150,14 +151,15 @@
     "message": "Inspection submitted successfully",
     "data": {
       "id": 8,
-      "roomId": 1,
-      "roomNumber": "101",
+      "buildingId": 1,
       "buildingName": "Green Valley Heights",
+      "areaName": "North Ward - Sector 14",
       "volunteerName": "Field Inspector Volunteer",
-      "inspectionDate": "2026-10-13T22:15:00",
+      "inspectionDate": "2026-10-27T22:15:00",
       "totalScore": 100,
       "classification": "EXCELLENT",
       "status": "COMPLETED",
+      "buildingLevelInspection": true,
       "violationCreated": false,
       "violationId": null,
       "breakdown": {
@@ -174,8 +176,12 @@
   ```
 
 ### `GET /api/inspections`
-- **Description**: Query inspection records with optional filters: `roomId`, `volunteerId`, `buildingId`.
+- **Description**: Query inspection records with optional filters: `buildingId`, `volunteerId`, `roomId` (legacy).
 - **Access**: `ROLE_ADMIN` (sees all), `ROLE_VOLUNTEER` (scoped strictly to own inspections).
+
+### `GET /api/buildings/{buildingId}/inspections`
+- **Description**: Retrieve all historical inspection records for a specific building.
+- **Access**: `ROLE_ADMIN`, `ROLE_VOLUNTEER`.
 
 ### `GET /api/inspections/{id}`
 - **Description**: Get inspection details by ID with granular criteria breakdown.

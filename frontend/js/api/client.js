@@ -314,6 +314,10 @@ class ApiClient {
     return this.post('/inspections', data);
   }
 
+  getBuildingInspections(buildingId) {
+    return this.get(`/buildings/${buildingId}/inspections`);
+  }
+
   getRoomInspections(roomId) {
     return this.get(`/rooms/${roomId}/inspections`);
   }

@@ -12,29 +12,29 @@
 | **Project Concept & Definition** | **COMPLETED** | Documented in `PROJECT_CONTEXT.md` |
 | **Technology Stack Definition** | **COMPLETED** | Java 17 + Spring Boot 3.2.5 + H2 + JJWT + Vanilla JS/HTML5/CSS3 |
 | **User Roles Specification** | **COMPLETED** | `ROLE_ADMIN` and `ROLE_VOLUNTEER` permissions & workflows codified |
-| **Core Domain Hierarchy** | **COMPLETED** | City ➔ Area ➔ Building ➔ Floor ➔ Room ➔ Inspection ➔ Violation |
+| **Core Domain Hierarchy** | **COMPLETED** | City ➔ Area ➔ Building ➔ Inspection ➔ Violation (Room removed from active workflow; retained for DB compatibility) |
 | **Spring Boot Backend Engine** | **COMPLETED** | Initialized in `backend/` with Maven wrapper (`mvnw.cmd`/`mvnw.ps1`) |
-| **Relational Database Entities** | **COMPLETED** | 8 JPA entities: `AppUser`, `Area`, `Building`, `Room`, `Inspection`, `Violation`, `Notification`, `AuditLog` |
+| **Relational Database Entities** | **COMPLETED** | 8 JPA entities: `AppUser`, `Area`, `Building`, `Room` (deprecated), `Inspection`, `Violation`, `Notification`, `AuditLog` |
 | **H2 Database & Schema** | **COMPLETED** | File-based H2 for local development/CEP at `backend/data/wastewatchdb.mv.db`; isolated in-memory test database; local-only `/h2-console` |
 | **Database Repositories** | **COMPLETED** | 8 Spring Data JPA repositories with custom query methods and JPQL filters |
 | **Database Seeding** | **COMPLETED** | `DataInitializer` seeds Admin, Volunteers, 3 Areas, 3 Buildings, 8 Rooms, 7 Inspections, 3 Violations |
 | **Global Error Handling** | **COMPLETED** | `GlobalExceptionHandler` with standardized JSON `ErrorResponse` (400, 401, 403, 404, 409, 500) |
 | **Spring Security & Authentication**| **COMPLETED** | Stateless JWT (JJWT 0.12.5), BCrypt hashing, `POST /api/auth/login`, `GET /api/auth/me` |
 | **Role-Based Access Control (RBAC)**| **COMPLETED** | URL protection (`ROLE_ADMIN`, `ROLE_VOLUNTEER`) and volunteer record isolation |
-| **Infrastructure Management APIs** | **COMPLETED** | Full CRUD REST APIs for Area, Building, and Room with DTOs, coordinate validations, and unique checks |
-| **Inspection Submission APIs** | **COMPLETED** | Building-level audits (`POST /api/inspections` with `buildingId`), legacy room audits, 30s cooldown, search endpoint |
+| **Infrastructure Management APIs** | **COMPLETED** | Full CRUD REST APIs for Area and Building; Room APIs deprecated |
+| **Inspection Submission APIs** | **COMPLETED** | Building-level audits (`POST /api/inspections` with `buildingId`), 30s cooldown per building, building inspections filter |
 | **Compliance Scoring Engine** | **COMPLETED** | Authoritative 100-point service with granular breakdown (`ScoreBreakdownDto`, `ComplianceResult`) |
-| **Building-Level Workflow** | **COMPLETED** | Streamlined volunteer flow directly selecting/searching building; room audits optional |
-| **QR Code Workflow (Phase 12)** | **COMPLETED** | Unique token per room (`WASTEWATCH-ROOM-...`), safe metadata endpoint `GET /api/rooms/qr/{token}`, client QR modal & canvas scanner |
-| **Violation & Escalation (Phase 13)**| **COMPLETED** | Auto-creation on POOR score (<40), repeat non-compliance detection (3 consecutive poor audits), status lifecycle (`OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`) |
+| **Building-Level Workflow** | **COMPLETED** | Volunteers directly select and inspect Buildings; room selection and room QR scanning removed |
+| **QR Code Workflow (Phase 12)** | **COMPLETED** | Room QR scanning deprecated and removed from active volunteer workflow |
+| **Violation & Escalation (Phase 13)**| **COMPLETED** | Auto-creation on POOR score (<40) linked to Building, repeat non-compliance detection, status lifecycle (`OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED`) |
 | **In-App Notifications (Phase 13)** | **COMPLETED** | Targeted notifications for admins and volunteers (`GET /api/notifications`, unread counts, mark read) |
 | **Volunteer Governance (Phase 14)** | **COMPLETED** | Volunteer roster, status toggle (`ACTIVE`/`INACTIVE`), privilege escalation guards, performance metrics |
 | **Reporting & CSV Export (Phase 14)**| **COMPLETED** | Multi-dimensional reports (compliance, areas, buildings, coverage, violations, volunteers) + streaming RFC-4180 CSV export |
 | **Audit Logging Engine (Phase 14)** | **COMPLETED** | Immutable audit trail across all administrative & lifecycle actions (`GET /api/audit-logs` with multi-criteria filters) |
-| **Analytics & Decision Engine (Phase 10)**| **COMPLETED** | Area health score formula, confidence ratings, trends, period deltas, hotspots, volunteer productivity |
+| **Analytics & Decision Engine (Phase 10)**| **COMPLETED** | Building-level compliance, Area health score formula, confidence ratings, trends, period deltas, hotspots, volunteer productivity |
 | **Interactive Map (Phase 11)** | **COMPLETED** | Leaflet.js OpenStreetMap integration with live geo-markers and building compliance metrics |
-| **Frontend UI (Vanilla JS/HTML/CSS)**| **COMPLETED** | Framework-free Vanilla JS/HTML5/CSS3 SaaS design system across 9 Admin pages & 2 Volunteer pages |
-| **Automated Test Suite** | **COMPLETED** | **132 unit and integration tests passing (100% success)** |
+| **Frontend UI (Vanilla JS/HTML/CSS)**| **COMPLETED** | Framework-free Vanilla JS/HTML5/CSS3 SaaS design system across 9 Admin pages & 2 Volunteer pages (pure building flow) |
+| **Automated Test Suite** | **COMPLETED** | **161 unit, integration, and architectural tests passing (100% success)** |
 
 ---
 

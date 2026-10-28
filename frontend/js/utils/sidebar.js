@@ -125,6 +125,24 @@ function injectSidebar(role) {
   document.body.insertAdjacentHTML('afterbegin', html);
   renderUserCard();
 
+  // If Admin, ensure background artwork layer, admin-page class, and theme data-page are set
+  if (role === 'ADMIN') {
+    document.body.classList.add('admin-page');
+    if (!document.body.getAttribute('data-page')) {
+      const p = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
+      document.body.setAttribute('data-page', p);
+    }
+    if (!document.querySelector('.admin-bg-layer')) {
+      const bg = document.createElement('div');
+      bg.className = 'admin-bg-layer';
+      bg.setAttribute('aria-hidden', 'true');
+      document.body.prepend(bg);
+    }
+
+    // Attach smooth page transition on navigation
+    attachAdminPageTransitions();
+  }
+
   const sidebarEl = document.getElementById('sidebar');
   if (sidebarEl && typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons({ root: sidebarEl });
@@ -149,6 +167,49 @@ function injectSidebar(role) {
       }
     }).catch(() => {});
   }
+}
+
+// ── Subtle Admin Page Transitions (200–300ms) ──
+function attachAdminPageTransitions() {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download')) {
+      return;
+    }
+    // Only intercept internal admin HTML pages
+    const isAdminNav = href.endsWith('.html') || href.includes('dashboard') || href.includes('analytics') ||
+                       href.includes('map') || href.includes('areas') || href.includes('inspections') ||
+                       href.includes('violations') || href.includes('volunteers') || href.includes('reports') || href.includes('audit-logs');
+    if (!isAdminNav || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
+      return;
+    }
+
+    // Visual feedback on sidebar nav
+    const navItem = link.closest('.nav-item');
+    if (navItem) {
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
+      navItem.classList.add('active');
+    }
+
+    const main = document.querySelector('.main-content');
+    if (main) {
+      e.preventDefault();
+      main.classList.add('page-nav-exit');
+      setTimeout(() => {
+        window.location.href = href;
+      }, 180);
+    }
+  });
+
+  // Restore opacity if user returns via back/forward cache
+  window.addEventListener('pageshow', () => {
+    const main = document.querySelector('.main-content');
+    if (main) {
+      main.classList.remove('page-nav-exit');
+    }
+  });
 }
 
 window.injectSidebar = injectSidebar;

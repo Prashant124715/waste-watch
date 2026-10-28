@@ -68,12 +68,21 @@ public interface InspectionRepository extends JpaRepository<Inspection, Long> {
     long countByVolunteerId(Long volunteerId);
     long countByRoomId(Long roomId);
 
+    @Query("SELECT COUNT(DISTINCT COALESCE(i.building.id, i.room.building.id)) FROM Inspection i")
+    Long countDistinctInspectedBuildings();
+
+    @Query("SELECT COUNT(DISTINCT COALESCE(i.building.id, i.room.building.id)) FROM Inspection i WHERE (i.building IS NOT NULL AND i.building.area.id = :areaId) OR (i.room IS NOT NULL AND i.room.building.area.id = :areaId)")
+    Long countDistinctInspectedBuildingsByAreaId(@Param("areaId") Long areaId);
+
     @Query("SELECT COUNT(i) FROM Inspection i WHERE i.volunteer.id = :volunteerId AND i.totalScore < 40")
     Long countViolationsFlaggedByVolunteerId(@Param("volunteerId") Long volunteerId);
 
     List<Inspection> findByInspectionDateBetweenOrderByInspectionDateAsc(LocalDateTime start, LocalDateTime end);
 
     List<Inspection> findByRoomBuildingAreaIdAndInspectionDateBetween(Long areaId, LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT i FROM Inspection i WHERE ((i.building IS NOT NULL AND i.building.area.id = :areaId) OR (i.room IS NOT NULL AND i.room.building.area.id = :areaId)) AND i.inspectionDate BETWEEN :start AND :end")
+    List<Inspection> findByEffectiveAreaIdAndInspectionDateBetween(@Param("areaId") Long areaId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT i.room.id FROM Inspection i WHERE i.totalScore < 40 GROUP BY i.room.id HAVING COUNT(i) >= 1")
     List<Long> findRoomIdsWithFailedInspections();

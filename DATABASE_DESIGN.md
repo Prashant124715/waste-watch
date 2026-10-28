@@ -31,13 +31,15 @@ Stop the backend before copying the development database to ensure H2 has flushe
 ```mermaid
 erDiagram
     AREA ||--o{ BUILDING : contains
-    BUILDING ||--o{ ROOM : contains
-    ROOM ||--o{ INSPECTION : audited_in
+    BUILDING ||--o{ INSPECTION : audited_in
     APP_USER ||--o{ INSPECTION : conducts
     INSPECTION ||--o| VIOLATION : triggers
+    BUILDING ||--o{ VIOLATION : has_violation
     APP_USER ||--o{ NOTIFICATION : receives
     APP_USER ||--o{ AUDIT_LOG : generates
 ```
+
+> **Architectural Scope Note**: Inspections and Violations are tied directly to `BUILDING`. The legacy `ROOMS` table is retained solely for backwards database compatibility and historical record reading.
 
 ---
 
@@ -90,8 +92,8 @@ erDiagram
   | `created_at` | `TIMESTAMP` | `NOT NULL` | Timestamp created |
   | `updated_at` | `TIMESTAMP` | `NOT NULL` | Timestamp updated |
 
-### 3.4. `ROOMS`
-* **Purpose**: Fundamental inspection target units (flats, suites, rooms).
+### 3.4. `ROOMS` (Deprecated — Database Compatibility Only)
+* **Purpose**: Legacy room inspection targets. Retained solely for database schema compatibility with pre-existing records.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
@@ -106,13 +108,13 @@ erDiagram
 * **Constraint**: `UNIQUE(building_id, room_number)` prevents duplicate unit numbers within the same building.
 
 ### 3.5. `INSPECTIONS`
-* **Purpose**: Field compliance audit records conducted by volunteers.
+* **Purpose**: Field compliance audit records conducted by volunteers at the Building level.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique inspection ID |
-  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (optional for building-level audits) |
-  | `building_id`| `BIGINT` | `NULLABLE, FOREIGN KEY` | References `BUILDINGS(id)` (required for building-level audits) |
+  | `building_id`| `BIGINT` | `NOT NULL, FOREIGN KEY` | References `BUILDINGS(id)` (mandatory target) |
+  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (deprecated/compatibility) |
   | `volunteer_id`| `BIGINT` | `NOT NULL, FOREIGN KEY` | References `APP_USERS(id)` |
   | `inspection_date`| `TIMESTAMP` | `NOT NULL` | Audit timestamp |
   | `wet_waste_separated` | `BOOLEAN` | `NOT NULL` | Criteria 1 (25 pts) |
@@ -129,14 +131,14 @@ erDiagram
   | `updated_at` | `TIMESTAMP` | `NOT NULL` | Last update timestamp |
 
 ### 3.6. `VIOLATIONS`
-* **Purpose**: Tracks non-compliance incidents generated from poor audit scores (<40).
+* **Purpose**: Tracks non-compliance incidents generated from poor audit scores (<40) tied to buildings.
 * **Fields**:
   | Column Name | Data Type | Constraints | Description |
   | :--- | :--- | :--- | :--- |
   | `id` | `BIGINT` | `PRIMARY KEY, AUTO_INCREMENT` | Unique violation ID |
   | `inspection_id`| `BIGINT` | `NOT NULL, UNIQUE, FOREIGN KEY`| References `INSPECTIONS(id)` |
-  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (optional for building-level violations) |
-  | `building_id`| `BIGINT` | `NULLABLE, FOREIGN KEY` | References `BUILDINGS(id)` (associated building) |
+  | `building_id`| `BIGINT` | `NOT NULL, FOREIGN KEY` | References `BUILDINGS(id)` (mandatory associated building) |
+  | `room_id` | `BIGINT` | `NULLABLE, FOREIGN KEY` | References `ROOMS(id)` (deprecated/compatibility) |
   | `severity` | `VARCHAR(20)` | `NOT NULL` | Enum: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` |
   | `status` | `VARCHAR(20)` | `NOT NULL, DEFAULT 'OPEN'` | Enum: `OPEN`, `ACKNOWLEDGED`, `ACTION_REQUIRED`, `RESOLVED` |
   | `description` | `TEXT` | `NOT NULL` | Violation reason or auto-flag details |

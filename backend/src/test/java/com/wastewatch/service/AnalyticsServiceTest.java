@@ -88,10 +88,9 @@ class AnalyticsServiceTest {
     @DisplayName("Zero State: Clean handling of empty database with 0 inspections")
     void testZeroStateOverview() {
         when(inspectionRepository.count()).thenReturn(0L);
-        when(roomRepository.count()).thenReturn(0L);
-        when(inspectionRepository.countDistinctInspectedRooms()).thenReturn(0L);
-        when(areaRepository.count()).thenReturn(0L);
         when(buildingRepository.count()).thenReturn(0L);
+        when(inspectionRepository.countDistinctInspectedBuildings()).thenReturn(0L);
+        when(areaRepository.count()).thenReturn(0L);
         when(userRepository.findByRole(UserRole.VOLUNTEER)).thenReturn(Collections.emptyList());
         when(inspectionRepository.getOverallAverageScore()).thenReturn(null);
         when(violationRepository.countByStatusIn(anyList())).thenReturn(0L);
@@ -102,7 +101,7 @@ class AnalyticsServiceTest {
 
         assertNotNull(dto);
         assertEquals(0, dto.getTotalInspections());
-        assertEquals(0, dto.getTotalRooms());
+        assertEquals(0, dto.getTotalBuildings());
         assertEquals(0.0, dto.getOverallComplianceRate());
         assertEquals(0.0, dto.getOverallInspectionCoverage());
         assertEquals(100.0, dto.getOverallViolationResolutionRate());
@@ -114,10 +113,9 @@ class AnalyticsServiceTest {
     @DisplayName("Perfect State: 100% coverage, 100% compliance, 100% health score")
     void testPerfectComplianceAndCoverage() {
         when(inspectionRepository.count()).thenReturn(10L);
-        when(roomRepository.count()).thenReturn(10L);
-        when(inspectionRepository.countDistinctInspectedRooms()).thenReturn(10L);
-        when(areaRepository.count()).thenReturn(1L);
         when(buildingRepository.count()).thenReturn(2L);
+        when(inspectionRepository.countDistinctInspectedBuildings()).thenReturn(2L);
+        when(areaRepository.count()).thenReturn(1L);
         when(userRepository.findByRole(UserRole.VOLUNTEER)).thenReturn(List.of(testVolunteer));
         when(inspectionRepository.getOverallAverageScore()).thenReturn(100.0);
         when(violationRepository.countByStatusIn(anyList())).thenReturn(0L);
@@ -138,14 +136,13 @@ class AnalyticsServiceTest {
     @DisplayName("Partial Coverage Confidence Rule: 94% compliance with 12% coverage gives Low Confidence & 78.2 Health Score")
     void testPartialCoverageConfidenceRule() {
         when(areaRepository.findAll()).thenReturn(List.of(testArea));
-        when(buildingRepository.countByAreaId(1L)).thenReturn(2L);
-        when(roomRepository.countByAreaId(1L)).thenReturn(50L);
-        when(inspectionRepository.countDistinctInspectedRoomsByAreaId(1L)).thenReturn(6L); // 6/50 = 12%
+        when(buildingRepository.countByAreaId(1L)).thenReturn(50L);
+        when(inspectionRepository.countDistinctInspectedBuildingsByAreaId(1L)).thenReturn(6L); // 6/50 = 12%
         when(inspectionRepository.countByAreaId(1L)).thenReturn(6L);
         when(inspectionRepository.getAverageScoreByAreaId(1L)).thenReturn(94.0); // 94% compliance
         when(violationRepository.countByAreaId(1L)).thenReturn(0L);
         when(violationRepository.countByAreaIdAndStatus(1L, ViolationStatus.RESOLVED)).thenReturn(0L);
-        when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+        when(buildingRepository.findByAreaId(1L)).thenReturn(Collections.emptyList());
 
         List<AreaAnalyticsDto> result = analyticsService.getAreaAnalytics();
 
@@ -165,14 +162,13 @@ class AnalyticsServiceTest {
     @DisplayName("Poor Compliance Area: 30% compliance, 50% coverage, 0% resolution rate")
     void testPoorComplianceArea() {
         when(areaRepository.findAll()).thenReturn(List.of(testArea));
-        when(buildingRepository.countByAreaId(1L)).thenReturn(1L);
-        when(roomRepository.countByAreaId(1L)).thenReturn(20L);
-        when(inspectionRepository.countDistinctInspectedRoomsByAreaId(1L)).thenReturn(10L); // 50% coverage
+        when(buildingRepository.countByAreaId(1L)).thenReturn(20L);
+        when(inspectionRepository.countDistinctInspectedBuildingsByAreaId(1L)).thenReturn(10L); // 50% coverage
         when(inspectionRepository.countByAreaId(1L)).thenReturn(10L);
         when(inspectionRepository.getAverageScoreByAreaId(1L)).thenReturn(30.0); // 30% POOR
         when(violationRepository.countByAreaId(1L)).thenReturn(4L);
         when(violationRepository.countByAreaIdAndStatus(1L, ViolationStatus.RESOLVED)).thenReturn(0L); // 0% resolved
-        when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+        when(buildingRepository.findByAreaId(1L)).thenReturn(Collections.emptyList());
 
         List<AreaAnalyticsDto> result = analyticsService.getAreaAnalytics();
 
@@ -231,17 +227,17 @@ class AnalyticsServiceTest {
     @DisplayName("Area Improvement: Calculates positive score delta for improved areas")
     void testAreaImprovements() {
         when(areaRepository.findAll()).thenReturn(List.of(testArea));
-        when(roomRepository.countByAreaId(1L)).thenReturn(10L);
+        when(buildingRepository.countByAreaId(1L)).thenReturn(10L);
 
         Inspection recent = new Inspection();
         recent.setTotalScore(90);
-        recent.setRoom(testRoom1);
+        recent.setBuilding(testBuilding);
 
         Inspection previous = new Inspection();
         previous.setTotalScore(60);
-        previous.setRoom(testRoom1);
+        previous.setBuilding(testBuilding);
 
-        when(inspectionRepository.findByRoomBuildingAreaIdAndInspectionDateBetween(eq(1L), any(), any()))
+        when(inspectionRepository.findByEffectiveAreaIdAndInspectionDateBetween(eq(1L), any(), any()))
                 .thenReturn(List.of(recent))
                 .thenReturn(List.of(previous));
 
@@ -279,7 +275,8 @@ class AnalyticsServiceTest {
 
         assertEquals(15L, vDto.getInspectionsCount());
         assertEquals(82.5, vDto.getAverageScoreAwarded());
-        assertEquals(12L, vDto.getDistinctRoomsInspected());
+        assertEquals(3L, vDto.getDistinctRoomsInspected());
+        assertEquals(3L, vDto.getDistinctBuildingsCovered());
         assertEquals("ACTIVE", vDto.getActivityStatus());
     }
 }

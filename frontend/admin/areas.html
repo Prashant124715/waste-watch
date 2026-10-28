@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/admin-theme.css"/>
   <script src="../js/lucide.min.js"></script>
   <style>
     .hierarchy-tabs {
@@ -39,101 +40,10 @@
     }
     .panel { display: none; }
     .panel.active { display: block; }
-
-    /* QR Badge Modal Styles */
-    .qr-badge-card {
-      background: #ffffff;
-      color: #111827;
-      border-radius: var(--radius-xl);
-      padding: var(--space-6);
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-      border: 2px solid #e5e7eb;
-      max-width: 380px;
-      margin: 0 auto;
-    }
-    .qr-badge-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px dashed #e5e7eb;
-    }
-    .qr-badge-brand {
-      font-weight: 800;
-      font-size: 0.95rem;
-      letter-spacing: -0.02em;
-      color: #059669;
-    }
-    .qr-badge-room {
-      font-size: 1.75rem;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      color: #111827;
-      margin-bottom: 4px;
-    }
-    .qr-badge-location {
-      font-size: 0.85rem;
-      color: #4b5563;
-      margin-bottom: 16px;
-    }
-    .qr-image-wrap {
-      background: #ffffff;
-      padding: 12px;
-      border-radius: var(--radius-lg);
-      display: inline-block;
-      border: 1px solid #d1d5db;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-    .qr-badge-img {
-      width: 220px;
-      height: 220px;
-      display: block;
-      margin: 0 auto;
-      image-rendering: pixelated;
-    }
-    .qr-badge-token {
-      font-family: var(--font-mono, monospace);
-      font-size: 0.8rem;
-      background: #f3f4f6;
-      color: #1f2937;
-      padding: 6px 12px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 10px;
-      word-break: break-all;
-      border: 1px solid #e5e7eb;
-      font-weight: 600;
-    }
-    .qr-badge-footer {
-      font-size: 0.75rem;
-      color: #6b7280;
-      line-height: 1.4;
-    }
-
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      #printable-qr-badge, #printable-qr-badge * {
-        visibility: visible;
-      }
-      #printable-qr-badge {
-        position: absolute;
-        left: 50%;
-        top: 15%;
-        transform: translateX(-50%);
-        width: 360px;
-        box-shadow: none;
-        border: 2px solid #000;
-      }
-    }
   </style>
 </head>
-<body>
+<body class="admin-page" data-page="areas">
+  <div class="admin-bg-layer" aria-hidden="true"></div>
   <div class="main-content">
     <header class="topbar">
       <div>
@@ -146,7 +56,6 @@
       <div class="hierarchy-tabs">
         <button class="hierarchy-tab active" data-panel="areas"><i data-lucide="map-pin" class="icon-sm"></i> Areas</button>
         <button class="hierarchy-tab" data-panel="buildings"><i data-lucide="building-2" class="icon-sm"></i> Buildings</button>
-        <button class="hierarchy-tab" data-panel="rooms"><i data-lucide="door-open" class="icon-sm"></i> Rooms</button>
       </div>
 
       <!-- AREAS -->
@@ -184,26 +93,6 @@
           <table class="data-table">
             <thead><tr><th>Code</th><th>Name</th><th>Area</th><th>Type</th><th>Floors</th><th>Actions</th></tr></thead>
             <tbody id="buildings-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ROOMS -->
-      <div class="panel" id="panel-rooms">
-        <div class="toolbar">
-          <div class="search-box">
-            <span class="search-icon"><i data-lucide="search"></i></span>
-            <input type="text" class="search-input" id="search-rooms" placeholder="Search rooms…"/>
-          </div>
-          <select class="form-control form-control-sm" id="filter-building" style="max-width:220px;"><option value="">All Buildings</option></select>
-          <div style="margin-left:auto;">
-            <button class="btn btn-primary btn-sm" id="btn-add-room">+ Add Room</button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr><th>QR Token</th><th>Room #</th><th>Floor</th><th>Building</th><th>Occupant</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="rooms-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -310,89 +199,6 @@
           <button type="submit" class="btn btn-primary" id="bld-submit-btn">Save Building</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Room Modal -->
-  <div class="modal-overlay hidden" id="room-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 class="modal-title" id="room-modal-title">Add Room</h2>
-        <button class="modal-close" onclick="closeModal('room-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
-      </div>
-      <form id="room-form">
-        <input type="hidden" id="room-id"/>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Building <span class="required">*</span></label>
-            <select class="form-control" id="room-building" required></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Floor # <span class="required">*</span></label>
-            <input type="number" class="form-control" id="room-floor" min="0" placeholder="1" required/>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Room Number <span class="required">*</span></label>
-            <input type="text" class="form-control" id="room-number" placeholder="Flat 101" required/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">QR Token</label>
-            <input type="text" class="form-control" id="room-qr" placeholder="Auto-generated"/>
-            <div class="form-hint">Leave blank to auto-generate</div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Occupant Name</label>
-            <input type="text" class="form-control" id="room-occupant" placeholder="John Doe"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contact Phone</label>
-            <input type="text" class="form-control" id="room-phone" placeholder="9876543210"/>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('room-modal')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="room-submit-btn">Save Room</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- QR Badge Modal -->
-  <div class="modal-overlay hidden" id="qr-modal">
-    <div class="modal" style="max-width: 460px;">
-      <div class="modal-header">
-        <h2 class="modal-title" id="qr-modal-title">Room QR Code Badge</h2>
-        <button class="modal-close" onclick="closeModal('qr-modal')" aria-label="Close modal"><i data-lucide="x"></i></button>
-      </div>
-      <div style="padding: var(--space-3) 0;">
-        <div class="qr-badge-card" id="printable-qr-badge">
-          <div class="qr-badge-header">
-            <span style="display:inline-flex;align-items:center;color:var(--color-primary);"><i data-lucide="recycle" class="icon-md"></i></span>
-            <span class="qr-badge-brand">WASTEWATCH AUDIT BADGE</span>
-          </div>
-          <div class="qr-badge-room" id="qr-badge-room">Room 101</div>
-          <div class="qr-badge-location" id="qr-badge-loc">Floor 1 • Building • Area</div>
-          <div class="qr-image-wrap">
-            <img class="qr-badge-img" id="qr-badge-img" alt="Room QR Code" src=""/>
-          </div>
-          <div class="qr-badge-token" id="qr-badge-token">QR-TOKEN-IDENTIFIER</div>
-          <div class="qr-badge-footer">
-            Scan with WasteWatch Volunteer app to identify room and initiate waste segregation audit.
-            <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 4px;">Municipal Waste Compliance Verification</div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-        <button type="button" class="btn btn-secondary btn-sm" id="btn-regen-qr" onclick="regenerateCurrentRoomQr()"><i data-lucide="refresh-cw"></i> Regenerate</button>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQrImage()"><i data-lucide="download"></i> Download PNG</button>
-          <button type="button" class="btn btn-primary btn-sm" onclick="printQrBadge()"><i data-lucide="printer"></i> Print Badge</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -555,8 +361,8 @@
       const sel = document.getElementById('filter-building');
       const roomBldSel = document.getElementById('room-building');
       const opts = buildings.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-      sel.innerHTML = '<option value="">All Buildings</option>' + opts;
-      roomBldSel.innerHTML = '<option value="">Select Building…</option>' + opts;
+      if (sel) sel.innerHTML = '<option value="">All Buildings</option>' + opts;
+      if (roomBldSel) roomBldSel.innerHTML = '<option value="">Select Building…</option>' + opts;
     }
 
     document.getElementById('search-buildings').addEventListener('input', renderBuildings);
@@ -619,203 +425,14 @@
       finally { btn.disabled = false; btn.textContent = 'Save Building'; }
     });
 
-    // ════════════ ROOMS ════════════
-    async function loadRooms() {
-      try {
-        rooms = await api.getRooms();
-        renderRooms();
-      } catch(e) { Toast.error('Rooms Error', e.message); }
-    }
-
-    function renderRooms() {
-      const search  = document.getElementById('search-rooms').value.toLowerCase();
-      const bldId   = document.getElementById('filter-building').value;
-      const filtered = rooms.filter(r => {
-        const match = !search || [r.roomNumber, r.qrCodeToken, r.occupantName, r.buildingName].some(f => f && f.toLowerCase().includes(search));
-        const bld   = !bldId || String(r.buildingId) === String(bldId);
-        return match && bld;
-      });
-      const tbody = document.getElementById('rooms-tbody');
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="door-open" class="icon-3xl"></i></div><div class="empty-state-title">No rooms found</div></div></td></tr>`;
-        if (window.lucide) lucide.createIcons({ root: tbody });
-        return;
-      }
-      tbody.innerHTML = filtered.map(r => `
-        <tr>
-          <td class="font-mono" style="font-size:0.8rem;">${r.qrCodeToken || '—'}</td>
-          <td class="td-primary">${r.roomNumber}</td>
-          <td>${r.floorNumber}</td>
-          <td>${r.buildingName || '—'}</td>
-          <td>${r.occupantName || '—'}</td>
-          <td><span class="badge badge-${r.status === 'ACTIVE' ? 'excellent' : 'neutral'}">${r.status}</span></td>
-          <td style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="showQrModal(${r.id})" title="View Room QR Badge"><i data-lucide="qr-code" class="icon-sm"></i> QR</button>
-            <button class="btn btn-secondary btn-sm btn-icon" onclick="editRoom(${r.id})" title="Edit Room" aria-label="Edit Room"><i data-lucide="pencil" class="icon-sm"></i></button>
-            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteRoom(${r.id})" title="Delete Room" aria-label="Delete Room"><i data-lucide="trash-2" class="icon-sm"></i></button>
-          </td>
-        </tr>
-      `).join('');
-      if (window.lucide) lucide.createIcons({ root: tbody });
-    }
-
-    document.getElementById('search-rooms').addEventListener('input', renderRooms);
-    document.getElementById('filter-building').addEventListener('change', renderRooms);
-    document.getElementById('btn-add-room').addEventListener('click', () => {
-      document.getElementById('room-form').reset();
-      document.getElementById('room-id').value = '';
-      document.getElementById('room-modal-title').textContent = 'Add Room';
-      openModal('room-modal');
-    });
-
-    function editRoom(id) {
-      const r = rooms.find(x => x.id === id);
-      if (!r) return;
-      document.getElementById('room-id').value = id;
-      document.getElementById('room-building').value = r.buildingId;
-      document.getElementById('room-floor').value = r.floorNumber;
-      document.getElementById('room-number').value = r.roomNumber;
-      document.getElementById('room-qr').value = r.qrCodeToken || '';
-      document.getElementById('room-occupant').value = r.occupantName || '';
-      document.getElementById('room-phone').value = r.contactPhone || '';
-      document.getElementById('room-modal-title').textContent = 'Edit Room';
-      openModal('room-modal');
-    }
-
-    async function deleteRoom(id, name) {
-      const item = rooms.find(x => x.id === id);
-      const displayName = name || item?.roomNumber || 'Room';
-      if (!confirm(`Delete room "${displayName}"?`)) return;
-      try {
-        await api.deleteRoom(id);
-        Toast.success('Deleted', `Room "${displayName}" removed.`);
-        loadRooms();
-      } catch(e) { Toast.error('Delete Failed', e.message); }
-    }
-
-    document.getElementById('room-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const id = document.getElementById('room-id').value;
-      const data = {
-        buildingId: parseInt(document.getElementById('room-building').value),
-        floorNumber: parseInt(document.getElementById('room-floor').value),
-        roomNumber: document.getElementById('room-number').value.trim(),
-        qrCodeToken: document.getElementById('room-qr').value.trim() || undefined,
-        occupantName: document.getElementById('room-occupant').value.trim() || undefined,
-        contactPhone: document.getElementById('room-phone').value.trim() || undefined,
-      };
-      const btn = document.getElementById('room-submit-btn');
-      btn.disabled = true; btn.textContent = 'Saving…';
-      try {
-        if (id) await api.updateRoom(id, data); else await api.createRoom(data);
-        closeModal('room-modal');
-        Toast.success('Saved', 'Room saved successfully.');
-        loadRooms();
-      } catch(e) { Toast.error('Save Failed', e.message); }
-      finally { btn.disabled = false; btn.textContent = 'Save Room'; }
-    });
-
-    // ════════════ QR BADGE MANAGEMENT ════════════
-    let currentQrRoom = null;
-
-    async function showQrModal(roomId) {
-      try {
-        const r = await api.getRoom(roomId);
-        currentQrRoom = r;
-
-        document.getElementById('qr-modal-title').textContent = `Room QR Badge — ${r.roomNumber}`;
-        document.getElementById('qr-badge-room').textContent = `Room ${r.roomNumber}`;
-
-        const bldName = r.building?.name || r.buildingName || 'Building';
-        const bldCode = r.building?.buildingCode ? ` (${r.building.buildingCode})` : '';
-        const areaName = r.area?.name || r.areaName || '';
-        const floorStr = `Floor ${r.floor ?? r.floorNumber ?? 0}`;
-        document.getElementById('qr-badge-loc').textContent = `${floorStr} • ${bldName}${bldCode} ${areaName ? '• ' + areaName : ''}`;
-
-        document.getElementById('qr-badge-token').textContent = r.qrCodeToken || 'Generating token…';
-
-        const imgEl = document.getElementById('qr-badge-img');
-        if (r.qrCodeDataUrl) {
-          imgEl.src = r.qrCodeDataUrl;
-        } else {
-          await loadQrImageBlob(r.id, imgEl);
-        }
-
-        openModal('qr-modal');
-      } catch (err) {
-        Toast.error('QR Error', err.message);
-      }
-    }
-
-    async function loadQrImageBlob(roomId, imgElement) {
-      try {
-        const token = Auth.getToken();
-        const res = await fetch(`${api.baseUrl}/rooms/${roomId}/qr-image?size=320`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (!res.ok) throw new Error('Failed to load QR image');
-        const blob = await res.blob();
-        imgElement.src = URL.createObjectURL(blob);
-      } catch (e) {
-        imgElement.alt = 'QR Code unavailable';
-      }
-    }
-
-    async function regenerateCurrentRoomQr() {
-      if (!currentQrRoom) return;
-      if (!confirm(`Regenerate QR token for Room "${currentQrRoom.roomNumber}"?\n\nAny existing printed QR badges for this room will immediately become invalid.`)) return;
-
-      const btn = document.getElementById('btn-regen-qr');
-      btn.disabled = true;
-      btn.textContent = 'Regenerating…';
-      try {
-        const updated = await api.regenerateRoomQr(currentQrRoom.id);
-        currentQrRoom = updated;
-        document.getElementById('qr-badge-token').textContent = updated.qrCodeToken;
-        const imgEl = document.getElementById('qr-badge-img');
-        if (updated.qrCodeDataUrl) {
-          imgEl.src = updated.qrCodeDataUrl;
-        } else {
-          await loadQrImageBlob(updated.id, imgEl);
-        }
-        Toast.success('QR Regenerated', `New identifier: ${updated.qrCodeToken}`);
-        await loadRooms();
-      } catch (e) {
-        Toast.error('Regeneration Failed', e.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="refresh-cw"></i> Regenerate'; if (window.lucide) lucide.createIcons({ root: btn });
-      }
-    }
-
-    function downloadQrImage() {
-      if (!currentQrRoom) return;
-      const img = document.getElementById('qr-badge-img');
-      if (!img.src) return;
-      const a = document.createElement('a');
-      a.href = img.src;
-      a.download = `WasteWatch-QR-${(currentQrRoom.roomNumber || 'room').replace(/\s+/g, '-')}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      Toast.info('Downloaded', 'QR PNG image downloaded.');
-    }
-
-    function printQrBadge() {
-      window.print();
-    }
-
     // ── Global exports ──
     window.deleteArea = deleteArea;
     window.deleteBuilding = deleteBuilding;
-    window.deleteRoom = deleteRoom;
     window.editArea = editArea;
     window.editBuilding = editBuilding;
-    window.editRoom = editRoom;
-    window.showQrModal = showQrModal;
 
     // ── Init ──
-    Promise.all([loadAreas(), loadBuildings(), loadRooms()]);
+    Promise.all([loadAreas(), loadBuildings()]);
   </script>
 </body>
 </html>

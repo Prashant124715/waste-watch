@@ -14,6 +14,11 @@ public class Inspection {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Deprecated in building-level architecture.
+     * Retained for database compatibility and legacy record reading.
+     */
+    @Deprecated
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})

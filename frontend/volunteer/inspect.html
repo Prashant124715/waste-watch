@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../css/variables.css"/>
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/layout.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/volunteer-inspect.css"/>
 </head>
 <body class="volunteer-inspect-body">
@@ -150,32 +149,6 @@
               <!-- Dynamically populated chips from backend buildings -->
             </div>
 
-            <!-- Optional Specific Room Selector (Accordion) -->
-            <div class="inspect-room-box">
-              <div class="inspect-room-header" id="toggle-room-opt" role="button" tabindex="0" aria-expanded="false">
-                <span class="inspect-room-title">
-                  <i data-lucide="door-open" style="width:18px;height:18px;color:var(--vw-green-forest);"></i>
-                  Specific Room (Optional)
-                </span>
-                <span class="inspect-room-arrow" id="room-opt-arrow" aria-hidden="true">
-                  <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
-                </span>
-              </div>
-              <div class="inspect-room-content" id="room-opt-content" style="display:none;">
-                <p style="font-size:0.78rem;color:var(--vw-text-muted);margin:0 0 10px;line-height:1.4;">
-                  Leave unselected for standard <strong>Building-Level</strong> inspection, or select a flat/unit to audit a specific room.
-                </p>
-                <div class="inspect-select-wrap">
-                  <select class="inspect-select" id="sel-room" disabled style="height:42px;font-size:0.86rem;" aria-label="Optional room selection">
-                    <option value="">-- Entire Building (Default) --</option>
-                  </select>
-                  <span class="inspect-select-arrow" aria-hidden="true">
-                    <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-
             <!-- Building Preview Card (Populated when a building is selected) -->
             <div class="inspect-building-preview" id="building-preview">
               <div class="preview-top-row">
@@ -204,10 +177,6 @@
               <div class="preview-meta-row">
                 <span class="preview-meta-label">Total Floors</span>
                 <span class="preview-meta-val" id="bp-floors">—</span>
-              </div>
-              <div class="preview-meta-row" id="row-specific-room" style="display:none;">
-                <span class="preview-meta-label">Specific Room</span>
-                <span class="preview-meta-val font-mono" id="bp-room">—</span>
               </div>
             </div>
 
@@ -394,8 +363,6 @@
     let allBuildings = [];
     let selectedBuildingId = null;
     let selectedBuilding = null;
-    let selectedRoomId = null;
-    let selectedRoom = null;
 
     // ══════ Step Navigation ══════
     function goToStep(n) {
@@ -469,7 +436,6 @@
       showBuildingPreview(b);
       document.getElementById('btn-to-step2').disabled = false;
       renderBuildingChips(allBuildings);
-      loadRoomsForBuilding(b.id);
     }
 
     document.getElementById('sel-building').addEventListener('change', (e) => {
@@ -512,85 +478,19 @@
       document.getElementById('bp-area').textContent = b.area?.name || b.areaName || 'Main Campus';
       document.getElementById('bp-address').textContent = b.address || '—';
       document.getElementById('bp-floors').textContent = b.totalFloors ? `${b.totalFloors} floors` : '—';
-
-      const roomRow = document.getElementById('row-specific-room');
-      if (selectedRoom) {
-        roomRow.style.display = 'flex';
-        document.getElementById('bp-room').textContent = `${selectedRoom.roomNumber} (Floor ${selectedRoom.floorNumber || '?'})`;
-      } else {
-        roomRow.style.display = 'none';
-      }
     }
 
     function clearBuildingSelection() {
       selectedBuildingId = null;
       selectedBuilding = null;
-      selectedRoomId = null;
-      selectedRoom = null;
       document.getElementById('building-preview').classList.remove('visible');
       document.getElementById('btn-to-step2').disabled = true;
-      document.getElementById('sel-room').innerHTML = '<option value="">-- Entire Building (Default) --</option>';
-      document.getElementById('sel-room').disabled = true;
       renderBuildingChips(allBuildings);
     }
-
-    // ── Optional Room Toggle & Loading ──
-    const toggleRoomOpt = document.getElementById('toggle-room-opt');
-    toggleRoomOpt.addEventListener('click', () => {
-      const box = document.getElementById('room-opt-content');
-      const arrow = document.getElementById('room-opt-arrow');
-      const isExpanded = box.style.display !== 'none';
-      if (!isExpanded) {
-        box.style.display = 'block';
-        toggleRoomOpt.setAttribute('aria-expanded', 'true');
-        arrow.innerHTML = '<i data-lucide="chevron-up" style="width:16px;height:16px;"></i>';
-      } else {
-        box.style.display = 'none';
-        toggleRoomOpt.setAttribute('aria-expanded', 'false');
-        arrow.innerHTML = '<i data-lucide="chevron-down" style="width:16px;height:16px;"></i>';
-      }
-      if (window.lucide) lucide.createIcons({ root: arrow });
-    });
-
-    async function loadRoomsForBuilding(buildingId) {
-      const roomSel = document.getElementById('sel-room');
-      roomSel.innerHTML = '<option value="">-- Entire Building (Default) --</option>';
-      roomSel.disabled = true;
-      selectedRoomId = null;
-      selectedRoom = null;
-      try {
-        const rooms = await api.getRooms(buildingId);
-        if (rooms && rooms.length > 0) {
-          roomSel.innerHTML = '<option value="">-- Entire Building (Default) --</option>' +
-            rooms.map(r => `<option value="${r.id}" data-room='${JSON.stringify(r)}'>Room ${r.roomNumber} · Floor ${r.floorNumber} ${r.occupantName ? '(' + r.occupantName + ')' : ''}</option>`).join('');
-          roomSel.disabled = false;
-        }
-      } catch (e) {
-        console.warn('Rooms could not be loaded for building', e);
-      }
-    }
-
-    document.getElementById('sel-room').addEventListener('change', (e) => {
-      const opt = e.target.selectedOptions[0];
-      if (!opt || !opt.value) {
-        selectedRoomId = null;
-        selectedRoom = null;
-      } else {
-        selectedRoomId = parseInt(opt.value);
-        try {
-          selectedRoom = JSON.parse(opt.dataset.room);
-        } catch { selectedRoom = null; }
-      }
-      if (selectedBuilding) {
-        showBuildingPreview(selectedBuilding);
-      }
-    });
-
     document.getElementById('btn-to-step2').addEventListener('click', () => {
       if (!selectedBuildingId) return;
-      document.getElementById('cl-target-name').textContent = selectedBuilding.name +
-        (selectedRoom ? ` · Room ${selectedRoom.roomNumber}` : '');
-      document.getElementById('cl-badge-type').textContent = selectedRoom ? 'Room-Level' : 'Building-Level';
+      document.getElementById('cl-target-name').textContent = selectedBuilding.name;
+      document.getElementById('cl-badge-type').textContent = 'Building-Level';
       goToStep(2);
       updateLiveScore();
     });
@@ -645,7 +545,6 @@
 
       const body = {
         buildingId: selectedBuildingId,
-        roomId: selectedRoomId || undefined,
         wetWasteSeparated:      document.getElementById('chk-wet').checked,
         dryWasteSeparated:      document.getElementById('chk-dry').checked,
         sanitaryWasteSeparated: document.getElementById('chk-sanitary').checked,
@@ -684,9 +583,7 @@
         POOR: 'Critical non-compliance detected. An automatic violation notice has been dispatched.'
       };
 
-      const locationLabel = r.roomNumber
-        ? `Room ${r.roomNumber} (${r.buildingName || 'Building'})`
-        : `Building ${r.buildingName || 'Building'}`;
+      const locationLabel = `Building ${r.buildingName || 'Building'}`;
 
       const resultCardEl = document.getElementById('result-card');
       resultCardEl.innerHTML = `

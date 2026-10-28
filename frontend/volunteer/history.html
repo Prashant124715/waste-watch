@@ -199,7 +199,7 @@
         <div class="toolbar">
           <div class="search-box">
             <span class="search-icon"><i data-lucide="search" class="icon-sm"></i></span>
-            <input type="text" class="search-input" id="search-input" placeholder="Search by room, building…"/>
+            <input type="text" class="search-input" id="search-input" placeholder="Search by building, area…"/>
           </div>
           <select class="form-control form-control-sm" id="filter-class" style="max-width:190px;">
             <option value="">All Classifications</option>
@@ -221,8 +221,8 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Room</th>
                 <th>Building</th>
+                <th>Area</th>
                 <th>Score</th>
                 <th>Classification</th>
                 <th>Violation</th>
@@ -289,7 +289,7 @@
       const classFil = document.getElementById('filter-class').value;
 
       const filtered = inspections.filter(i => {
-        const matchSearch = !search || [i.roomNumber, i.buildingName, i.areaName]
+        const matchSearch = !search || [i.buildingName, i.areaName]
           .some(f => f && f.toLowerCase().includes(search));
         const matchClass  = !classFil || i.classification === classFil;
         return matchSearch && matchClass;
@@ -305,8 +305,8 @@
       tbody.innerHTML = filtered.map(i => `
         <tr>
           <td class="font-mono text-muted">#${i.id}</td>
-          <td class="td-primary">${i.roomNumber ? `${i.roomNumber} · F${i.floorNumber||'?'}` : '<span class="badge badge-info" style="font-size:0.75rem;">Building Level</span>'}</td>
-          <td>${i.buildingName||'—'}</td>
+          <td class="td-primary font-bold">${i.buildingName||'—'}</td>
+          <td>${i.areaName||'—'}</td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="font-mono td-primary">${i.totalScore}</span>
@@ -326,9 +326,9 @@
     // ══════ CSV Export ══════
     function exportCSV() {
       if (!inspections.length) return Toast.warning('Export', 'No data to export.');
-      const headers = ['ID','Room','Floor','Building','Area','Score','Classification','Violation','Status','Date'];
+      const headers = ['ID','Building','Area','Score','Classification','Violation','Status','Date'];
       const rows = inspections.map(i => [
-        i.id, i.roomNumber || 'Building Level', i.floorNumber ?? '—', i.buildingName, i.areaName,
+        i.id, i.buildingName, i.areaName,
         i.totalScore, i.classification, i.violationCreated ? 'Yes' : 'No',
         i.status, i.inspectionDate
       ]);
@@ -352,8 +352,8 @@
       inspections.forEach(i => {
         tableRows += `<tr>
           <td>#${i.id}</td>
-          <td>${i.roomNumber||'—'}</td>
           <td>${i.buildingName||'—'}</td>
+          <td>${i.areaName||'—'}</td>
           <td style="font-weight:bold;">${i.totalScore}/100</td>
           <td>${Fmt.classify(i.classification)}</td>
           <td>${i.violationCreated ? 'Yes' : 'No'}</td>
@@ -384,7 +384,7 @@
           <div class="summary-item"><div class="summary-val">${total}</div><div class="summary-label">Inspections</div></div>
           <div class="summary-item"><div class="summary-val">${avg}%</div><div class="summary-label">Avg Score</div></div>
         </div>
-        <table><thead><tr><th>ID</th><th>Room</th><th>Building</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead>
+        <table><thead><tr><th>ID</th><th>Building</th><th>Area</th><th>Score</th><th>Class</th><th>Violation</th><th>Date</th></tr></thead>
         <tbody>${tableRows}</tbody></table>
         <div class="footer">WasteWatch — Waste Segregation Compliance Monitoring System · Confidential</div>
       <' + '/body><' + '/html>`;

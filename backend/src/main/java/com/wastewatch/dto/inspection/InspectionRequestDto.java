@@ -5,15 +5,16 @@ import jakarta.validation.constraints.NotNull;
 public class InspectionRequestDto {
 
     /**
-     * Room ID — required for legacy room-level inspections.
-     * Optional when buildingId is provided (building-level inspection).
+     * Room ID — deprecated in building-level architecture.
+     * Preserved as optional for backward compatibility.
      */
+    @Deprecated
     private Long roomId;
 
     /**
-     * Building ID — required for building-level inspections.
-     * Optional when roomId is provided (room-level inspection).
+     * Building ID — mandatory target for building-level inspections.
      */
+    @NotNull(message = "Building ID is required")
     private Long buildingId;
 
     @NotNull(message = "Wet waste separation status is required")

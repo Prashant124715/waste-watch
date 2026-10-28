@@ -55,6 +55,13 @@ public class InspectionController {
         return ResponseEntity.ok(inspectionService.getInspectionById(id, currentUser));
     }
 
+    @GetMapping("/api/buildings/{buildingId}/inspections")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VOLUNTEER')")
+    public ResponseEntity<List<InspectionResponseDto>> getInspectionsByBuilding(@PathVariable Long buildingId) {
+        return ResponseEntity.ok(inspectionService.getInspectionsByBuildingId(buildingId));
+    }
+
+    @Deprecated
     @GetMapping("/api/rooms/{roomId}/inspections")
     @PreAuthorize("hasAnyRole('ADMIN', 'VOLUNTEER')")
     public ResponseEntity<List<InspectionResponseDto>> getInspectionsByRoom(@PathVariable Long roomId) {

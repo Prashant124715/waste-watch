@@ -51,8 +51,18 @@ public class InspectionService {
 
     @Transactional
     public InspectionResponseDto createInspection(InspectionRequestDto dto, UserPrincipal currentUser) {
-        if (dto.getBuildingId() == null && dto.getRoomId() == null) {
-            throw new InvalidRequestException("Either buildingId or roomId must be provided.");
+        if (dto.getBuildingId() == null) {
+            // Backward compatibility: if legacy roomId was provided, infer buildingId
+            if (dto.getRoomId() != null) {
+                Room legacyRoom = roomRepository.findById(dto.getRoomId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Room", "id", dto.getRoomId()));
+                if (legacyRoom.getBuilding() != null) {
+                    dto.setBuildingId(legacyRoom.getBuilding().getId());
+                }
+            }
+            if (dto.getBuildingId() == null) {
+                throw new InvalidRequestException("Building ID is required for building-level inspection.");
+            }
         }
 
         AppUser volunteer = userRepository.findById(currentUser.getId())
@@ -65,47 +75,24 @@ public class InspectionService {
             throw new org.springframework.security.access.AccessDeniedException("Your volunteer account is not authorized to submit inspections.");
         }
 
-        Building building = null;
-        Room room = null;
+        Building building = buildingRepository.findById(dto.getBuildingId())
+                .orElseThrow(() -> new ResourceNotFoundException("Building", "id", dto.getBuildingId()));
 
-        if (dto.getBuildingId() != null) {
-            building = buildingRepository.findById(dto.getBuildingId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Building", "id", dto.getBuildingId()));
-
-            // Rule: Duplicate prevention - check if the same volunteer inspected this building within 30 seconds
-            Optional<Inspection> lastInspection = inspectionRepository.findFirstByBuildingIdAndVolunteerIdOrderByCreatedAtDesc(building.getId(), volunteer.getId());
-            if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
-                LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
-                if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
-                    throw new DuplicateResourceException("Duplicate submission detected: An inspection for building '" + 
-                            building.getName() + "' was already submitted within the last 30 seconds.");
-                }
-            }
-        }
-
-        if (dto.getRoomId() != null) {
-            room = roomRepository.findById(dto.getRoomId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Room", "id", dto.getRoomId()));
-            if (building == null) {
-                building = room.getBuilding();
-            }
-
-            // Rule: Duplicate prevention - check if the same volunteer inspected this room within 30 seconds
-            Optional<Inspection> lastInspection = inspectionRepository.findFirstByRoomIdAndVolunteerIdOrderByCreatedAtDesc(room.getId(), volunteer.getId());
-            if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
-                LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
-                if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
-                    throw new DuplicateResourceException("Duplicate submission detected: An inspection for room '" + 
-                            room.getRoomNumber() + "' was already submitted within the last 30 seconds.");
-                }
+        // Rule: Duplicate prevention - check if the same volunteer inspected this building within 30 seconds
+        Optional<Inspection> lastInspection = inspectionRepository.findFirstByBuildingIdAndVolunteerIdOrderByCreatedAtDesc(building.getId(), volunteer.getId());
+        if (lastInspection.isPresent() && lastInspection.get().getCreatedAt() != null) {
+            LocalDateTime cooldownCutoff = LocalDateTime.now().minusSeconds(30);
+            if (lastInspection.get().getCreatedAt().isAfter(cooldownCutoff)) {
+                throw new DuplicateResourceException("Duplicate submission detected: An inspection for building '" + 
+                        building.getName() + "' was already submitted within the last 30 seconds.");
             }
         }
 
         ComplianceScoringService.ScoringResult scoringResult = scoringService.calculateScore(dto);
 
         Inspection inspection = new Inspection();
-        inspection.setRoom(room);
         inspection.setBuilding(building);
+        inspection.setRoom(null); // Building-level architecture: no room required or associated
         inspection.setVolunteer(volunteer);
         inspection.setInspectionDate(LocalDateTime.now());
         inspection.setWetWasteSeparated(dto.getWetWasteSeparated());
@@ -130,16 +117,16 @@ public class InspectionService {
         // Delegate violation creation to ViolationService
         Violation savedViolation = null;
         if (scoringResult.isViolationRequired()) {
-            savedViolation = violationService.processInspectionForViolation(savedInspection, room, building);
+            savedViolation = violationService.processInspectionForViolation(savedInspection, null, building);
         }
 
         boolean violationCreated = savedViolation != null;
         Long violationId = violationCreated ? savedViolation.getId() : null;
 
         // Record Audit Log
-        String locationDesc = room != null
-                ? String.format("Room %s (%s)", room.getRoomNumber(), building != null ? building.getName() : "Unknown")
-                : String.format("Building %s", building != null ? building.getName() : "Unknown");
+        String locationDesc = String.format("Building %s (%s)",
+                building.getName(),
+                building.getArea() != null ? building.getArea().getName() : "Unknown Area");
 
         AuditLog auditLog = new AuditLog(
                 volunteer,
@@ -147,7 +134,7 @@ public class InspectionService {
                 "Inspection",
                 savedInspection.getId().toString(),
                 null,
-                String.format("Audit created for %s with score %d/100. Violation created: %s",
+                String.format("Building audit created for %s with score %d/100. Violation created: %s",
                         locationDesc, scoringResult.getTotalScore(), violationCreated)
         );
         auditLogRepository.save(auditLog);
@@ -214,6 +201,20 @@ public class InspectionService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<InspectionResponseDto> getInspectionsByBuildingId(Long buildingId) {
+        if (!buildingRepository.existsById(buildingId)) {
+            throw new ResourceNotFoundException("Building", "id", buildingId);
+        }
+        return inspectionRepository.findAllByEffectiveBuildingIdOrderByInspectionDateDesc(buildingId).stream()
+                .map(inspection -> {
+                    Optional<Violation> v = violationRepository.findByInspectionId(inspection.getId());
+                    return InspectionResponseDto.fromEntity(inspection, v.isPresent(), v.map(Violation::getId).orElse(null));
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Deprecated
     @Transactional(readOnly = true)
     public List<InspectionResponseDto> getInspectionsByRoomId(Long roomId) {
         if (!roomRepository.existsById(roomId)) {

@@ -88,6 +88,27 @@ public class DatabaseMigration implements CommandLineRunner {
             } catch (Exception ex) {
                 log.debug("VIOLATIONS.ROOM_ID nullability migration skipped or already applied: {}", ex.getMessage());
             }
+
+            // Backfill building_id for any legacy inspections and violations that only had room_id
+            try {
+                jdbcTemplate.execute(
+                        "UPDATE INSPECTIONS SET BUILDING_ID = (SELECT BUILDING_ID FROM ROOMS WHERE ROOMS.ID = INSPECTIONS.ROOM_ID) " +
+                        "WHERE BUILDING_ID IS NULL AND ROOM_ID IS NOT NULL"
+                );
+                log.info("Backfilled BUILDING_ID on legacy INSPECTIONS records");
+            } catch (Exception ex) {
+                log.debug("INSPECTIONS BUILDING_ID backfill skipped: {}", ex.getMessage());
+            }
+
+            try {
+                jdbcTemplate.execute(
+                        "UPDATE VIOLATIONS SET BUILDING_ID = (SELECT BUILDING_ID FROM ROOMS WHERE ROOMS.ID = VIOLATIONS.ROOM_ID) " +
+                        "WHERE BUILDING_ID IS NULL AND ROOM_ID IS NOT NULL"
+                );
+                log.info("Backfilled BUILDING_ID on legacy VIOLATIONS records");
+            } catch (Exception ex) {
+                log.debug("VIOLATIONS BUILDING_ID backfill skipped: {}", ex.getMessage());
+            }
         } catch (Exception e) {
             log.warn("Database check constraint migration check skipped: {}", e.getMessage());
         }
