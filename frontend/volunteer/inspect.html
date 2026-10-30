@@ -264,20 +264,8 @@
                 <span class="inspect-checklist-pts">5 pts</span>
               </label>
 
-              <!-- Optional Evidence URL -->
-              <div class="form-group" style="margin-top:20px;">
-                <label class="inspect-form-label" for="evidence-url">Evidence Photo URL (Optional)</label>
-                <input
-                  type="text"
-                  class="inspect-search-input"
-                  id="evidence-url"
-                  placeholder="https://example.com/evidence-photo.jpg"
-                  style="padding-right:16px;"
-                />
-              </div>
-
               <!-- Observations / Remarks -->
-              <div class="form-group">
+              <div class="form-group" style="margin-top:20px;">
                 <label class="inspect-form-label" for="remarks">Inspection Remarks / Observations</label>
                 <textarea
                   class="form-control"
@@ -551,8 +539,7 @@
         correctBinsUsed:        document.getElementById('chk-bins').checked,
         binsLabelled:           document.getElementById('chk-label').checked,
         noMixedWaste:           document.getElementById('chk-nomix').checked,
-        remarks:                document.getElementById('remarks').value.trim() || undefined,
-        evidenceImageUrl:       document.getElementById('evidence-url').value.trim() || undefined
+        remarks:                document.getElementById('remarks').value.trim() || undefined
       };
 
       try {
@@ -633,7 +620,6 @@
       document.querySelectorAll('.inspect-checklist-item input').forEach(c => { c.checked = false; });
       document.querySelectorAll('.inspect-checklist-item').forEach(c => c.classList.remove('checked'));
       document.getElementById('remarks').value = '';
-      document.getElementById('evidence-url').value = '';
       goToStep(1);
     }
 

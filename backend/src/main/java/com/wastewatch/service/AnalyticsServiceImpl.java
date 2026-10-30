@@ -510,12 +510,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<BuildingAnalyticsDto> bAnalytics = getBuildingAnalytics();
 
         for (BuildingAnalyticsDto b : bAnalytics) {
-            double poorPercentage = b.getInspectedRooms() > 0
-                    ? round(((double) b.getPoorRoomCount() / b.getInspectedRooms()) * 100.0)
+            double poorPercentage = b.getTotalInspections() > 0
+                    ? round(((double) b.getPoorRoomCount() / b.getTotalInspections()) * 100.0)
                     : 0.0;
 
             boolean isProblem = (b.getTotalInspections() > 0 && b.getAverageScore() < 50.0)
-                    || (b.getInspectedRooms() > 0 && poorPercentage >= 30.0)
+                    || (b.getTotalInspections() > 0 && poorPercentage >= 30.0)
                     || b.getOpenViolationsCount() >= 2;
 
             if (isProblem) {
@@ -534,8 +534,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 pDto.setBuildingCode(b.getBuildingCode());
                 pDto.setAreaId(b.getAreaId());
                 pDto.setAreaName(b.getAreaName());
-                pDto.setTotalRooms(b.getTotalRooms());
-                pDto.setInspectedRooms(b.getInspectedRooms());
+                pDto.setTotalRooms(b.getTotalInspections());
+                pDto.setInspectedRooms(b.getTotalInspections());
                 pDto.setPoorRoomCount(b.getPoorRoomCount());
                 pDto.setPoorRoomPercentage(poorPercentage);
                 pDto.setAverageScore(b.getAverageScore());

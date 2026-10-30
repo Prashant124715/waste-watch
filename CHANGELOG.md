@@ -4,6 +4,30 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Analytics & Field Inspection Polishing] — 2026-10-30
+
+### Changed & Fixed
+- **Evidence Photo URL Field Removed**:
+  - Completely removed user-facing "Evidence Photo URL (Optional)" input field from `frontend/volunteer/inspect.html`.
+  - Inspection submission payload streamlined to exclude photo URL while preserving all 6 compliance criteria, remarks/observations, and 100-point scoring.
+  - Retained `evidenceImageUrl` in backend entity/DTO for backward schema compatibility. Submitting audits without photo URL verified with 201 Created and full score breakdown.
+- **Analytics Layout & Horizontal Overflow Resolution**:
+  - Updated `.admin-page .table-wrap` in `frontend/css/admin-theme.css` to enable responsive horizontal scrolling (`overflow-x: auto; max-width: 100%; min-width: 0;`) with a custom slim scrollbar.
+  - Added responsive grid definitions (`minmax(0, 1fr)`) and container bounds to prevent cards and tables from clipping past screen width.
+  - Enforced `min-width: 0` and bounded width on `.main-content` and `.page-content` in `frontend/css/layout.css` and `frontend/css/admin-theme.css` so the fixed sidebar remains usable and cards stay within the viewport across desktop, laptop, and tablet screens.
+  - Verified that background environmental artwork, subtle glassmorphic transparency, borders, and typography remain intact.
+- **Outdated Room Data Cleanup & Consistency**:
+  - In `frontend/admin/analytics.html`: Removed the outdated "Repeat Offender Rooms (Chronic Non-Compliance)" card from the Hotspots tab; expanded the "Problem Buildings (Low Score / High Poor Rate)" card across the full available content width without awkward gaps or clipping.
+  - In `frontend/admin/analytics.html`: Updated "Rooms inspected / Total" KPI subtitle to "Buildings audited / Total", and updated confidence rule guidance from rooms to buildings.
+  - In Area Health Index: Header updated to "Poor Buildings" and count rendered as buildings (`blds`).
+  - In Building Matrix: Replaced misleading "Inspected / Total" and "Poor Rooms" with "Audits" (total inspection count) and "Poor Audits" (score < 40 count).
+  - In Volunteer Productivity: Removed duplicated/outdated "Unique Rooms Audited" column, preserving "Buildings Covered" and ensuring full visibility of the "Status" column.
+  - In Problem Buildings (`AnalyticsServiceImpl.java`): Fixed calculation where poor percentage was divided by 1 instead of total inspections (eliminating `300% (3/1)` bug and replacing it with accurate audit failure rate e.g. `37.5% (3/8)`).
+  - In Admin Dashboard (`frontend/admin/dashboard.html`): Formatted building-level inspections in the recent audit table with a badge instead of `— (Floor ?)`.
+- **Quality Assurance**:
+  - Full automated backend test suite passing: **161/161 automated unit, integration, and architecture tests passing (100% success)**.
+  - Headless browser verification confirmed 0 console errors, 0 failed network requests, working horizontal table scroll, and successful volunteer inspection submissions.
+
 ## [Architectural Scope Reduction: Building-Level Inspection Scope] — 2026-10-27
 
 ### Changed & Scope Reduced

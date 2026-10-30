@@ -209,8 +209,8 @@ WasteWatch uses embedded, file-based H2 in the `dev` profile for local developme
 
 ## Complete Test Suite Verification
 
-- **Total Automated Tests**: **95**
-- **Passing**: **95 (100%)**
+- **Total Automated Tests**: **161**
+- **Passing**: **161 (100%)**
 - **Failures / Errors**: **0**
 - **Build Artifact**: `backend/target/wastewatch-backend-0.1.0-SNAPSHOT.jar` (packaged and verified)
 
@@ -232,6 +232,67 @@ WasteWatch uses embedded, file-based H2 in the `dev` profile for local developme
 - `.\mvnw.cmd test` completed successfully: 95 tests, 0 failures, 0 errors, 0 skipped. Test logs confirmed the `test` profile was active.
 - The existing local database was retained; no database file was deleted, recreated, or migrated.
 - During cleanup, the DELETE request returned HTTP 500 with `NoClassDefFoundError: com/wastewatch/dto/ApiResponse`, although the follow-up list confirmed the temporary row had been deleted. The file-persistence check succeeded; this cleanup-response runtime error was not caused or changed by the database configuration work.
+
+---
+
+## Latest Milestone: Analytics Polishing, Horizontal Overflow Fix & Evidence Photo URL Removal — 2026-10-30
+
+- **Evidence Photo URL Field Removed**:
+  - `frontend/volunteer/inspect.html`: Completely removed the "Evidence Photo URL (Optional)" input field.
+  - Inspection submissions now evaluate and persist segregation compliance without photo URL requirement.
+  - Submitting field inspections verified through API and UI (saved with score 100/100, observations retained).
+  - Status: **IMPLEMENTED & VERIFIED**.
+- **Analytics Layout & Horizontal Overflow**:
+  - `frontend/css/admin-theme.css`: Fixed `.admin-page .table-wrap` by replacing `overflow: hidden` with responsive horizontal scrolling `overflow-x: auto` and a custom slim scrollbar.
+  - `frontend/css/layout.css` and `frontend/css/admin-theme.css`: Bounded `.main-content` and `.page-content` with `min-width: 0` and `max-width: calc(100vw - var(--sidebar-width))` to ensure the fixed sidebar remains intact while content scrolls.
+  - `frontend/admin/analytics.html`: Bounded multi-column grids in Overview and Hotspots tabs with `minmax(0, 1fr)` and media queries so wide tables inside cards scroll horizontally rather than clipping off-screen.
+  - Visual backgrounds, glassmorphism, rounded corners, and color tokens preserved.
+  - Status: **IMPLEMENTED & VERIFIED**.
+- **Outdated Room Data Cleanup**:
+  - Removed outdated "Repeat Offender Rooms (Chronic Non-Compliance)" card and table from the Hotspots & Repeat Offenders tab in the Analytics Engine (`frontend/admin/analytics.html`), adapting the remaining "Problem Buildings" card to cleanly utilize full container width.
+  - Overview KPI card subtitle updated to "Buildings audited / Total", and confidence rule guidance updated to buildings.
+  - Area Health Index updated header to "Poor Buildings" and count units to `blds`.
+  - Building Matrix updated headers from "Inspected / Total" and "Poor Rooms" to "Audits" (total audits) and "Poor Audits" (score < 40).
+  - Volunteer Productivity removed redundant duplicate column "Unique Rooms Audited", making "Status" fully visible.
+  - Problem Buildings in `AnalyticsServiceImpl.java` fixed to calculate poor percentage based on total audits rather than 1, resolving the `300% (3/1)` calculation bug.
+  - Status: **IMPLEMENTED & VERIFIED**.
+
+---
+
+## HANDOFF FOR NEXT AGENT
+
+### What was changed:
+1. **Volunteer Inspection UI (`frontend/volunteer/inspect.html`)**:
+   - Completely removed user-facing "Evidence Photo URL (Optional)" input element and associated script references.
+   - Preserved all 6 waste segregation checklist criteria, instant score ring, remarks/observations textarea, and 3-step audit submission.
+2. **Analytics Layout & Theme (`frontend/css/admin-theme.css`, `frontend/css/layout.css`, `frontend/admin/analytics.html`)**:
+   - Fixed `.admin-page .table-wrap` by changing `overflow: hidden` to `overflow-x: auto; max-width: 100%; min-width: 0;` with custom slim scrollbars.
+   - Updated `.main-content` and `.page-content` with `min-width: 0` and bounded width relative to `--sidebar-width`.
+   - Updated analytics grids (`.analytics-overview-grid`, `.analytics-hotspots-grid`) with `minmax(0, 1fr)` and responsive breakpoints to prevent card clipping.
+   - Fixed programmatic tab switching in `switchTab(tabId)` by removing dependency on deprecated `event.currentTarget`.
+   - Preserved all background environmental artwork and glassmorphism styling across admin pages.
+3. **Outdated Room Data Cleanup & Calculation Fixes**:
+   - In `AnalyticsServiceImpl.java`: Problem buildings poor audit percentage now correctly computes as `(poorInspections / totalInspections) * 100` rather than dividing by 1 (resolving the previous `300% (3/1)` display).
+   - In `analytics.html`: Replaced outdated "rooms" terminology with "buildings" across Overview KPI cards, Area Health Index, and Building Matrix.
+   - In `analytics.html`: Removed duplicate "Unique Rooms Audited" column in Volunteer Productivity table, preserving "Buildings Covered" and ensuring "Status" column is fully accessible.
+   - In `dashboard.html`: Updated recent audits table to display a "Building Level" badge when an audit has no associated room number rather than displaying `— (Floor ?)`.
+
+### What was verified:
+- **Backend automated test suite**: Ran `cd backend; .\mvnw.cmd test` — **161 of 161 tests passing (100%)**.
+- **Inspection submission without photo URL**: Tested through both backend REST API (`POST /api/inspections`) and Chrome headless UI — inspection saved with score 100/100, `evidenceImageUrl` null, and remarks preserved.
+- **Analytics engine horizontal scroll & card clipping**: Verified with headless Chrome across desktop (1280px), laptop (1100px), and tablet (768px) viewports:
+  - All 7 tabs visible and functional.
+  - Zero cards clipped off-screen (`cardsClipped: false`).
+  - Tables horizontally scrollable (`overflowX: auto`).
+  - Rightmost columns (e.g. `Status` in Volunteer Productivity, `Trend Status` in Improvements, `Risk` in Problem Buildings) are fully accessible.
+- **Console & Network health**: 0 browser console errors, 0 failed network requests.
+
+### Known limitations:
+- The legacy `ROOMS` table and entity remain in the H2 database and `Room` model for backward database schema compatibility; room-level inspections are deprecated in favor of building-level audits.
+- The `evidence_image_url` column in the database and `evidenceImageUrl` field in `Inspection` / `InspectionRequestDto` are retained as optional for backward compatibility with previously stored audits.
+
+### Remaining issues:
+- None identified in the tasks requested.
 
 ---
 

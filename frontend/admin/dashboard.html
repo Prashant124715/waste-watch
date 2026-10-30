@@ -869,7 +869,7 @@
       }
       tbody.innerHTML = list.slice(0, 10).map(i => `
         <tr class="recent-table-row">
-          <td class="td-primary"><strong>${i.roomNumber || '—'}</strong> (Floor ${i.floorNumber ?? '?'})</td>
+          <td class="td-primary"><strong>${i.roomNumber ? `${i.roomNumber} (Floor ${i.floorNumber ?? '?'})` : '<span class="badge badge-info" style="font-size:0.75rem;">Building Level</span>'}</strong></td>
           <td>${i.buildingName || '—'}</td>
           <td>${i.volunteerName || '—'}</td>
           <td class="td-primary font-mono"><strong>${i.totalScore}</strong>/100</td>
