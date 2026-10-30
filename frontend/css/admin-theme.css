@@ -394,6 +394,10 @@ body[data-page="audit-logs"] .admin-bg-layer {
   z-index: 1;
   background: transparent;
   min-height: 100vh;
+  min-width: 0;
+  max-width: calc(100vw - var(--sidebar-width));
+  width: calc(100vw - var(--sidebar-width));
+  box-sizing: border-box;
 }
 
 .admin-page .topbar {
@@ -474,11 +478,41 @@ body[data-page="audit-logs"] .admin-bg-layer {
   background: #FFFFFF;
 }
 
-/* Data Tables with Frosted Headers */
+/* Data Tables with Frosted Headers & Responsive Horizontal Scrolling */
 .admin-page .table-wrap {
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  min-width: 0;
   box-shadow: 0 4px 18px rgba(16, 32, 24, 0.05);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 128, 72, 0.3) rgba(22, 128, 72, 0.05);
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-page .table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.admin-page .table-wrap::-webkit-scrollbar-track {
+  background: rgba(22, 128, 72, 0.05);
+  border-radius: 999px;
+}
+
+.admin-page .table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(22, 128, 72, 0.25);
+  border-radius: 999px;
+}
+
+.admin-page .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(22, 128, 72, 0.45);
+}
+
+.admin-page .card {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-page .data-table {
