@@ -1,179 +1,178 @@
 # WasteWatch — Project Context & Vision
 
+[![Project Stage](https://img.shields.io/badge/Status-Phase%2014%20Complete%20(Production--Ready)-success.svg)](#)
+[![Domain](https://img.shields.io/badge/Domain-CivicTech%20%2F%20Waste%20Management-blue.svg)](#)
+[![Architecture](https://img.shields.io/badge/Architecture-Building--Level%20Inspection%20Scope-green.svg)](#)
+
+---
+
 ## 1. Executive Summary
 
-**WasteWatch** is a waste-segregation monitoring, auditing, and compliance management platform. It addresses the critical challenge of municipal solid waste management: ensuring waste segregation at the source (individual rooms, flats, offices, and buildings) through systematic inspections, objective compliance scoring, and real-time administrative intelligence.
+**WasteWatch** is a source-level waste segregation monitoring, auditing, and municipal compliance governance platform. It directly tackles the critical bottleneck in municipal solid waste management: ensuring waste segregation at the source (housing societies, residential apartment complexes, commercial establishments, and institutions) through systematic field audits, objective compliance scoring, and real-time administrative intelligence.
 
-The application serves two primary user categories:
-1. **Volunteers / Field Inspectors**: Perform structured on-ground audits across rooms and buildings, evaluate waste segregation criteria, and record observations.
-2. **Administrators / Municipal Supervisors**: Monitor macro and micro compliance metrics via an analytical dashboard, identify chronic non-compliance hotspots, track volunteer activity, and manage corrective enforcement.
+The application serves two distinct user personas:
+1. **Volunteers / Field Inspectors (`VOLUNTEER`)**: Perform structured, on-ground audits across buildings and housing societies, evaluate waste segregation criteria, view dynamic live scores, and submit audit observations.
+2. **Administrators / Municipal Supervisors (`ADMIN`)**: Maintain operational oversight, review volunteer applications, monitor compliance intelligence via analytical dashboards, identify chronic non-compliance hotspots, resolve violation tickets, review security audit trails, and stream multi-dimensional CSV reports.
 
-While initialized as an academic / Capstone Engineering Project (CEP), WasteWatch is architected from day one with the modularity, maintainability, and clean domain boundaries required for evolution into a production-grade CivicTech SaaS platform.
+While initialized as a Capstone Engineering Project (CEP), WasteWatch is architected from day one with the modularity, maintainability, and clean domain boundaries required for evolution into a production-grade CivicTech SaaS platform.
 
 ---
 
 ## 2. Problem Statement
 
-Improper waste segregation at source is the single largest bottleneck in modern urban waste management:
-- **Lack of Source-Level Accountability**: Municipalities lack visibility into which specific households, apartments, or commercial units fail to segregate waste.
-- **Subjective & Inconsistent Inspections**: Without structured criteria, field inspections rely on qualitative impressions rather than quantifiable compliance scores.
-- **Absence of Actionable Analytics**: Administrative bodies cannot easily identify repeat offending areas, track inspection coverage, or measure the impact of awareness campaigns.
+Improper waste segregation at source is the single largest point of failure in modern urban waste management:
+- **Absence of Source-Level Accountability**: Municipalities lack visibility into which specific housing societies, apartments, or commercial facilities fail to segregate waste.
+- **Subjective & Inconsistent Inspections**: Without structured criteria, field audits rely on qualitative impressions rather than quantifiable compliance scores.
+- **Absence of Actionable Analytics**: Municipalities cannot easily identify repeat offending areas, track inspection coverage, or measure the impact of awareness campaigns.
 - **Paper-Based or Ad-Hoc Audits**: Existing workflows suffer from delayed reporting, lost records, and zero spatial (map-based) insights.
 
-WasteWatch solves this by replacing ad-hoc inspections with a standardized, data-driven workflow featuring weighted scoring, geo-spatial visualization, and automated violation escalation.
+WasteWatch solves this by replacing ad-hoc inspections with a standardized, data-driven workflow featuring weighted scoring, geo-spatial visualization, volunteer application verification, and automated violation escalation.
 
 ---
 
 ## 3. User Roles & Personas
 
-### 3.1. ADMIN (Supervisor / Municipal Official)
-* **Objective**: Maintain complete operational oversight, allocate resources, and enforce municipal waste guidelines.
+### 3.1. ADMIN (Municipal Official / Ward Supervisor)
+* **Objective**: Maintain complete operational oversight, verify volunteer applicants, allocate resources, and enforce municipal waste guidelines.
 * **Key Responsibilities**:
   - Secure authentication and system administration.
-  - Manage the geographic and structural hierarchy (Cities, Areas, Buildings, Floors, Rooms).
-  - Manage volunteer accounts, verify credentials, and track inspection coverage.
-  - Review live aggregate statistics: Overall Compliance Rate, Area-wise Health, Building-wise Leaderboards.
-  - Inspect historical room-level audit trails and violation histories.
+  - Manage the geographic and structural hierarchy (Areas, Buildings).
+  - Review volunteer registration applications and approve or reject applicants.
+  - Review live aggregate statistics: Overall Compliance Rate, Area Health Scores, and Building Rankings.
+  - Track violations, assess fines, and record official resolution notes upon re-inspection.
   - Analyze geographic maps with Leaflet.js (pinpoint high-risk buildings and compliance heatmaps).
-  - Manage and track violation resolution workflows.
-  - Generate exportable compliance summaries and operational reports.
-  - Review system audit logs for accountability and traceability.
+  - Stream authentic RFC-4180 CSV reports across 7 operational dimensions.
+  - Review immutable security audit logs for complete accountability.
 
-### 3.2. VOLUNTEER (Field Inspector / Auditor)
-* **Objective**: Conduct rapid, standardized, on-ground inspections on mobile or tablet devices.
+### 3.2. VOLUNTEER (Field Inspector / Civic Auditor)
+* **Objective**: Conduct rapid, standardized, on-ground inspections of housing societies on mobile or desktop devices.
 * **Key Responsibilities**:
-  - Secure authentication and profile access.
-  - View assigned inspection zones, buildings, and rooms.
-  - Identify target units (manual selection or upcoming QR code scanning).
-  - Execute inspections using a standardized checklist evaluating waste segregation conditions.
-  - Record immediate remarks and capture photographic evidence (future phase).
-  - Automatically calculate and present an instant compliance score (0–100).
-  - Submit audit records with instant synchronization to the backend.
-  - Review self-inspection history and performance milestones.
+  - Self-register via the civic volunteer portal (`/register.html`).
+  - View application status; submit inspections once verified and approved by administrators.
+  - Search or select target housing societies and commercial buildings.
+  - Execute audits using a standardized 6-point checklist evaluating waste segregation conditions.
+  - View real-time compliance score updates on a dynamic SVG ring gauge.
+  - Record observation remarks and attach optional photo evidence.
+  - Review personal inspection history and performance metrics.
 
 ---
 
-## 4. Core Domain Hierarchy
+## 4. Core Domain Hierarchy & Scope
 
-WasteWatch enforces a strict parent-child structural hierarchy to represent physical environments (scoped to Building level):
+WasteWatch enforces a clean parent-child structural hierarchy:
 
 ```
 City
  └── Area (Ward, Sector, Neighborhood)
-      └── Building (Society, Apartment Complex, Commercial Office)
+      └── Building (Housing Society, Apartment Complex, Commercial Premise)
            └── Inspection (Audit event conducted at a timestamp)
-                └── Violation (Logged when an inspection fails compliance thresholds)
+                └── Violation (Logged automatically when an inspection score < 40)
 ```
 
 ### Hierarchy Rules:
-- A **City** comprises multiple administrative **Areas**.
-- An **Area** contains multiple **Buildings** (each associated with geographic coordinates).
-- A **Building** is the primary audit entity and fundamental unit of inspection.
-- An **Inspection** is tied strictly to a **Building**, executed by a **Volunteer** at a specific timestamp.
-- A **Violation** is generated automatically or manually whenever a building inspection score breaches minimum acceptable thresholds (< 40 points).
-- **Scope Note on Rooms**: Room-level workflow has been intentionally removed from the active application. Volunteers inspect buildings directly without room selection or scanning. The `Room` entity and database table are retained solely for backwards database compatibility.
+1. A **City** comprises multiple administrative **Areas**.
+2. An **Area** contains multiple **Buildings** (each associated with geographic GPS coordinates).
+3. A **Building** is the primary audit entity and fundamental unit of inspection.
+4. An **Inspection** is tied directly to a **Building**, executed by an authenticated **Volunteer** at a specific timestamp.
+5. A **Violation** is generated automatically whenever a building inspection score breaches minimum acceptable thresholds (< 40 points).
+6. **Scope Reduction on Rooms**: To streamline field inspections and align with municipal realities, the application workflow operates strictly at the **Building** level. Volunteers inspect buildings directly without room selection or scanning. The `Room` entity and database table are retained solely for backwards database compatibility.
 
 ---
 
 ## 5. Authoritative Compliance Scoring Engine
- 
-To eliminate subjective bias, WasteWatch evaluates room segregation using a 100-point weighted scoring model implemented in `ComplianceScoringService`:
- 
+
+To eliminate subjective bias, WasteWatch evaluates waste segregation using a 100-point weighted scoring model implemented in `ComplianceScoringService`:
+
 | Criteria | Weight | Evaluation Requirement |
 | :--- | :---: | :--- |
-| **Wet Waste Separated** | 25 pts | Biodegradable / organic waste stored exclusively in dedicated container |
-| **Dry Waste Separated** | 25 pts | Recyclable paper, plastic, metal, and glass separated from moisture |
-| **Sanitary / Reject Waste Separated** | 20 pts | Hazardous, medical, or sanitary waste wrapped and segregated |
-| **Correct Bins Used** | 15 pts | Color-coded bins compliant with local norms (e.g., Green/Wet, Blue/Dry) |
-| **Bins Clearly Labelled** | 10 pts | Legible labels or visual iconography on waste receptacles |
-| **No Mixed Contamination** | 5 pts | Zero visible cross-contamination across segregated bins |
+| **Wet Waste Separated** | 25 pts | Biodegradable organic food scraps in dedicated green bin |
+| **Dry Waste Separated** | 25 pts | Recyclable paper, plastic, metal, and glass in dedicated blue bin |
+| **Sanitary / Reject Waste Separated** | 20 pts | Hazardous, medical, or sanitary waste wrapped in dedicated red bin |
+| **Correct Bins Used** | 15 pts | Color-coded municipal standard bins present at collection point |
+| **Bins Clearly Labelled** | 10 pts | Legible signage or visual iconography on receptacles |
+| **No Mixed Contamination** | 5 pts | Zero visible co-mingling across waste streams |
 | **Total Available** | **100 pts** | Maximum Compliance Score |
- 
-### Compliance Classification Categories:
-- **80 – 100 points**: `EXCELLENT` — Full compliance; model citizen/unit.
+
+### Compliance Classification Tiers:
+- **80 – 100 points**: `EXCELLENT` — Exemplary compliance; model society.
 - **60 – 79 points**: `GOOD` — Acceptable compliance; minor improvements recommended.
-- **40 – 59 points**: `NEEDS_IMPROVEMENT` — Non-compliant in key areas; formal advisory required.
+- **40 – 59 points**: `NEEDS_IMPROVEMENT` — Non-compliant in key areas; formal advisory notice issued.
 - **0 – 39 points**: `POOR` — Severe non-compliance; automated violation flag generated.
 
-### Scoring Result & Breakdown Model:
-The scoring engine produces a structured `ComplianceResult` containing the computed total score, status tier, violation trigger, severity, and a granular `ScoreBreakdownDto` (`wetWaste`, `dryWaste`, `sanitaryWaste`, `correctBins`, `labelledBins`, `noMixedWaste`).
+### Scoring Invariant & Result Model:
+The scoring engine produces a structured `ComplianceResult` containing the computed total score, status tier, violation trigger, severity, and a granular `ScoreBreakdownDto`. No mixed waste points (+5) cannot be awarded if all waste streams fail segregation, as unsegregated waste is inherently co-mingled.
 
 ---
 
-## 6. Technology Stack & Rationale
+## 6. Volunteer Application & Governance Lifecycle
+
+Civic volunteer participation follows a structured verification lifecycle:
+
+```
+[Public User] 
+      │ 
+      ▼ Submits /register.html (POST /api/auth/register)
+[Account Created with status = PENDING]
+      │
+      ▼ Login permitted; Field audits blocked (403 Forbidden)
+[Admin Reviews Application on /admin/volunteers.html]
+      ├── Action: Approve (POST /api/volunteers/{id}/approve) ──► status = ACTIVE (Audits Enabled)
+      └── Action: Reject  (POST /api/volunteers/{id}/reject)  ──► status = REJECTED (Audits Blocked)
+```
+
+- **Verification Guard**: Volunteers in `PENDING` status see a prominent notice (*"Your account is awaiting admin verification"*) on the Field App, and submission endpoints reject audits with HTTP 403 Forbidden.
+- **Privilege Protection**: Administrative accounts cannot be modified through volunteer governance endpoints.
+
+---
+
+## 7. Technology Stack & Rationale
 
 | Layer | Selected Technology | Architectural Rationale & Constraints |
 | :--- | :--- | :--- |
-| **Frontend UI** | **HTML5, CSS3, Vanilla JavaScript (ES6+)** | **Zero UI frameworks allowed** (No React, Angular, or Vue). Delivers zero-build-step simplicity, ultra-fast load times, complete transparency, and long-term maintainability for academic evaluation and lightweight mobile deployment. |
-| **Backend Runtime** | **Java 17+ / Spring Boot 3.x** | Enterprise-grade, strongly typed, robust ecosystem with first-class REST, JPA, and security abstractions. |
-| **Web / REST** | **Spring Web (MVC REST Controllers)** | Standardized JSON RESTful API endpoints following REST best practices. |
-| **Persistence** | **Spring Data JPA / Hibernate** | Object-Relational Mapping providing clean repository interfaces and database portability. |
-| **Security** | **Spring Security** | Robust Role-Based Access Control (`ROLE_ADMIN`, `ROLE_VOLUNTEER`) and authentication. |
-| **Database** | **H2 (File-Based for Development & CEP; In-Memory for Tests)** | Lightweight, zero-external-dependency database; development records persist under `backend/data/`, while tests use an isolated in-memory database. |
-| **Build & Dependencies**| **Apache Maven** | Standardized Java dependency and lifecycle management. |
-| **Mapping (Future)** | **Leaflet.js & OpenStreetMap** | Open-source, lightweight mapping library without proprietary API key requirements. |
-| **Testing** | **JUnit 5, Mockito, Spring Boot Test**| Thorough unit and integration test coverage across service and controller layers. |
+| **Frontend UI** | **HTML5, CSS3, Vanilla JavaScript (ES6+)** | **Zero UI frameworks allowed** (No React, Angular, or Vue). Delivers zero-build-step simplicity, ultra-fast load times, complete transparency, and long-term maintainability. |
+| **Backend Runtime** | **Java 17+ / Spring Boot 3.2.5** | Enterprise-grade, strongly typed, robust ecosystem with first-class REST, JPA, and security abstractions. |
+| **Persistence** | **Spring Data JPA / Hibernate 6** | Object-Relational Mapping providing clean repository interfaces and ANSI SQL portability. |
+| **Security** | **Spring Security 6 & JJWT 0.12.5** | Stateless JWT authentication, BCrypt password hashing, and role-based access control (`ADMIN`, `VOLUNTEER`). |
+| **Database** | **H2 (File-Based for Dev; In-Memory for Tests)** | Embedded database with runtime persistence under `backend/data/wastewatchdb.mv.db`; isolated in-memory test database. |
+| **QR Code Engine** | **Google ZXing 3.5.3** | Server-side PNG byte generation and Base64 data-URL formatting. |
+| **Mapping** | **Leaflet.js & OpenStreetMap** | Open-source, lightweight mapping library without proprietary API key requirements. |
+| **Testing** | **JUnit 5, Mockito, Spring Boot Test** | Thorough unit and integration test coverage across all 14 phases (**161/161 tests passing**). |
 
 ---
 
-## 7. Important Architectural Decisions & Constraints
+## 8. Development Roadmap & Implementation Status
 
-1. **Strict Separation of Concerns**:
-   - `Frontend (Vanilla JS)` ➔ `REST API (JSON)` ➔ `Controller` ➔ `Service` ➔ `Repository` ➔ `Entity` ➔ `H2`.
-   - Business logic must reside **strictly** within the Service layer — never in Controllers or Repositories.
-2. **Database Portability**:
-   - Standard JPA mappings with generic SQL conventions. Avoid vendor-specific H2 SQL dialects so moving to PostgreSQL or MySQL requires only `pom.xml` dependency and `application.yml` updates.
-3. **No Frontend Frameworks**:
-   - Strict constraint: **Do NOT use React, Angular, Vue, or Svelte**. Frontend components will be written in standards-compliant HTML5, modular CSS3, and modern Vanilla JavaScript.
-4. **Mobile-First Volunteer Experience**:
-   - Field inspectors operate on smartphones. Volunteer workflows must be fully responsive and touch-optimized.
+### Implemented Capabilities (Phases 1–14 + Enhancements)
+1. ✅ **Building-Level Field Inspection Workflow**: Direct building selection, 6-point checklist, and live score ring.
+2. ✅ **Volunteer Self-Registration & Verification**: Public registration, `PENDING` state, and admin approve/reject actions.
+3. ✅ **Authoritative 100-Point Scoring Engine**: Null-safe weighted scoring with granular point breakdowns.
+4. ✅ **Automated Violation Generation**: Automatic ticketing on `POOR` scores (<40) with fine assessment.
+5. ✅ **Repeat Non-Compliance Detection**: Flagging entities with 3 consecutive `POOR` scores as `PERSISTENT_NON_COMPLIANCE`.
+6. ✅ **In-App Notification Engine**: Real-time alerts for critical violations, persistent non-compliance, and system alerts.
+7. ✅ **Volunteer Performance Analytics**: Leaderboard tracking audits completed, average score given, and distinct buildings inspected.
+8. ✅ **Interactive Geographic Map**: Leaflet.js compliance pins, building scorecards, hotspot rings, and unmapped drawer.
+9. ✅ **Decision Support Analytics**: Standardized Area Health Score rankings, confidence ratings, and time-series trends.
+10. ✅ **Multi-Dimensional Reporting & CSV Export**: Dynamic date bounding and streaming RFC-4180 CSV export across 7 dimensions.
+11. ✅ **Immutable Security Audit Trail**: Audit logging of logins, mutations, status changes, and resolutions.
+12. ✅ **Stateless JWT Security & RBAC**: HMAC-SHA256 tokens, BCrypt hashing, and volunteer record isolation.
+13. ✅ **Eco-Themed Field App UI**: Vector eco artwork, botanical accents, responsive stepper, and live score gauge.
+14. ✅ **Glassmorphism Municipal Admin Consoles**: Unified translucent theme across 9 admin pages with thematic environmental renders.
+15. ✅ **File-Based H2 Persistence**: Development records persist across restarts at `backend/data/wastewatchdb.mv.db`.
+16. ✅ **Automated Runtime Migration**: `@Order(1)` startup runner migrates constraints and backfills legacy data.
 
----
-
-## 8. Planned Feature Roadmap
-
-The platform architecture is designed to accommodate the following 18 future capabilities:
-
-1. **QR Code Identification**: Scan QR badges affixed at room/flat entryways to directly load the inspection form.
-2. **Mobile-First Volunteer UI**: Fast, touch-friendly, offline-resilient inspection forms.
-3. **Photo & Evidence Upload**: Attach visual verification to audits and violation reports.
-4. **Dynamic Compliance Scoring**: Automated computation using the 100-point algorithm.
-5. **Area Health Index**: Aggregated compliance metric reflecting regional hygiene levels.
-6. **Inspection Coverage Analytics**: Percentage of registered rooms audited within a 30-day window.
-7. **Repeat Violation Detection**: Automated flagging of entities with consecutive low scores.
-8. **Violation Resolution Workflow**: Status tracking (`OPEN`, `NOTIFIED`, `ESCALATED`, `RESOLVED`).
-9. **Notification System**: In-app and simulated alerts for scheduled audits and violations.
-10. **Volunteer Performance Analytics**: Leaderboard tracking audits completed, accuracy, and active hours.
-11. **Interactive Geographic Map**: Leaflet.js-powered visual mapping of audited buildings.
-12. **Heatmap & Hotspot Analysis**: Density visualization of non-compliant zones.
-13. **Inspection Scheduling**: Task assignment by admins to specific volunteers.
-14. **Compliance & Audit Reports**: PDF/CSV exportable compliance audits.
-15. **System Audit Logs**: Immutable log tracking user actions and critical entity modifications.
-16. **Fine-Grained Role-Based Access Control**: Secure token-based authorization.
-17. **Production Database Migration**: Frictionless deployment with PostgreSQL.
-18. **Multi-Tenant / SaaS Expansion**: Future support for multiple municipalities/universities.
+### Future Planned Capabilities
+1. 🔮 **IoT Smart Bin Sensor Integration**: Hardware ultrasonic fill-level and gas sensor telemetry.
+2. 🔮 **AI Camera Waste Classification**: On-device computer vision classification of waste photos.
+3. 🔮 **SMS & WhatsApp Gateway Notifications**: Out-of-band alerts to housing society chairpersons.
+4. 🔮 **Multi-Tenant SaaS Partitioning**: Multi-city tenancy with isolated municipal schemas.
 
 ---
 
-## 9. Current Status: Phase 14 — Reporting and Governance & Final Hardening (COMPLETED)
+## 9. Development Demo Accounts
 
-As of the completion of Phases 1 through 14:
-- **Phase 1**: Architectural blueprint and documentation foundation established.
-- **Phase 2**: Spring Boot 3.2.5 backend foundation initialized with H2 database, Maven wrapper, global exception handling, and `/api/health`.
-- **Phase 3**: Relational domain entities (`AppUser`, `Area`, `Building`, `Room`, `Inspection`, `Violation`, `Notification`, `AuditLog`), enums, and JPA repositories implemented with automated dev seed data.
-- **Phase 4**: Spring Security with stateless JWT authentication, BCrypt password hashing, role-based authorization (`ADMIN`, `VOLUNTEER`), `/api/auth/login`, and `/api/auth/me`.
-- **Phase 5**: Full RESTful infrastructure management APIs implemented for `Area`, `Building`, and `Room`.
-- **Phase 6**: Volunteer inspection submission with duplicate cooldown (30s) and anti-impersonation rules.
-- **Phase 7**: Authoritative 100-point compliance scoring service (`ComplianceScoringService`) with granular point breakdown (`ScoreBreakdownDto`), null-safe evaluation, and full unit test coverage.
-- **Phase 8**: Framework-free Vanilla JS/HTML5/CSS3 frontend architecture, design token system, and login flow.
-- **Phase 9**: Full Admin & Volunteer views suite (Dashboard, Areas, Inspections, Violations, Volunteers, Map, Field Inspector, History).
-- **Phase 10**: Analytics and decision support engine (Area Health Score formula, confidence ratings, trends, improvements, hotspots).
-- **Phase 11**: Leaflet.js interactive geographic map with CartoDB dark tiles and live geo-markers.
-- **Phase 12**: QR code workflow with safe room metadata endpoint and camera/manual scanner fallback.
-- **Phase 13**: Automated violation generation, repeat non-compliance detection (3 consecutive poor audits), and in-app notifications.
-- **Phase 14**: Volunteer governance with privilege escalation defense, multi-dimensional reporting, streaming RFC-4180 CSV export, and immutable security audit logs.
-- **Final Hardening**: Full workflow verification, zero framework debt, hardened security, 95/95 passing automated tests, and verified production JAR build.
-- **Development Test Accounts**:
-  - Administrator: `admin` / `admin123` (`admin@wastewatch.gov`)
-  - Volunteer #1: `volunteer` / `volunteer123` (`volunteer@wastewatch.gov`)
-  - Volunteer #2: `volunteer2` / `volunteer123` (`volunteer2@wastewatch.gov`)
+| Role | Username | Password | Email | Status | Access Scope |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Administrator** | `admin` | `admin123` | `admin@wastewatch.org` | `ACTIVE` | Complete municipal administrative consoles, reports, audit logs, violations |
+| **Field Volunteer** | `volunteer` | `volunteer123` | `volunteer@wastewatch.org` | `ACTIVE` | Building inspections, live score ring, personal audit history |
+| **Field Volunteer #2** | `volunteer_priya` | `volunteer123` | `priya.sharma@wastewatch.org` | `ACTIVE` | Secondary auditor for multi-user compliance tracking |
+| **Field Volunteer #3** | `volunteer_rohan` | `volunteer123` | `rohan.mehta@wastewatch.org` | `INACTIVE` | Inactive auditor account demonstrating governance state |

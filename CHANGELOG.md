@@ -4,6 +4,75 @@ All notable changes to the WasteWatch project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning where applicable.
 
+## [Admin Glassmorphism Theme & Unified Consoles] — 2026-10-29
+
+### Added & Polished
+- **Unified Dark Glassmorphism Design System (`frontend/css/admin-theme.css`)**:
+  - Implemented cohesive CSS styling across all 9 administrative consoles (`dashboard.html`, `areas.html`, `inspections.html`, `violations.html`, `volunteers.html`, `map.html`, `analytics.html`, `reports.html`, `audit-logs.html`).
+  - Frosted glass cards (`.glass-card`, `.panel`), translucent backdrop-filter blurs, elevated navigation sidebars, and accent glows (`#10b981`, `#0ea5e9`, `#f59e0b`, `#ef4444`).
+- **Scenic Dashboard Background Renders (`frontend/assets/backgrounds/`)**:
+  - Added 9 high-resolution scenic backgrounds in modern WebP format with fallback PNG support:
+    - `dashboard-bg.webp`: Civic control center landscape
+    - `areas-bg.webp`: Urban wards and architectural grid
+    - `inspections-bg.webp`: Field verification perspective
+    - `violations-bg.webp`: Compliance monitoring overview
+    - `volunteers-bg.webp`: Community steward network
+    - `map-bg.webp`: Topographical spatial intelligence
+    - `analytics-bg.webp`: Data visualization backdrop
+    - `reports-bg.webp`: Governance and audit overview
+    - `audit-logs-bg.webp`: Security trail matrix
+- **Lucide Icon Integration & Navigation**:
+  - Embedded local production bundle `frontend/js/lucide.min.js` with zero external CDN dependency.
+  - Sidebar utility (`frontend/js/utils/sidebar.js`) renders crisp SVG icons for both desktop navigation and responsive mobile drawers.
+
+---
+
+## [Volunteer Field App Redesign: Eco-Themed Inspection & History] — 2026-10-28
+
+### Added & Redesigned
+- **Eco-Civic Field Experience (`frontend/css/volunteer-inspect.css`)**:
+  - Introduced clean nature-inspired palette with forest greens, sage borders, and botanical SVG accents (`frontend/assets/illustrations/sidebar-leaves.svg`, `frontend/assets/illustrations/inspect-bg-scene.svg`).
+- **Streamlined 3-Step Building Inspection Flow (`frontend/volunteer/inspect.html`)**:
+  - **Step 1: Building Selection**: Fast building search by name or code, real-time dropdown filtering, and quick-select facility chips.
+  - **Step 2: Segregation Audit & Live Dial**: 6 weighted segregation toggles with dynamic SVG radial score ring dial providing instant score calculation (0–100) and tier feedback (`EXCELLENT`, `GOOD`, `NEEDS_IMPROVEMENT`, `POOR`).
+  - **Step 3: Review & Submission**: Summary card with audit review, evidence image URL field, inspector notes, and 30-second double-submission cooldown protection.
+- **Volunteer Audit History (`frontend/volunteer/history.html`)**:
+  - Personal audit history display with compliance badges, building information, and client-side CSV and PDF export.
+
+---
+
+## [Volunteer Self-Registration & Administrative Verification] — 2026-10-27
+
+### Added & Verified
+- **Public Volunteer Registration (`frontend/register.html`)**:
+  - Responsive onboarding form collecting username, password, full name, email, phone number, city, state, full residential address, and motivation/reason for joining.
+  - Client-side form validation and instant redirect upon successful registration.
+- **Authentication & Lifecycle Control**:
+  - Added `PENDING` and `REJECTED` user statuses to `UserStatus` enum alongside `ACTIVE` and `INACTIVE`.
+  - Endpoint `POST /api/auth/register` creates accounts with `ROLE_VOLUNTEER` and `PENDING` status.
+  - Updated `CustomUserDetailsService` to prevent unapproved volunteers from logging in (`401 Unauthorized` with "Account is pending administrator approval" or "Account has been rejected").
+- **Admin Verification Console (`frontend/admin/volunteers.html`)**:
+  - Visual warning banners for unverified volunteer applicants awaiting review.
+  - Action buttons to Approve (`POST /api/volunteers/{id}/approve`) or Reject (`POST /api/volunteers/{id}/reject`) applicants.
+- **Dynamic Startup Database Migration (`DatabaseMigration.java`)**:
+  - Added `@Order(1) CommandLineRunner` executing native SQL on startup to safely alter H2 database check constraints on `APP_USERS.STATUS` to accommodate `PENDING` and `REJECTED` without losing existing data.
+- **Automated Tests**:
+  - Added `VolunteerRegistrationWorkflowTest` and `BackendBugFixesTest` verifying self-registration, pending login prevention, approval/rejection lifecycle, and H2 migration safety.
+
+---
+
+## [Branding, Civic-Tech Stickers & Static Server Routing] — 2026-10-27
+
+### Added
+- **UI Intro Splash Modal (`frontend/index.html`)**:
+  - Welcome intro overlay explaining WasteWatch's civic mission, role-based workflows, and quick login links.
+- **Civic-Tech Sticker Assets (`frontend/assets/branding/`)**:
+  - Vector-to-raster script `convert-stickers.js` generating transparent PNG badge assets (`sticker-recycle.png`, `sticker-shield.png`, `sticker-trophy.png`, `sticker-bot.png`, `sticker-map.png`, `sticker-leaf.png`).
+- **Static Hosting Configuration (`frontend/serve.json`)**:
+  - Configured clean URLs, rewrites, and CORS headers for zero-build static hosting.
+
+---
+
 ## [Architectural Scope Reduction: Building-Level Inspection Scope] — 2026-10-27
 
 ### Changed & Scope Reduced
