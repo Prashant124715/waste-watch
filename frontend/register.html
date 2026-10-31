@@ -13,30 +13,179 @@
   <style>
     body {
       min-height: 100vh;
+      margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(180deg, #FFF9F5 0%, #F8FAF8 100%);
-      padding: var(--space-6) var(--space-4);
+      background: #FDF6EC;
+      padding: 40px 16px;
       color: var(--text-primary);
       box-sizing: border-box;
+      position: relative;
       overflow-x: hidden;
+    }
+
+    /* ── Decorative Eco-Themed Background Elements (Matching Login) ── */
+    .register-page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Bottom green rolling hills */
+    .bg-hill {
+      position: absolute;
+      bottom: 0;
+      left: -5%;
+      width: 110%;
+      height: 28%;
+      background: #1B5E20;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      z-index: 1;
+    }
+
+    .bg-hill-inner {
+      position: absolute;
+      bottom: 0;
+      left: -5%;
+      width: 110%;
+      height: 22%;
+      background: #2E7D32;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      z-index: 2;
+    }
+
+    /* Decorative stickers around the page */
+    .deco-sticker {
+      position: absolute;
+      z-index: 3;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.16));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+      pointer-events: auto;
+      user-select: none;
+    }
+
+    .deco-sticker:hover {
+      transform: scale(1.1) rotate(-3deg);
+      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.24));
+    }
+
+    /* Dustbin at bottom-left sitting on hill */
+    .deco-dustbin {
+      left: 2%;
+      bottom: 3%;
+      width: 220px;
+      height: 220px;
+      animation: decoFloat1 4.5s ease-in-out infinite alternate;
+    }
+
+    /* Garbage truck at bottom-right sitting on hill */
+    .deco-truck {
+      right: 2%;
+      bottom: 3%;
+      width: 250px;
+      height: 250px;
+      animation: decoFloat2 4.2s ease-in-out infinite alternate;
+    }
+
+    /* Earth sticker at top-right */
+    .deco-earth {
+      right: 3%;
+      top: 3%;
+      width: 160px;
+      height: 160px;
+      animation: decoFloat3 5s ease-in-out infinite alternate;
+    }
+
+    /* Recycle arrows sticker at top-left */
+    .deco-recycle-arrows {
+      left: 3%;
+      top: 3%;
+      width: 145px;
+      height: 145px;
+      animation: decoFloat1 4.8s ease-in-out infinite alternate-reverse;
+    }
+
+    /* Plant seedling sticker */
+    .deco-plant {
+      left: 4%;
+      top: 48%;
+      width: 90px;
+      height: 90px;
+      animation: decoFloat2 3.8s ease-in-out infinite alternate;
+    }
+
+    /* Inspector worker sticker */
+    .deco-worker {
+      right: 4%;
+      top: 42%;
+      width: 130px;
+      height: 165px;
+      animation: decoFloat3 4.2s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes decoFloat1 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      100% {
+        transform: translateY(-12px) rotate(3deg);
+      }
+    }
+
+    @keyframes decoFloat2 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      100% {
+        transform: translateY(-10px) rotate(-2deg);
+      }
+    }
+
+    @keyframes decoFloat3 {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      100% {
+        transform: translateY(-8px) rotate(2deg);
+      }
     }
 
     .register-container {
       width: 100%;
       max-width: 640px;
       position: relative;
-      z-index: 1;
+      z-index: 10;
+      animation: registerCardFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+    }
+
+    @keyframes registerCardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     .register-card {
-      background: #FFFFFF;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 36px 36px;
-      box-shadow: 0 10px 30px rgba(28, 37, 33, 0.08), 0 1px 3px rgba(28, 37, 33, 0.04);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      border-radius: 24px;
+      padding: 38px 36px;
+      box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.12),
+        0 8px 24px rgba(27, 94, 32, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
       box-sizing: border-box;
+      position: relative;
     }
 
     .register-header {
@@ -348,13 +497,69 @@
       text-decoration: underline;
     }
 
-    @media (max-width: 640px) {
+    /* ══════════════════════════════════════════
+       RESPONSIVE ADJUSTMENTS
+    ══════════════════════════════════════════ */
+    @media (max-width: 1350px) {
+      .deco-plant,
+      .deco-worker {
+        display: none;
+      }
+      .deco-dustbin {
+        width: 180px;
+        height: 180px;
+      }
+      .deco-truck {
+        width: 200px;
+        height: 200px;
+      }
+      .deco-earth,
+      .deco-recycle-arrows {
+        width: 125px;
+        height: 125px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .deco-dustbin {
+        width: 130px;
+        height: 130px;
+        left: 1%;
+        bottom: 2%;
+      }
+      .deco-truck {
+        width: 140px;
+        height: 140px;
+        right: 1%;
+        bottom: 2%;
+      }
+      .deco-earth {
+        width: 100px;
+        height: 100px;
+        right: 2%;
+        top: 2%;
+      }
+      .deco-recycle-arrows {
+        width: 95px;
+        height: 95px;
+        left: 2%;
+        top: 2%;
+      }
+      .bg-hill {
+        height: 22%;
+      }
+      .bg-hill-inner {
+        height: 17%;
+      }
+    }
+
+    @media (max-width: 768px) {
       body {
-        padding: var(--space-4) var(--space-3);
+        padding: 24px 14px;
       }
       .register-card {
-        padding: 24px 18px;
-        border-radius: var(--radius-lg);
+        padding: 28px 20px;
+        border-radius: 20px;
       }
       .form-grid {
         grid-template-columns: 1fr;
@@ -364,12 +569,82 @@
         grid-column: auto;
       }
       .register-title {
-        font-size: 1.4rem;
+        font-size: 1.45rem;
+      }
+      .deco-dustbin {
+        width: 90px;
+        height: 90px;
+        left: -8px;
+        bottom: 6px;
+        opacity: 0.85;
+      }
+      .deco-truck {
+        width: 100px;
+        height: 100px;
+        right: -8px;
+        bottom: 6px;
+        opacity: 0.85;
+      }
+      .deco-earth {
+        width: 75px;
+        height: 75px;
+        right: 6px;
+        top: 6px;
+      }
+      .deco-recycle-arrows {
+        width: 70px;
+        height: 70px;
+        left: 6px;
+        top: 6px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 16px 10px;
+      }
+      .register-card {
+        padding: 22px 14px;
+        border-radius: 18px;
+      }
+      .register-title {
+        font-size: 1.35rem;
+      }
+      .deco-earth,
+      .deco-recycle-arrows,
+      .deco-plant,
+      .deco-worker {
+        display: none;
+      }
+      .deco-dustbin,
+      .deco-truck {
+        display: none;
+      }
+      .bg-hill {
+        height: 18%;
+      }
+      .bg-hill-inner {
+        height: 13%;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Decorative Eco-Themed Background Elements (Matching Login Page) -->
+  <div class="register-page-bg" aria-hidden="true">
+    <!-- Rolling green hills at the bottom -->
+    <div class="bg-hill"></div>
+    <div class="bg-hill-inner"></div>
+
+    <!-- Decorative waste-management themed stickers (transparent PNGs) -->
+    <img src="./assets/sticker-dustbin.png" alt="" class="deco-sticker deco-dustbin" />
+    <img src="./assets/sticker-truck.png" alt="" class="deco-sticker deco-truck" />
+    <img src="./assets/sticker-earth.png" alt="" class="deco-sticker deco-earth" />
+    <img src="./assets/sticker-recycle-arrows.png" alt="" class="deco-sticker deco-recycle-arrows" />
+    <img src="./assets/sticker-plant.png" alt="" class="deco-sticker deco-plant" />
+    <img src="./assets/sticker-worker.png" alt="" class="deco-sticker deco-worker" />
+  </div>
+
   <div class="register-container">
     <div class="register-card">
       <div id="form-container">
