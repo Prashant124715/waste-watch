@@ -53,7 +53,7 @@ public class BuildingService {
             return getAllBuildings();
         }
         String q = query.trim();
-        return buildingRepository.findByNameContainingIgnoreCaseOrBuildingCodeContainingIgnoreCase(q, q).stream()
+        return buildingRepository.searchByAllFields(q).stream()
                 .map(BuildingResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }

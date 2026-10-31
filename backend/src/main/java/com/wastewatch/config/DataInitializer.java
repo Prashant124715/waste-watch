@@ -49,13 +49,18 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.count() > 0) {
-            log.info("Database already seeded. Skipping initial data creation.");
-            return;
+        if (userRepository.count() == 0) {
+            log.info("Starting WasteWatch development database seeding...");
+            seedCoreData();
+        } else {
+            log.info("Database users already seeded. Checking for missing sample buildings...");
         }
 
-        log.info("Starting WasteWatch development database seeding...");
+        // Always ensure all 25 sample buildings exist across Metro City wards and sectors
+        seedExpandedSampleBuildings();
+    }
 
+    private void seedCoreData() {
         // =====================================================================
         // 1. SEED USERS
         // =====================================================================
@@ -435,5 +440,76 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Seeded 6 governance audit trail logs");
         log.info("WasteWatch seed data initialization completed successfully.");
+    }
+
+    private void seedExpandedSampleBuildings() {
+        // Ensure all 7 geographic areas exist across Metro City wards
+        Area northArea     = getOrCreateArea("ZONE-NORTH-01",     "North Ward",              "Metro City", "400001", "Residential & Commercial sector with active green initiatives");
+        Area southArea     = getOrCreateArea("ZONE-SOUTH-02",     "South Ward",              "Metro City", "400022", "High-density urban residential corridor");
+        Area centralArea   = getOrCreateArea("ZONE-CENTRAL-03",   "Central Business District","Metro City", "400051", "Commercial towers, corporate campuses, and transit hub");
+        Area eastArea      = getOrCreateArea("ZONE-EAST-04",      "East Ward",               "Metro City", "400077", "Suburban residential and educational cluster");
+        Area westArea      = getOrCreateArea("ZONE-WEST-05",      "West Ward",               "Metro City", "400053", "Coastal mixed-use residential and commercial zone");
+        Area northEastArea = getOrCreateArea("ZONE-NORTHEAST-06", "North-East Ward",         "Metro City", "400063", "Lakeside mixed residential zone");
+        Area southEastArea = getOrCreateArea("ZONE-SOUTHEAST-07", "South-East Ward",         "Metro City", "400068", "Heritage and business corridor");
+
+        // 1. North Ward (5 buildings — Sectors 14-17)
+        createBuildingIfMissing(northArea, "BLD-NW-101", "Green Valley Heights",    "12 Forest Hill Road, Sector 14",     new BigDecimal("19.07600000"), new BigDecimal("72.87770000"), BuildingType.RESIDENTIAL, 5);
+        createBuildingIfMissing(northArea, "BLD-NW-102", "Eco Tech Park",           "45 Industrial Avenue, Sector 14",    new BigDecimal("19.08000000"), new BigDecimal("72.88000000"), BuildingType.COMMERCIAL,  8);
+        createBuildingIfMissing(northArea, "BLD-NW-103", "Harmony Residency",       "24 Gulmohar Lane, Sector 15",        new BigDecimal("19.07850000"), new BigDecimal("72.87450000"), BuildingType.RESIDENTIAL, 7);
+        createBuildingIfMissing(northArea, "BLD-NW-104", "Silver Oak Apartments",   "88 Palm Grove Path, Sector 16",      new BigDecimal("19.08200000"), new BigDecimal("72.87100000"), BuildingType.RESIDENTIAL, 6);
+        createBuildingIfMissing(northArea, "BLD-NW-105", "Royal Palm Heights",      "102 Sunrise Marg, Sector 17",        new BigDecimal("19.08450000"), new BigDecimal("72.87950000"), BuildingType.RESIDENTIAL, 9);
+
+        // 2. South Ward (5 buildings — Sectors 22-26)
+        createBuildingIfMissing(southArea, "BLD-SW-201", "Sunrise Residency",            "89 Marine View Boulevard, Sector 22", new BigDecimal("18.99000000"), new BigDecimal("72.82000000"), BuildingType.RESIDENTIAL, 10);
+        createBuildingIfMissing(southArea, "BLD-SW-202", "Ocean View Towers",            "14 Coastal Promenade, Sector 23",     new BigDecimal("18.99400000"), new BigDecimal("72.81800000"), BuildingType.RESIDENTIAL, 12);
+        createBuildingIfMissing(southArea, "BLD-SW-203", "Green Meadows CHS",            "56 Sea Breeze Road, Sector 24",       new BigDecimal("18.98750000"), new BigDecimal("72.82250000"), BuildingType.RESIDENTIAL, 14);
+        createBuildingIfMissing(southArea, "BLD-SW-204", "Lotus Enclave",                "73 Harbor Link Road, Sector 25",      new BigDecimal("18.99200000"), new BigDecimal("72.82700000"), BuildingType.RESIDENTIAL, 11);
+        createBuildingIfMissing(southArea, "BLD-SW-205", "Crystal Garden Apartments",    "31 Sunset Avenue, Sector 26",         new BigDecimal("18.99600000"), new BigDecimal("72.82100000"), BuildingType.RESIDENTIAL,  8);
+
+        // 3. Central Business District (5 buildings)
+        createBuildingIfMissing(centralArea, "BLD-CD-301", "Apex Metro Tower",           "100 Financial Center Drive, CBD",     new BigDecimal("19.01500000"), new BigDecimal("72.85500000"), BuildingType.COMMERCIAL, 12);
+        createBuildingIfMissing(centralArea, "BLD-CD-302", "Skyline Business Centre",    "210 Silicon Corridor, CBD",           new BigDecimal("19.01800000"), new BigDecimal("72.85900000"), BuildingType.COMMERCIAL, 15);
+        createBuildingIfMissing(centralArea, "BLD-CD-303", "Unity Corporate Plaza",      "45 Republic Way, CBD",                new BigDecimal("19.01250000"), new BigDecimal("72.85200000"), BuildingType.COMMERCIAL,  9);
+        createBuildingIfMissing(centralArea, "BLD-CD-304", "Metro Square Complex",       "12 Station Road, CBD",                new BigDecimal("19.01650000"), new BigDecimal("72.85400000"), BuildingType.MIXED,        7);
+        createBuildingIfMissing(centralArea, "BLD-CD-305", "Sunrise Commercial Hub",     "88 Bank Square, CBD",                 new BigDecimal("19.01950000"), new BigDecimal("72.85750000"), BuildingType.COMMERCIAL, 18);
+
+        // 4. East Ward (5 buildings — Sectors 31-35)
+        createBuildingIfMissing(eastArea, "BLD-ET-401", "Green Horizon Towers",     "17 Park View Road, Sector 31",        new BigDecimal("19.05500000"), new BigDecimal("72.90100000"), BuildingType.RESIDENTIAL, 6);
+        createBuildingIfMissing(eastArea, "BLD-ET-402", "Bluebell Residency",       "34 Lakeview Crescent, Sector 32",     new BigDecimal("19.05800000"), new BigDecimal("72.90500000"), BuildingType.RESIDENTIAL, 8);
+        createBuildingIfMissing(eastArea, "BLD-ET-403", "Orchid Paradise CHS",      "52 Greenfield Avenue, Sector 33",     new BigDecimal("19.05250000"), new BigDecimal("72.89800000"), BuildingType.RESIDENTIAL, 5);
+        createBuildingIfMissing(eastArea, "BLD-ET-404", "Riverfront Apartments",    "90 Eastern Express Way, Sector 34",   new BigDecimal("19.06000000"), new BigDecimal("72.90800000"), BuildingType.RESIDENTIAL, 7);
+        createBuildingIfMissing(eastArea, "BLD-ET-405", "Maple Leaf Residency",     "11 Temple Road, Sector 35",           new BigDecimal("19.05650000"), new BigDecimal("72.90350000"), BuildingType.RESIDENTIAL, 6);
+
+        // 5. West Ward (5 buildings — Sectors 41-45)
+        createBuildingIfMissing(westArea, "BLD-WT-501", "Sunshine Towers",          "28 Palm Beach Road, Sector 41",      new BigDecimal("19.11500000"), new BigDecimal("72.83500000"), BuildingType.RESIDENTIAL, 11);
+        createBuildingIfMissing(westArea, "BLD-WT-502", "Parkside Residency",       "63 Wave Crest Lane, Sector 42",      new BigDecimal("19.11800000"), new BigDecimal("72.83200000"), BuildingType.RESIDENTIAL,  9);
+        createBuildingIfMissing(westArea, "BLD-WT-503", "Emerald Heights",          "41 Ocean Drive, Sector 43",          new BigDecimal("19.11200000"), new BigDecimal("72.83800000"), BuildingType.RESIDENTIAL, 10);
+        createBuildingIfMissing(westArea, "BLD-WT-504", "Royal Garden CHS",         "15 Western Boulevard, Sector 44",    new BigDecimal("19.12050000"), new BigDecimal("72.83400000"), BuildingType.RESIDENTIAL,  8);
+        createBuildingIfMissing(westArea, "BLD-WT-505", "Green Earth Apartments",   "77 Golden Sand Marg, Sector 45",     new BigDecimal("19.11650000"), new BigDecimal("72.83650000"), BuildingType.RESIDENTIAL,  7);
+
+        // 6. North-East Ward (3 buildings — Sectors 51-53)
+        createBuildingIfMissing(northEastArea, "BLD-NE-601", "Pearl Residency",      "22 Lakefront Drive, Sector 51",     new BigDecimal("19.09200000"), new BigDecimal("72.91500000"), BuildingType.RESIDENTIAL,  8);
+        createBuildingIfMissing(northEastArea, "BLD-NE-602", "Lakeview Apartments",  "47 Reservoir Road, Sector 52",      new BigDecimal("19.09550000"), new BigDecimal("72.91900000"), BuildingType.RESIDENTIAL, 10);
+        createBuildingIfMissing(northEastArea, "BLD-NE-603", "Shree Ganesh CHS",     "15 Temple Street, Sector 53",       new BigDecimal("19.09800000"), new BigDecimal("72.92200000"), BuildingType.RESIDENTIAL,  6);
+
+        // 7. South-East Ward (2 buildings — Sectors 61-62)
+        createBuildingIfMissing(southEastArea, "BLD-SE-701", "Palm Grove Residency", "38 Heritage Lane, Sector 61",       new BigDecimal("18.97500000"), new BigDecimal("72.88000000"), BuildingType.RESIDENTIAL,  9);
+        createBuildingIfMissing(southEastArea, "BLD-SE-702", "Harmony Business Park","12 Commerce Road, Sector 62",        new BigDecimal("18.97900000"), new BigDecimal("72.88400000"), BuildingType.COMMERCIAL,  11);
+
+        log.info("Verified all 30 sample building records across 7 Metro City wards and sectors.");
+    }
+
+    private Area getOrCreateArea(String areaCode, String name, String city, String pincode, String description) {
+        return areaRepository.findByAreaCode(areaCode).orElseGet(() -> {
+            Area area = new Area(areaCode, name, city, pincode, description);
+            return areaRepository.save(area);
+        });
+    }
+
+    private Building createBuildingIfMissing(Area area, String buildingCode, String name, String address, BigDecimal lat, BigDecimal lng, BuildingType type, int floors) {
+        return buildingRepository.findByBuildingCode(buildingCode).orElseGet(() -> {
+            Building b = new Building(area, buildingCode, name, address, lat, lng, type, floors);
+            return buildingRepository.save(b);
+        });
     }
 }
